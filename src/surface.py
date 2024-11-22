@@ -1,8 +1,6 @@
 import numpy as np
-# import torch
 from scipy.spatial import cKDTree
 from scipy import interpolate
-import math
 from math import pi
 
 class surface_normal:
