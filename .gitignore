@@ -25,9 +25,7 @@ npzData/
 plot/
 cppTest/
 cppTest/*
-src/__pycache__/*
-__pycache__/*
-__pycache__/depoSimulator.cpython-311.pyc
+__pycache__/
 *.pyc
 *.cpython-*.pyc
 *.drawio
