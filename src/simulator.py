@@ -1,65 +1,13 @@
 import numpy as np
-# import cupy as cp
 from scipy.spatial import cKDTree
-# from scipy.spatial import KDTree
 from pykdtree.kdtree import KDTree
 import time as Time
 from tqdm import tqdm
 import logging
-# from Collision import transport
 from .surface import surface_normal
 from numba import jit, prange
-# from boundary import boundary
-# import torch
-from scipy import interpolate
-
 import src.sputter_angle_dist as sp_angle
 
-#solid = film[i, j, k, 10][Si, SiF1, SiF2, SiF3, SiO SiO2, SiOF, SiOF2, SiO2F, SiO2F2]
-#react_t g[Cu] s  [1,         2]
-#react_t g[Cu] s  [Cu,       Si]
-
-# react_table = np.array([[[0.700, 0, 1], [0.300, 0, 1]],
-#                         [[0.800, -1, 0], [0.075, 0, -1]]])
-
-#solid = film[i, j, k, 10][Si, SiF1, SiF2, SiF3, C4F8]
-#react_t g[F, c4f8, ion] s  [1,          2,           3,          4,       5 ]
-#react_t g[F, c4f8, ion] s  [Si,       SiF1,       SiF2,       SiF3,     C4F8]
-
-# react_table3 = np.array([[[0.5, 2], [0.5, 3], [0.5, 4], [0.5, -4], [0.0, 0]],
-#                          [[0.5, 5], [0.0, 0], [0.0, 0], [0.0,  0], [0.5, 5]],
-#                          [[0.27, -1], [0.27, -2], [0.27, -3], [0.27, -4], [0.27, -5]]])
-
-
-# # print(react_table3.shape)
-
-#solid = film[i, j, k, 2][Si, C4F8, mask]
-#react_t g[F, c4f8, ion] s  [1,    2 , 3]
-#react_t g[F, c4f8, ion] s  [Si, C4F8, mask]
-
-# react_table = np.array([[[0.200, -1, 0], [0.0  , 0,  0]],
-#                         [[0.800,  -1, 1], [0.0, 0,  0]],
-#                         [[0.1 ,  -1, 0], [0.9  , 0, -1]]])
-
-# react_table = np.array([[[0.1, -1, 0, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
-#                         [[0.8, -1, 1, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
-#                         [[1.0,  0, 0, 0], [1.0, 0, -2, 0], [1.0, 0, 0, 0]]])
-
-# # react_table[0, 3, 4] = -2
-# # etching act on film, depo need output
-
-# # react_type
-# #       Si c4f8 mask
-# # sf   ([[KD, x, x],
-# # c4f8   [+,  x, x],
-# # Ar     [+, KD, +]])
-
-# react_type_table = np.array([[2, 0, 0],
-#                            [1, 0, 0],
-#                            [4, 3, 1]])
-
-# react_table = np.array([[[1.0, 0, 1], [1.0, 0, 1]],
-#                         [[1.00, -1, 0], [1.00, 0, -1]]])
 
 react_table = np.array([[[0.0, 0, 1], [0.0, 0, 1]],
                         [[0.0, -1, 0], [1.0, 0, -1]]])
@@ -67,54 +15,6 @@ react_table = np.array([[[0.0, 0, 1], [0.0, 0, 1]],
 react_type_table = np.array([[2, 0],
                              [3, 0]])
 
-
-# @jit(nopython=True, parallel=True)
-# def reaction_yield(parcel, film, theta):
-#     num_parcels = parcel.shape[0]
-#     num_reactions = react_table.shape[1]
-#     choice = np.random.rand(num_parcels, num_reactions)
-#     reactList = np.ones(num_parcels, dtype=np.int_) * -1
-
-#     # 手动循环替代布尔索引
-#     for i in prange(film.shape[0]):
-#         for j in prange(film.shape[1]):
-#             if film[i, j] <= 0:
-#                 choice[i, j] = 1
-
-#     depo_parcel = np.zeros(parcel.shape[0])
-
-#     for i in prange(parcel.shape[0]):
-#         acceptList = np.zeros(num_reactions, dtype=np.bool_)
-#         for j in prange(film.shape[1]):
-#             react_rate = react_table[int(parcel[i, -1]), j, 0]
-#             if react_rate > choice[i, j]:
-#                 acceptList[j] = True
-
-#         react_choice_indices = np.where(acceptList)[0]
-#         if react_choice_indices.size > 0:
-#             react_choice = react_choice_indices[np.random.randint(react_choice_indices.size)]
-#             reactList[i] = react_choice
-#             react_type = react_type_table[int(parcel[i, -1]), react_choice]
-
-#             if react_type == 2: # kdtree Si-SF
-#                 depo_parcel[i] = 2
-#             elif react_type == 3: # kdtree Ar-c4f8
-#                 depo_parcel[i] = 3
-#             elif react_type == 1: # +
-#                 depo_parcel[i] = 1
-#             elif react_type == 4: # Ar - Si
-#                 depo_parcel[i] = 4
-#             elif react_type == 0:  # no reaction
-#                 depo_parcel[i] = 0
-
-#     for i in prange(parcel.shape[0]):
-#         if depo_parcel[i] == 1:
-#             film[i, :] += react_table[int(parcel[i, -1]), int(reactList[i]), 1:]
-
-#         if reactList[i] == -1:
-#             parcel[i, 3:6] = SpecularReflect(parcel[i, 3:6], theta[i])
-
-#     return film, parcel, reactList, depo_parcel
 
 def Rn_coeffcient(c1, c2, c3, c4, alpha):
     return c1 + c2*np.tanh(c3*alpha - c4)

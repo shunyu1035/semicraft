@@ -29,33 +29,6 @@ class surface_normal:
         self.yield_func = interpolate.interp1d(self.yield_hist[1], self.yield_hist[0], kind='quadratic')
 
 
-    
-    # def scanZ(self, film): # fast scanZ
-    #     film = torch.Tensor(film)
-
-    #     # 初始化一个全零的表面稀疏张量
-    #     surface_sparse_depo = torch.zeros_like(film)
-
-    #     # depo
-    #     current_plane_depo = film >= self.filmDensity - 1 # 9
-    #     # 获取周围邻居的布尔索引
-    #     neighbors_depo = torch.zeros_like(film, dtype=torch.bool)
-        
-    #     neighbors_depo[1:, :, :] |= film[:-1, :, :] <= 1  # 上面
-    #     neighbors_depo[:-1, :, :] |= film[1:, :, :] <= 1  # 下面
-    #     neighbors_depo[:, 1:, :] |= film[:, :-1, :] <= 1  # 左边
-    #     neighbors_depo[:, :-1, :] |= film[:, 1:, :] <= 1  # 右边
-    #     neighbors_depo[:, :, 1:] |= film[:, :, :-1] <= 1  # 前面
-    #     neighbors_depo[:, :, :-1] |= film[:, :, 1:] <= 1  # 后面
-
-    #     # 获取满足条件的索引
-    #     condition_depo = current_plane_depo & neighbors_depo
-
-    #     # 更新表面稀疏张量
-    #     surface_sparse_depo[condition_depo] = 1
-
-    #     return surface_sparse_depo.to_sparse()
-      
     def scanZ_numpy(self,film):
         # 初始化一个全零的表面数组
         surface_sparse_depo = np.zeros_like(film)
