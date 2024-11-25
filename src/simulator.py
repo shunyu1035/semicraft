@@ -101,19 +101,34 @@ def SpecularReflect(vel, normal):
 #         # UN[i] = U
 #     return UN
 
-# def angle_to_vel(vel, normal):
-#     vels = np.zeros_like(vel)
-#     for i in range(vels.shape[0]):
-#         R, theta, phi = sp_angle.phi_theta_dist(resolu, theta1, Eth, E)
-#         phitheta = sp_angle.accept_reject_phi_theta(R, theta, phi)
+# @jit(nopython=True)
+def angle_to_vel(vel, normal):
+    resolu = 100
+    Eth = 26.8
+    E = 60
+
+    dot_product = np.dot(vel, normal)
+    dot_product = np.abs(dot_product)
+    angle_rad = np.arccos(dot_product)
+    R, theta, phi = sp_angle.phi_theta_dist(resolu, angle_rad, Eth, E)
+    get_theta, get_phi = sp_angle.accept_reject_phi_theta(R, theta, phi)
+    X = normal * np.sin(get_theta) * np.cos(get_phi)
+    Y = normal * np.sin(get_theta) * np.sin(get_phi)
+    Z = normal * np.abs(np.cos(get_theta))
+    # Z = np.cos(THETA)
+
+    return np.array([X, Y, Z])
+
+# def rotation_matrix()
 
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def reemission_multi(vel, normal):
     vels = np.zeros_like(vel)
     for i in range(vels.shape[0]):
         # vels[i] = DiffusionReflect(vel[i], normal[i])
-        vels[i] = SpecularReflect(vel[i], normal[i])
+        # vels[i] = SpecularReflect(vel[i], normal[i])
+        vels[i] = angle_to_vel(vel[i], normal[i])
     return vels
 
 @jit(nopython=True)
