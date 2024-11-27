@@ -5,7 +5,7 @@ from math import pi
 
 class surface_normal:
     def __init__(self, center_with_direction, range3D, InOrOut, celllength, tstep, yield_hist, \
-                 maskTop, maskBottom, maskStep, maskCenter, backup, filmDensity):
+                 maskTop, maskBottom, maskStep, maskCenter, backup, filmDensity, mirrorGap, offset_distence):
         # center xyz inOrout
         self.center_with_direction = center_with_direction
         # boundary x1x2 y1y2 z1z2
@@ -21,6 +21,8 @@ class surface_normal:
         self.maskCenter = maskCenter
         self.backup = backup
         self.filmDensity = filmDensity
+        self.mirrorGap = mirrorGap
+        self.offset_distence = offset_distence
         if yield_hist.all() == None:
             self.yield_hist = np.array([[1.0, 1.05,  1.2,  1.4,  1.5, 1.07, 0.65, 0.28, 0.08,  0], \
                                         [  0,   pi/18,   pi/9,   pi/6,   2*pi/9,   5*pi/18,   pi/3,   7*pi/18,   4*pi/9, pi/2]])
@@ -28,6 +30,32 @@ class surface_normal:
             self.yield_hist = yield_hist
         self.yield_func = interpolate.interp1d(self.yield_hist[1], self.yield_hist[0], kind='quadratic')
 
+
+    # def scanZ_numpy(self,film):
+    #     # 初始化一个全零的表面数组
+    #     surface_sparse_depo = np.zeros_like(film)
+
+    #     # depo 条件
+    #     current_plane_depo = film >= self.filmDensity - 1
+
+    #     # 创建邻居布尔索引数组
+    #     neighbors_depo = np.zeros_like(film, dtype=bool)
+
+    #     # 获取周围邻居的布尔索引
+    #     neighbors_depo[1:, :, :] |= film[:-1, :, :] <= 1  # 上面
+    #     neighbors_depo[:-1, :, :] |= film[1:, :, :] <= 1  # 下面
+    #     neighbors_depo[:, 1:, :] |= film[:, :-1, :] <= 1  # 左边
+    #     neighbors_depo[:, :-1, :] |= film[:, 1:, :] <= 1  # 右边
+    #     neighbors_depo[:, :, 1:] |= film[:, :, :-1] <= 1  # 前面
+    #     neighbors_depo[:, :, :-1] |= film[:, :, 1:] <= 1  # 后面
+
+    #     # 获取满足条件的索引
+    #     condition_depo = current_plane_depo & neighbors_depo
+
+    #     # 更新表面稀疏张量
+    #     surface_sparse_depo[condition_depo] = 1
+
+    #     return surface_sparse_depo
 
     def scanZ_numpy(self,film):
         # 初始化一个全零的表面数组
@@ -53,8 +81,9 @@ class surface_normal:
         # 更新表面稀疏张量
         surface_sparse_depo[condition_depo] = 1
 
-        return surface_sparse_depo
-            
+        return surface_sparse_depo, surface_sparse_depo[self.mirrorGap:-self.mirrorGap, self.mirrorGap:-self.mirrorGap, :]
+           
+
     def normalconsistency_3D_real(self, planes):
         """
         This function checks whether the normals are oriented towards the outside of the surface, i.e., it 
@@ -132,10 +161,52 @@ class surface_normal:
 
         return planes
 
+    # def get_pointcloud(self, film):
+    #     test = self.scanZ_numpy(film)
+    #     points = np.array(np.nonzero(test)).T
+    #     surface_tree = cKDTree(points)
+    #     dd, ii = surface_tree.query(points, k=self.knear, workers=5)
+
+    #     # indice_tooFar = dd < 3
+    #     # self.indice_tooFar = indice_tooFar
+    #     # self.ddshape = dd
+    #     # self.iishape = ii
+    #     # self.points = points
+    #     # pointsNP = points
+
+    #     # 计算所有点的均值
+    #     knn_pts = points[ii]
+    #     xmn = np.mean(knn_pts[:, :, 0], axis=1)
+    #     ymn = np.mean(knn_pts[:, :, 1], axis=1)
+    #     zmn = np.mean(knn_pts[:, :, 2], axis=1)
+
+    #     c = knn_pts - np.stack([xmn, ymn, zmn], axis=1)[:, np.newaxis, :]
+
+    #     # 计算协方差矩阵
+    #     cov = np.einsum('...ij,...ik->...jk', c, c)
+
+    #     # 单值分解 (SVD)
+    #     u, s, vh = np.linalg.svd(cov)
+
+    #     # 选择最小特征值对应的特征向量
+    #     minevindex = np.argmin(s, axis=1)
+    #     normal_all = np.array([u[i, :, minevindex[i]] for i in range(u.shape[0])])
+
+    #     # 生成平面矩阵
+    #     planes = np.hstack((normal_all, points))
+
+    #     # 调用 normalconsistency_3D_real 方法
+    #     planes_Film = self.normalconsistency_3D_real(planes)
+    #     # planes_Film = self.mask_normal(planes_Film)
+    #     return planes_Film
+    
     def get_pointcloud(self, film):
-        test = self.scanZ_numpy(film)
-        points = np.array(np.nonzero(test)).T
-        surface_tree = cKDTree(points)
+        surface_mirror, surface = self.scanZ_numpy(film)
+        points_mirror = np.array(np.nonzero(surface_mirror)).T
+        points = np.array(np.nonzero(surface)).T
+        points[:, 0] += self.mirrorGap
+        points[:, 1] += self.mirrorGap
+        surface_tree = cKDTree(points_mirror)
         dd, ii = surface_tree.query(points, k=self.knear, workers=5)
 
         # indice_tooFar = dd < 3
@@ -146,10 +217,15 @@ class surface_normal:
         # pointsNP = points
 
         # 计算所有点的均值
-        knn_pts = points[ii]
+        knn_pts = points_mirror[ii]
         xmn = np.mean(knn_pts[:, :, 0], axis=1)
         ymn = np.mean(knn_pts[:, :, 1], axis=1)
         zmn = np.mean(knn_pts[:, :, 2], axis=1)
+
+        # 点-平均中心偏离分量
+        offsetComponent = points - np.array([xmn, ymn, zmn]).T
+
+        self.offset = offsetComponent
 
         c = knn_pts - np.stack([xmn, ymn, zmn], axis=1)[:, np.newaxis, :]
 
@@ -163,14 +239,28 @@ class surface_normal:
         minevindex = np.argmin(s, axis=1)
         normal_all = np.array([u[i, :, minevindex[i]] for i in range(u.shape[0])])
 
+        self.normal_all = normal_all
+        # a = np.einsum('ij,ij->i', normal_all, offsetComponent).T
+        # # offsetComponent_normal = np.divide(offsetComponent.T, np.linalg.norm(offsetComponent, axis=1)).T
+        # # b = normal_all*offsetComponent_normal
+        # offsetComponent_cosin = np.divide(a, np.linalg.norm(offsetComponent, axis=1)).T
+        # offsetComponent_project = offsetComponent - np.einsum('ij,i->ij', offsetComponent, offsetComponent_cosin )
+        # normal_all += offsetComponent_project
+        indice_large = np.linalg.norm(offsetComponent, axis=1) > self.offset_distence
+
+        # normal_all[indice_large] += offsetComponent[indice_large]
+        normal_all[indice_large] = offsetComponent[indice_large]
+        normal_all = np.divide(normal_all.T, np.linalg.norm(normal_all, axis=1)).T
         # 生成平面矩阵
+        points[:, 0] -= self.mirrorGap
+        points[:, 1] -= self.mirrorGap
         planes = np.hstack((normal_all, points))
 
         # 调用 normalconsistency_3D_real 方法
         planes_Film = self.normalconsistency_3D_real(planes)
         # planes_Film = self.mask_normal(planes_Film)
         return planes_Film
-
+    
     def get_inject_normal(self, plane, pos, vel):
         # plane = self.get_pointcloud(film)
         plane_point = plane[:, 3:6]
