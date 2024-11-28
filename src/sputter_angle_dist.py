@@ -48,6 +48,36 @@ def accept_reject_phi_theta(R, theta, phi):
     get_phi = phi[get_phi_theta[0]]
     return get_theta, get_phi
 
+@jit(nopython=True)
+def tangentialMethod(vel, normal, x,y,z, pm):
+    Ut = vel - vel@normal*normal
+    tw1 = Ut/np.linalg.norm(Ut)
+    tw2 = np.cross(tw1, normal)
+    # if np.dot(vel, normal) > 0:
+    #     pm = -1
+    # else:
+    #     pm = 1
+    U =  -x*tw1 + y*tw2  + pm*z*normal
+    return U
+
+@jit(nopython=True)
+def resputter_emission(vel, normal, Eth, E):
+    resolu = 100
+    dot_v_n = np.dot(vel, normal)
+    inject_angle = np.arccos(dot_v_n)
+    if dot_v_n > 0:
+        pm = -1
+    else:
+        pm = 1
+    R, theta, phi = phi_theta_dist(resolu, inject_angle, Eth, E)
+    get_theta, get_phi = accept_reject_phi_theta(R, theta, phi)
+
+    velX = np.sin(get_theta)*np.cos(get_phi)
+    velY = np.sin(get_theta)*np.sin(get_phi)
+    velZ = np.cos(get_theta)
+
+    vel_reflect = tangentialMethod(vel, normal, velX, velY, velZ, pm)
+    return vel_reflect
 
 
 if __name__ == "__main__":
