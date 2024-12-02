@@ -7,128 +7,91 @@ import logging
 from .surface import surface_normal
 from numba import jit, prange
 import src.sputter_angle_dist as sp_angle
+import src.reflection as reflect
+import src.reaction as reaction
+
+# react_table = np.array([[[0.0, 0, 1], [0.0, 0, 1]],
+#                         [[0.0, -1, 0], [1.0, 0, -1]]])
+
+# react_type_table = np.array([[2, 0],
+#                              [3, 0]])
 
 
-react_table = np.array([[[0.0, 0, 1], [0.0, 0, 1]],
-                        [[0.0, -1, 0], [1.0, 0, -1]]])
+# def Rn_coeffcient(c1, c2, c3, c4, alpha):
+#     return c1 + c2*np.tanh(c3*alpha - c4)
 
-react_type_table = np.array([[2, 0],
-                             [3, 0]])
+# rn_angle = np.arange(0, np.pi/2, 0.1)
+# # xnew = np.array([])
+# rn_prob = [Rn_coeffcient(0.9423, 0.9434, 2.342, 3.026, i) for i in rn_angle]
+# rn_prob /= rn_prob[-1]
+# # rn_func = interpolate.interp1d(rn_angle, rn_prob, kind='quadratic')
 
+# # react ratio have to be set to 0.0 for 100% react probability for the following react yield
 
-def Rn_coeffcient(c1, c2, c3, c4, alpha):
-    return c1 + c2*np.tanh(c3*alpha - c4)
+# @jit(nopython=True, parallel=True)
+# def reaction_yield(parcel, film, normal):
+#     num_parcels = parcel.shape[0]
+#     num_reactions = react_table.shape[1]
+#     choice = np.random.rand(num_parcels, num_reactions)
+#     reactList = np.ones(num_parcels, dtype=np.int_) * -1
 
-rn_angle = np.arange(0, np.pi/2, 0.1)
-# xnew = np.array([])
-rn_prob = [Rn_coeffcient(0.9423, 0.9434, 2.342, 3.026, i) for i in rn_angle]
-rn_prob /= rn_prob[-1]
-# rn_func = interpolate.interp1d(rn_angle, rn_prob, kind='quadratic')
+#     # 手动循环替代布尔索引
+#     for i in prange(film.shape[0]):
+#         for j in prange(film.shape[1]):
+#             if film[i, j] <= 0:
+#                 choice[i, j] = 1
 
-# react ratio have to be set to 0.0 for 100% react probability for the following react yield
+#     depo_parcel = np.zeros(parcel.shape[0])
 
-@jit(nopython=True, parallel=True)
-def reaction_yield(parcel, film, normal):
-    num_parcels = parcel.shape[0]
-    num_reactions = react_table.shape[1]
-    choice = np.random.rand(num_parcels, num_reactions)
-    reactList = np.ones(num_parcels, dtype=np.int_) * -1
+#     for i in prange(parcel.shape[0]):
+#         acceptList = np.zeros(num_reactions, dtype=np.bool_)
+#         for j in prange(film.shape[1]):
+#             if int(parcel[i, -1]) == 1:
+#                 dot_product = np.dot(parcel[i, 3:6], normal[i])
+#                 dot_product = np.abs(dot_product)
+#                 angle_rad = np.arccos(dot_product)
+#                 react_rate = np.interp(angle_rad, rn_angle, rn_prob)
+#             else:
+#                 react_rate = react_table[int(parcel[i, -1]), j, 0]
+#             if react_rate < choice[i, j]:
+#                 acceptList[j] = True
 
-    # 手动循环替代布尔索引
-    for i in prange(film.shape[0]):
-        for j in prange(film.shape[1]):
-            if film[i, j] <= 0:
-                choice[i, j] = 1
+#         react_choice_indices = np.where(acceptList)[0]
+#         if react_choice_indices.size > 0:
+#             react_choice = react_choice_indices[np.random.randint(react_choice_indices.size)]
+#             reactList[i] = react_choice
+#             react_type = react_type_table[int(parcel[i, -1]), react_choice]
 
-    depo_parcel = np.zeros(parcel.shape[0])
+#             if react_type == 2: # kdtree Si-SF
+#                 depo_parcel[i] = 2
+#             elif react_type == 3: # kdtree Ar-c4f8
+#                 depo_parcel[i] = 3
+#             elif react_type == 1: # +
+#                 depo_parcel[i] = 1
+#             elif react_type == 4: # Ar - Si
+#                 depo_parcel[i] = 4
+#             elif react_type == 0:  # no reaction
+#                 depo_parcel[i] = 0
 
-    for i in prange(parcel.shape[0]):
-        acceptList = np.zeros(num_reactions, dtype=np.bool_)
-        for j in prange(film.shape[1]):
-            if int(parcel[i, -1]) == 1:
-                dot_product = np.dot(parcel[i, 3:6], normal[i])
-                dot_product = np.abs(dot_product)
-                angle_rad = np.arccos(dot_product)
-                react_rate = np.interp(angle_rad, rn_angle, rn_prob)
-            else:
-                react_rate = react_table[int(parcel[i, -1]), j, 0]
-            if react_rate < choice[i, j]:
-                acceptList[j] = True
+#     for i in prange(parcel.shape[0]):
+#         if depo_parcel[i] == 1:
+#             film[i, :] += react_table[int(parcel[i, -1]), int(reactList[i]), 1:]
 
-        react_choice_indices = np.where(acceptList)[0]
-        if react_choice_indices.size > 0:
-            react_choice = react_choice_indices[np.random.randint(react_choice_indices.size)]
-            reactList[i] = react_choice
-            react_type = react_type_table[int(parcel[i, -1]), react_choice]
-
-            if react_type == 2: # kdtree Si-SF
-                depo_parcel[i] = 2
-            elif react_type == 3: # kdtree Ar-c4f8
-                depo_parcel[i] = 3
-            elif react_type == 1: # +
-                depo_parcel[i] = 1
-            elif react_type == 4: # Ar - Si
-                depo_parcel[i] = 4
-            elif react_type == 0:  # no reaction
-                depo_parcel[i] = 0
-
-    for i in prange(parcel.shape[0]):
-        if depo_parcel[i] == 1:
-            film[i, :] += react_table[int(parcel[i, -1]), int(reactList[i]), 1:]
-
-        if reactList[i] == -1:
-            parcel[i, 3:6] = SpecularReflect(parcel[i, 3:6], normal[i])
-
-    return film, parcel, reactList, depo_parcel
+#         if reactList[i] == -1:
+#             # parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], normal[i])
+#             parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], normal[i])
+#     return film, parcel, reactList, depo_parcel
 
 
 @jit(nopython=True)
-def SpecularReflect(vel, normal):
-    return vel - 2*vel@normal*normal
-
-# kB = 1.380649e-23
-# T = 100
-
-# @jit(nopython=True)
-# def DiffusionReflect(vel, normal):
-#     mass = 27*1.66e-27
-#     Ut = vel - vel@normal*normal
-#     tw1 = Ut/np.linalg.norm(Ut)
-#     tw2 = np.cross(tw1, normal)
-#     # U = np.sqrt(kB*T/particleMass[i])*(np.random.randn()*tw1 + np.random.randn()*tw2 - np.sqrt(-2*np.log((1-np.random.rand())))*normal)
-#     U = np.sqrt(kB*T/mass)*(np.random.randn()*tw1 + np.random.randn()*tw2 - np.sqrt(-2*np.log((1-np.random.rand())))*normal)
-#     UN = U / np.linalg.norm(U)
-#         # UN[i] = U
-#     return UN
-
-# @jit(nopython=True)
-def angle_to_vel(vel, normal):
-    resolu = 100
-    Eth = 26.8
-    E = 60
-
-    dot_product = np.dot(vel, normal)
-    dot_product = np.abs(dot_product)
-    angle_rad = np.arccos(dot_product)
-    R, theta, phi = sp_angle.phi_theta_dist(resolu, angle_rad, Eth, E)
-    get_theta, get_phi = sp_angle.accept_reject_phi_theta(R, theta, phi)
-    X = normal * np.sin(get_theta) * np.cos(get_phi)
-    Y = normal * np.sin(get_theta) * np.sin(get_phi)
-    Z = normal * np.abs(np.cos(get_theta))
-    # Z = np.cos(THETA)
-
-    return np.array([X, Y, Z])
-
-# def rotation_matrix()
-
-
-# @jit(nopython=True)
 def reemission_multi(vel, normal):
     vels = np.zeros_like(vel)
+    Eth = 26.8
+    E = 50
     for i in range(vels.shape[0]):
-        # vels[i] = DiffusionReflect(vel[i], normal[i])
-        vels[i] = SpecularReflect(vel[i], normal[i])
-        # vels[i] = angle_to_vel(vel[i], normal[i])
+        # vels[i] = reflect.DiffusionReflect(vel[i], normal[i])
+        # vels[i] = reflect.SpecularReflect(vel[i], normal[i])
+        vels[i] = sp_angle.resputter_emission(vel[i], normal[i], Eth, E)
     return vels
 
 @jit(nopython=True)
@@ -502,7 +465,7 @@ class etching(surface_normal):
 
     def update_film(self, get_plane, get_theta, indice_inject, ddi, dl1, ddshape, maxdd):
         self.film[get_plane[:,0], get_plane[:,1], get_plane[:,2]], self.parcel[indice_inject, :], reactList, depo_parcel = \
-            reaction_yield(self.parcel[indice_inject], self.film[get_plane[:,0], get_plane[:,1], get_plane[:,2]], get_theta)
+            reaction.reaction_yield(self.parcel[indice_inject], self.film[get_plane[:,0], get_plane[:,1], get_plane[:,2]], get_theta)
 
         results = {
             'reactList': reactList,
