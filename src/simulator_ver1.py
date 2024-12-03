@@ -178,33 +178,24 @@ def removeFloat(film):  # fast scanZ
     return film
 
 class etching(surface_normal):
-    def __init__(self,inputMethod, etchingPoint,depoPoint,density, 
+    def __init__(self, etchingPoint,depoPoint,density, 
                  center_with_direction, range3D, InOrOut, yield_hist,
                  maskTop, maskBottom, maskStep, maskCenter, backup,#surface_normal
                  mirrorGap, offset_distence, # mirror
                  reaction_type,  #reaction 
-                 param, n, celllength, kdtreeN,filmKDTree,weightDepo,weightEtching,
-                 tstep, substrateTop, posGeneratorType, logname):
+                 celllength, kdtreeN,filmKDTree,weightDepo,weightEtching,
+                 tstep, substrateTop, logname):
         # super().__init__(tstep, pressure_pa, temperature, cellSize, celllength, chamberSize)
         surface_normal.__init__(self, center_with_direction, range3D, InOrOut,celllength, tstep, yield_hist,\
                                 maskTop, maskBottom, maskStep, maskCenter, backup, density, mirrorGap, offset_distence)
-        self.param = param # n beta
         self.kdtreeN = kdtreeN
         self.celllength = celllength
         self.timeStep = tstep
-        # self.sub_x = sub_xy[0]
-        # self.sub_y = sub_xy[1]
-        # self.substrate = film
-        # self.depo_or_etching = depo_or_etching
+
         self.depoPoint = depoPoint
         self.etchingPoint = etchingPoint
         self.density = density
-        self.inputMethod = inputMethod
-        self.n = n
-        self.T = 300
-        self.Cm = (2*1.380649e-23*self.T/(27*1.66e-27) )**0.5 # (2kT/m)**0.5 27 for the Al
 
-        # self.film = film
         self.filmKDTree = filmKDTree
         self.weightDepo = weightDepo
         self.weightEtching = weightEtching
@@ -212,7 +203,6 @@ class etching(surface_normal):
         #       KDTree    [depo_parcel,  film]
         self.mirrorGap = mirrorGap
         self.reaction_type = reaction_type
-        self.posGeneratorType = posGeneratorType
         self.substrateTop = substrateTop
         self.indepoThick = substrateTop
         self.log = logging.getLogger()
@@ -227,14 +217,6 @@ class etching(surface_normal):
         self.log.addHandler(self.fh)
         self.log.info('-------Start--------')
 
-    def max_velocity_u(self, random1, random2):
-        return self.Cm*np.sqrt(-np.log(random1))*(np.cos(2*np.pi*random2))
-
-    def max_velocity_w(self, random1, random2):
-        return self.Cm*np.sqrt(-np.log(random1))*(np.sin(2*np.pi*random2))
-
-    def max_velocity_v(self, random3):
-        return -self.Cm*np.sqrt(-np.log(random3))
 
     # particle data struction np.array([posX, posY, posZ, velX, velY, velZ, i, j, k, typeID])
     def boundary(self):
@@ -315,51 +297,6 @@ class etching(surface_normal):
 
         # 将孤立的单元格设为0
         self.film[condition, :] = 0
-
-    # def scanDepoFloat(self, type): # fast scanZ
-    #     film = torch.Tensor(self.film)
-    #     sumFilm = torch.sum(film, axis=-1)
-    #     # sumFilm = torch.Tensor(sumFilm)
-
-    #     filmC = film[:,:,:,type[1]]
-    #     # 初始化一个全零的表面稀疏张量
-    #     surface_sparse = torch.zeros_like(sumFilm)
-    #     surface_Float = torch.zeros_like(sumFilm)
-
-    #     # 获取当前平面与前后平面的布尔索引
-    #     current_plane = sumFilm == 0
-    #     current_Float = torch.logical_and(film[:,:,:,type[1]] > 0, film[:,:,:,type[1]] < 1)
-    #     # print(current_Float)
-    #     # 获取周围邻居的布尔索引
-    #     neighbors_plane = torch.zeros_like(filmC, dtype=torch.bool)
-        
-    #     neighbors_plane[1:, :, :] |= filmC[:-1, :, :] >= 9  # 上面
-    #     neighbors_plane[:-1, :, :] |= filmC[1:, :, :] >= 9  # 下面
-    #     neighbors_plane[:, 1:, :] |= filmC[:, :-1, :] >= 9  # 左边
-    #     neighbors_plane[:, :-1, :] |= filmC[:, 1:, :] >= 9  # 右边
-    #     neighbors_plane[:, :, 1:] |= filmC[:, :, :-1] >= 9  # 前面
-    #     neighbors_plane[:, :, :-1] |= filmC[:, :, 1:] >= 9  # 后面
-
-    #     # 获取周围邻居的布尔索引
-    #     neighbors_float = torch.zeros_like(filmC, dtype=torch.bool)
-        
-    #     neighbors_float[1:, :, :] |= filmC[:-1, :, :] <= 0  # 上面
-    #     neighbors_float[:-1, :, :] |= filmC[1:, :, :] <= 0  # 下面
-    #     neighbors_float[:, 1:, :] |= filmC[:, :-1, :] <= 0  # 左边
-    #     neighbors_float[:, :-1, :] |= filmC[:, 1:, :] <= 0  # 右边
-    #     neighbors_float[:, :, 1:] |= filmC[:, :, :-1] <= 0  # 前面
-    #     neighbors_float[:, :, :-1] |= filmC[:, :, 1:] <= 0  # 后面
-        
-    #     # 获取满足条件的索引
-    #     condition = current_plane & neighbors_plane
-    #     condition_float = current_Float & neighbors_float
-    #     # 更新表面稀疏张量
-    #     surface_sparse[condition] = 1
-    #     surface_Float[condition_float] = 1
-
-    #     points = surface_Float.to_sparse().indices().T
-
-    #     return surface_sparse.numpy(), points
 
     def scanDepoFloat(self, type):
         # 将 self.film 转换为 numpy 数组
@@ -608,16 +545,19 @@ class etching(surface_normal):
                 self.film[i1, j1, k1, type[1]] += weight * dd[:, kdi] / ddsum # depo
             elif type[2] == -1:
                 # self.film[i1, j1, k1, type[1]] -= 0 * etch_yield * dd[:, kdi] / ddsum  # etching
-                self.film[i1, j1, k1, type[1]] -= weight * etch_yield * dd[:, kdi] / ddsum  # etching
-                self.redepo_Generator(pos, vel, normal, weight * etch_yield)
+                # self.film[i1, j1, k1, type[1]] -= weight * etch_yield * dd[:, kdi] / ddsum  # etching
+                self.film[i1, j1, k1, type[1]] -= weight * dd[:, kdi] / ddsum  # etching
+                # test energy
+                # energy = 50
+                # self.redepo_Generator(pos, vel, normal, weight * etch_yield, energy)
 
-    def redepo_Generator(self, pos, vel, normal, weight):
+    def redepo_Generator(self, pos, vel, normal, weight, energy):
         # pos[:,0] -= 2*self.mirrorGap*self.celllength
         # pos[:,1] -= 2*self.mirrorGap*self.celllength
         vels = reemission_multi(vel, normal)
         typeID = np.zeros(vel.shape[0]) # 0 for Al depo
         pos += vels*self.timeStep*5
-        self.Parcelgen(pos, vels, weight, typeID)
+        self.Parcelgen(pos, vels, weight, energy, typeID)
 
     # def redepo_Generator(self, i, j, k, vel, normal):
     #     # poses = np.array([i, j, k]).T
@@ -658,8 +598,8 @@ class etching(surface_normal):
 
         return depo_count, ddshape, maxdd, ddi, dl1 #, film_max, surface_true
 
-    # particle data struction np.array([posX, posY, posZ, velX, velY, velZ, i, j, k, weight, typeID])
-    def Parcelgen(self, pos, vel, weight, typeID):
+    # particle data struction np.array([posX, posY, posZ, velX, velY, velZ, i, j, k, weight, energy, typeID])
+    def Parcelgen(self, pos, vel, weight, energy, typeID):
 
         # i = np.floor((pos[:, 0]/self.celllength) + 0.5).astype(int)
         # j = np.floor((pos[:, 1]/self.celllength) + 0.5).astype(int)
@@ -668,117 +608,66 @@ class etching(surface_normal):
         j = np.floor((pos[:, 1]/self.celllength)).astype(int)
         k = np.floor((pos[:, 2]/self.celllength)).astype(int)
         # parcelIn = np.zeros((pos.shape[0], 10), order='F')
-        parcelIn = np.zeros((pos.shape[0], 11))
+        parcelIn = np.zeros((pos.shape[0], 12))
         parcelIn[:, :3] = pos
         parcelIn[:, 3:6] = vel
         parcelIn[:, 6] = i
         parcelIn[:, 7] = j
         parcelIn[:, 8] = k
         parcelIn[:, 9] = weight
-        parcelIn[:, 10] = typeID
+        parcelIn[:, 10] = energy
+        parcelIn[:, 11] = typeID
 
         # print(self.parcel.flags.f_contiguous)
         self.parcel = np.concatenate((self.parcel, parcelIn))
         # print(self.parcel.flags)
 
-    def posvelGenerator(self, velGeneratorType):
-        # posGeneratorType
-        if self.posGeneratorType == 'full':
-            self.log.info('using posGenerator_full')
-            posGenerator = self.posGenerator_full
-        elif self.posGeneratorType == 'top':
-            self.log.info('using posGenerator_top')
-            posGenerator = self.posGenerator_top
-        elif self.posGeneratorType == 'benchmark':
-            self.log.info('using posGenerator_benchmark')
-            posGenerator = self.posGenerator_benchmark
-        else:
-            self.log.info('using posGenerator')
-            posGenerator = self.posGenerator 
+    def posvelGenerator(self):
+        self.posGenerator = self.posGenerator_top
+        self.velGenerator = self.velGenerator_input_normal  
+ 
+    def particleIn(self, inputCount):
+        p1 = self.posGenerator(inputCount)
+        vel_matrix = self.velGenerator(inputCount)
+        v1 = vel_matrix[:, :3]
+        typeID = vel_matrix[:, 4]
+        energy = vel_matrix[:, 3]
+        # typeIDIn = np.zeros(inputCount)
+        # typeIDIn[:] = typeID
+        self.Parcelgen(p1, v1, self.weightEtching, energy, typeID)        
 
-        # velGeneratorType
-        if velGeneratorType == 'maxwell':
-            self.log.info('using velGenerator_maxwell')
-            velGenerator = self.velGenerator_maxwell_normal
-        elif velGeneratorType == 'updown':
-            self.log.info('using velGenerator_updown')
-            velGenerator = self.velGenerator_updown_normal      
-        elif velGeneratorType == 'benchmark':
-            self.log.info('using velGenerator_benchmark')
-            velGenerator = self.velGenerator_benchmark_normal   
-        elif velGeneratorType == 'input':
-            self.log.info('using velGenerator_benchmark')
-            velGenerator = self.velGenerator_input_normal  
-        return posGenerator, velGenerator  
-
-    def runEtch(self, velGeneratorType, typeID, inputCount, runningCount, max_react_count, emptyZ, step):
-
-        self.log.info('inputType:{}'.format(typeID))
-        # if step == 0:
-        #     self.parcel = np.zeros((1, 10))
-        # tmax = time
+    def initial(self):
         start_time = Time.time()
-        tstep = self.timeStep
         t = 0
-        # inputCount = int(v0.shape[0]/(tmax/tstep))
-        self.sumFilm = np.sum(self.film, axis=-1)
-        self.update_surface_mirror_noetching(self.sumFilm)
-        self.planes = self.get_pointcloud(self.surface_mirror)
-        # self.planes = self.get_pointcloud(self.sumFilm)
         count_reaction = 0
         inputAll = 0
         filmThickness = self.substrateTop
+        self.sumFilm = np.sum(self.film, axis=-1)
+        self.update_surface_mirror_noetching(self.sumFilm)
+        self.planes = self.get_pointcloud(self.surface_mirror)
 
-        posGenerator, velGenerator = self.posvelGenerator(velGeneratorType)
+        return start_time, t, count_reaction, inputAll, filmThickness
 
-        p1 = posGenerator(inputCount, filmThickness, emptyZ)
-        v1 = velGenerator(inputCount)
-        typeIDIn = np.zeros(inputCount)
-        typeIDIn[:] = typeID
-        if self.depo_or_etching == 'depo':
-            self.Parcelgen(p1, v1, self.weightDepo, typeIDIn)
-        elif self.depo_or_etching == 'etching':
-            self.Parcelgen(p1, v1, self.weightEtching, typeIDIn)
-        # self.parcel = self.parcel[1:, :]
+    def runEtch(self, inputCount, runningCount, max_react_count):
+
+        start_time, t, count_reaction, inputAll, filmThickness = self.initial()
+        self.posvelGenerator()
+        self.particleIn(inputCount)
+
         ti = 0
         with tqdm(total=100, desc='particle input', leave=True, ncols=100, unit='B', unit_scale=True) as pbar:
             previous_percentage = 0  # 记录上一次的百分比
             while self.parcel.shape[0] > 500:
-                # np.save('./bosch_data_1011_ratio08_trench_condition5_300wide/parcel4_{}'.format(ti), self.parcel)
                 ti += 1
-                # print('bbf bound',self.parcel.flags.f_contiguous)
-                depo_count, ddshape, maxdd, ddi, dl1 = self.getAcc_depo(tstep)
-                # print(self.parcel.flags.f_contiguous)
-                # print('parcel', self.parcel.shape)
-                # print('bf bound',self.parcel.flags.f_contiguous)
+                depo_count, ddshape, maxdd, ddi, dl1 = self.getAcc_depo(self.timeStep)
                 count_reaction += depo_count
-                # if count_reaction > self.max_react_count:
-                #     break
-                t += tstep
+                t += self.timeStep
                 if count_reaction > max_react_count:
-                    end_time = Time.time()
-
-                    # 计算运行时间并转换为分钟和秒
-                    elapsed_time = end_time - start_time
-                    minutes = int(elapsed_time // 60)
-                    seconds = int(elapsed_time % 60)
-
-                    # 输出运行时间
-                    self.log.info(f"run time: {minutes} min {seconds} sec")
-                    self.log.info('DataFind---step:{},inputType:{},count_reaction_all:{},inputAll:{}'.format(step,typeID,count_reaction,inputAll))
+                    self.count_time(start_time, count_reaction,inputAll)
                     break
                 
                 if self.depo_or_etching == 'depo' and self.depoPoint[2] <= filmThickness and depo_count < 1 and self.parcel.shape[0] < 2000:
-                    end_time = Time.time()
-
-                    # 计算运行时间并转换为分钟和秒
-                    elapsed_time = end_time - start_time
-                    minutes = int(elapsed_time // 60)
-                    seconds = int(elapsed_time % 60)
-
-                    # 输出运行时间
-                    self.log.info(f"stop by depo_count run time: {minutes} min {seconds} sec")
-                    self.log.info('DataFind---step:{},inputType:{},count_reaction_all:{},inputAll:{}'.format(step,typeID,count_reaction,inputAll))
+                    self.count_time(start_time, count_reaction,inputAll)
                     break
 
                 vzMax = np.max(self.parcel[:,5])
@@ -789,20 +678,10 @@ class etching(surface_normal):
                 if self.depo_or_etching == 'depo':
                     if self.parcel.shape[0] < runningCount and self.depoPoint[2] >= filmThickness and ti%3 == 0:
                         inputAll += inputCount
-                        p1 = posGenerator(inputCount, filmThickness, emptyZ)
-                        v1 = velGenerator(inputCount)
-                        typeIDIn = np.zeros(inputCount)
-                        typeIDIn[:] = typeID
-                        self.Parcelgen(p1, v1, self.weightDepo, typeIDIn)
+                        self.particleIn(inputCount)
                 elif self.parcel.shape[0] < runningCount and self.depo_or_etching == 'etching':
                     inputAll += inputCount
-                    p1 = posGenerator(inputCount, filmThickness, emptyZ)
-                    v1 = velGenerator(inputCount)
-                    typeIDIn = np.zeros(inputCount)
-                    typeIDIn[:] = typeID
-                    self.Parcelgen(p1, v1, self.weightEtching, typeIDIn)
-
-                # planes = self.get_pointcloud(np.sum(self.film, axis=-1))
+                    self.particleIn(inputCount)
 
                 current_percentage = int(count_reaction / max_react_count * 100)  # 当前百分比
                 if current_percentage > previous_percentage:
@@ -811,142 +690,56 @@ class etching(surface_normal):
                     previous_percentage = current_percentage  # 更新上一次的百分比
 
                 gen_redepo = np.sum(self.parcel[:, -1] == 0)
-                self.log.info('particleIn:{}, timeStep:{}, depo_count_step:{}, count_reaction_all:{},inputAll:{},vzMax:{:.3f},vzMin:{:.3f}, filmThickness:{}, input_count:{}, ddi:{}, dl1:{}, ddshape:{:.3f}, maxdd:{:.3f}, gen_redepo:{}, weightMax:{}, weightMin:{}'\
-                            .format(previous_percentage, tstep, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, self.parcel.shape[0], ddi, dl1, ddshape, maxdd, gen_redepo, weightMax, weightMin))
-            
-                for thick in range(self.film.shape[2]):
-                    if np.sum(self.film[int(self.cellSizeX/2),int(self.cellSizeY/2), thick, :]) == 0:
-                        filmThickness = thick
-                        break
+
+                self.update_logs(previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, weightMax, weightMin)
+                filmThickness = self.get_filmThickness()
                 
-
-                # if self.depo_or_etching == 'depo':
-                #     if self.depoPoint[2] == filmThickness:
-                #         print('depo finish')
-                #         break
-                # elif self.depo_or_etching == 'etching':
-                #     if self.etchingPoint[2] == filmThickness:
-                #         print('etch finish')
-                #         break      
-                # print('af bound',self.parcel.flags.f_contiguous)
-                # self.log.info('runStep:{}, timeStep:{}, depo_count_step:{}, count_reaction_all:{},vzMax:{:.3f},vzMax:{:.3f}, filmThickness:{},  input_count:{}'\
-                #               .format(i, tstep, depo_count, count_reaction, vzMax, vzMin,  filmThickness, self.parcel.shape[0]))
-
                 if ti%10 == 0:
                     self.removeFloat()
                     self.cleanMinusFilm()
         return self.film, filmThickness, self.parcel
     
-    def posGenerator(self, IN, thickness, emptyZ):
-        position_matrix = np.array([np.random.rand(IN)*self.cellSizeX, \
-                                    np.random.rand(IN)*self.cellSizeY, \
-                                    np.random.uniform(0, emptyZ, IN)+ thickness + emptyZ]).T
-        position_matrix *= self.celllength
-        return position_matrix
-    
-    def posGenerator_full(self, IN, thickness, emptyZ):
-        position_matrix = np.array([np.random.rand(IN)*self.cellSizeX, \
-                                    np.random.rand(IN)*self.cellSizeY, \
-                                    np.random.uniform(0, self.cellSizeZ-thickness-emptyZ, IN)+ thickness + emptyZ]).T
-        position_matrix *= self.celllength
-        return position_matrix
+    def update_logs(self, previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, weightMax, weightMin):
+        self.log.info('particleIn:{}, depo_count_step:{}, count_reaction_all:{},inputAll:{},vzMax:{:.3f},vzMin:{:.3f}, filmThickness:{}, input_count:{}, ddi:{}, dl1:{}, ddshape:{:.3f}, maxdd:{:.3f}, gen_redepo:{}, weightMax:{}, weightMin:{}'\
+                    .format(previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, self.parcel.shape[0], ddi, dl1, ddshape, maxdd, gen_redepo, weightMax, weightMin))
+        
 
-    def posGenerator_top(self, IN, thickness, emptyZ):
+    def get_filmThickness(self):
+        for thick in range(self.film.shape[2]):
+            if np.sum(self.film[int(self.cellSizeX/2),int(self.cellSizeY/2), thick, :]) == 0:
+                filmThickness = thick
+                break  
+        return filmThickness   
+
+    def posGenerator_top(self, IN):
+        emptyZ = 5
         position_matrix = np.array([np.random.rand(IN)*self.cellSizeX, \
                                     np.random.rand(IN)*self.cellSizeY, \
                                     np.random.uniform(0, emptyZ, IN) + self.cellSizeZ - emptyZ]).T
         position_matrix *= self.celllength
         return position_matrix
      
-    def posGenerator_benchmark(self, IN, thickness, emptyZ):
-        position_matrix = np.array([np.random.rand(IN)*20 - 10 + self.cellSizeX/2 - 0.5, \
-                                    np.random.rand(IN)*20 - 10 + self.cellSizeY/2 - 0.5, \
-                                    np.ones(IN)*self.cellSizeZ/2]).T
-        position_matrix *= self.celllength
-        return position_matrix
-    
-    def velGenerator_maxwell_normal(self, IN):
-        Random1 = np.random.rand(IN)
-        Random2 = np.random.rand(IN)
-        Random3 = np.random.rand(IN)
-        velosity_matrix = np.array([self.max_velocity_u(Random1, Random2), \
-                                    self.max_velocity_w(Random1, Random2), \
-                                        self.max_velocity_v(Random3)]).T
-
-        energy = np.linalg.norm(velosity_matrix, axis=1)
-        velosity_matrix[:,0] = np.divide(velosity_matrix[:,0], energy)
-        velosity_matrix[:,1] = np.divide(velosity_matrix[:,1], energy)
-        velosity_matrix[:,2] = np.divide(velosity_matrix[:,2], energy)
-
-        return velosity_matrix
-    
-    def velGenerator_updown_normal(self, IN):
-        velosity_matrix = np.zeros((IN, 3))
-        velosity_matrix[:, 0] = np.random.randn(IN)*0.001 - 0.0005 
-        velosity_matrix[:, 1] = np.random.randn(IN)*0.001 - 0.0005
-        velosity_matrix[:, 2] = -1 
-        energy = np.linalg.norm(velosity_matrix, axis=1)
-        velosity_matrix[:,0] = np.divide(velosity_matrix[:,0], energy)
-        velosity_matrix[:,1] = np.divide(velosity_matrix[:,1], energy)
-        velosity_matrix[:,2] = np.divide(velosity_matrix[:,2], energy)
-        return velosity_matrix
-
-    def velGenerator_benchmark_normal(self, IN):
-        velosity_matrix = np.zeros((IN, 3))
-        velosity_matrix[:, 0] = np.random.randn(IN)*0.01 - 0.005
-        velosity_matrix[:, 1] = -np.sqrt(2)/2
-        velosity_matrix[:, 2] = -np.sqrt(2)/2
-        energy = np.linalg.norm(velosity_matrix, axis=1)
-        velosity_matrix[:,0] = np.divide(velosity_matrix[:,0], energy)
-        velosity_matrix[:,1] = np.divide(velosity_matrix[:,1], energy)
-        velosity_matrix[:,2] = np.divide(velosity_matrix[:,2], energy)
-        return velosity_matrix
     
     def velGenerator_input_normal(self, IN):
 
         velosity_matrix = np.random.default_rng().choice(self.vel_matrix, IN)
 
         return velosity_matrix
-    # def posGenerator_benchmark(self, IN, thickness, emptyZ):
-    #     position_matrix = np.array([np.random.rand(IN)*20 + self.cellSizeX/2, \
-    #                                 np.random.rand(IN)*20 + self.cellSizeY/2, \
-    #                                 np.ones(IN)*self.cellSizeZ - emptyZ]).T
-    #     position_matrix *= self.celllength
-    #     return position_matrix
-    
-    # def depo_position_increase(self, randomSeed, velosity_matrix, tmax, weight, Zgap):
-    #     np.random.seed(randomSeed)
-    #     weights = np.ones(velosity_matrix.shape[0])*weight
-    #     result =  self.runEtch(velosity_matrix, tmax, self.film, weights, depoStep=1, emptyZ=Zgap)
-    #     del self.log, self.fh
-    #     return result
-    
-    #     # def runEtch(self, v0, typeID, time, emptyZ):
-    # def depo_position_increase_cosVel_normal(self, randomSeed, N, tmax, Zgap):
-    #     np.random.seed(randomSeed)
-    #     for i in range(9):
-    #         Random1 = np.random.rand(N)
-    #         Random2 = np.random.rand(N)
-    #         Random3 = np.random.rand(N)
-    #         velosity_matrix = np.array([self.max_velocity_u(Random1, Random2), \
-    #                                     self.max_velocity_w(Random1, Random2), \
-    #                                         self.max_velocity_v(Random3)]).T
 
-    #         energy = np.linalg.norm(velosity_matrix, axis=1)
-    #         velosity_matrix[:,0] = np.divide(velosity_matrix[:,0], energy)
-    #         velosity_matrix[:,1] = np.divide(velosity_matrix[:,1], energy)
-    #         velosity_matrix[:,2] = np.divide(velosity_matrix[:,2], energy)
+    def count_time(self, start_time, count_reaction,inputAll):
+        end_time = Time.time()
 
-    #         typeID = np.zeros(N)
-    #         # def runEtch(self, v0, typeID, time, emptyZ):
-    #         result =  self.runEtch(velosity_matrix, typeID, tmax, emptyZ=Zgap)
-    #         if np.any(result[0][self.depoPoint]) != 0:
-    #             break             
-    #     del self.log, self.fh
-    #     return result
-    
+        # 计算运行时间并转换为分钟和秒
+        elapsed_time = end_time - start_time
+        minutes = int(elapsed_time // 60)
+        seconds = int(elapsed_time % 60)
+        # 输出运行时间
+        self.log.info(f"run time: {minutes} min {seconds} sec")
+        self.log.info('DataFind---count_reaction_all:{},inputAll:{}'.format(count_reaction,inputAll))
 
-    def inputParticle(self, film, parcel, depo_or_etching, velGeneratorType, vel_matrix, typeID, inputCount, runningCount, max_react_count, depo_count_type, Zgap, step):
+
+
+    def inputParticle(self, film, parcel, depo_or_etching, vel_matrix, inputCount, runningCount, max_react_count, depo_count_type):
         self.depo_count_type = depo_count_type
         self.depo_or_etching = depo_or_etching
         self.film = film
@@ -958,8 +751,7 @@ class etching(surface_normal):
         self.surface_etching_mirror = np.zeros((self.cellSizeX+int(self.mirrorGap*2), self.cellSizeY+int(self.mirrorGap*2), self.cellSizeZ))
         self.surface_mirror = np.zeros((self.cellSizeX+int(self.mirrorGap*2), self.cellSizeY+int(self.mirrorGap*2), self.cellSizeZ))
         print(self.surface_etching_mirror.shape)
-        self.log.info('circle step:{}'.format(step))
-        result =  self.runEtch(velGeneratorType, typeID, inputCount,runningCount, max_react_count, Zgap, step)
+        result =  self.runEtch(inputCount,runningCount, max_react_count)
         # if np.any(result[0][:, :, self.depoThick]) != 0:
         #     break             
         # del self.log, self.fh 
