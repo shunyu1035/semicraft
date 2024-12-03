@@ -1,23 +1,22 @@
 from numba import jit, prange
 import numpy as np
 import src.reflection as reflect
+import src.Rn_coeffcient as Rn_coeffcient
 
+# react_table = np.array([[[0.1, -1, 0, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
+#                         [[0.8, -1, 1, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
+#                         [[1.0,  0, 0, 0], [1.0, 0, -2, 0], [1.0, 0, 0, 0]]])
 
-react_table = np.array([[[0.7, -1, 0, 0], [0.0, 0,  0, 0], [1.0, 0, 0, 0]],
+react_table = np.array([[[1.0, -1, 0, 0], [0.0, 0,  0, 0], [1.0, 0, 0, 0]],
                         [[0.8, -1, 1, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
                         [[1.0,  0, 0, 0], [1.0, 0, -2, 0], [1.0, 0, 0, 0]]])
 
-react_type_table = np.array([[2, 0],
-                             [3, 0]])
+react_type_table = np.array([[2, 0, 0],
+                           [1, 0, 0],
+                           [4, 3, 1]])
 
-
-def Rn_coeffcient(c1, c2, c3, c4, alpha):
-    return c1 + c2*np.tanh(c3*alpha - c4)
-
-rn_angle = np.arange(0, np.pi/2, 0.1)
-# xnew = np.array([])
-rn_prob = [Rn_coeffcient(0.9423, 0.9434, 2.342, 3.026, i) for i in rn_angle]
-rn_prob /= rn_prob[-1]
+rn_angle = np.arange(0, np.pi/2, 0.01)
+rn_prob = Rn_coeffcient.Rn_probability()
 
 
 @jit(nopython=True, parallel=True)
@@ -45,7 +44,8 @@ def reaction_yield(parcel, film, normal):
                 react_rate = np.interp(angle_rad, rn_angle, rn_prob)
             else:
                 react_rate = react_table[int(parcel[i, -1]), j, 0]
-            if react_rate < choice[i, j]:
+            # react_rate = react_table[int(parcel[i, -1]), j, 0]
+            if react_rate > choice[i, j]:
                 acceptList[j] = True
 
         react_choice_indices = np.where(acceptList)[0]
@@ -71,5 +71,7 @@ def reaction_yield(parcel, film, normal):
 
         if reactList[i] == -1:
             parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], normal[i])
-            # parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], normal[i])
+            # print('reflect')
+            # parcel[i, 3:6] = reemission(parcel[i, 3:6], theta[i])
+
     return film, parcel, reactList, depo_parcel

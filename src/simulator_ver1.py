@@ -8,7 +8,7 @@ from .surface import surface_normal
 from numba import jit, prange
 import src.sputter_angle_dist as sp_angle
 import src.reflection as reflect
-import src.reaction as reaction
+import src.reaction_ver1 as reaction
 
 # react_table = np.array([[[0.0, 0, 1], [0.0, 0, 1]],
 #                         [[0.0, -1, 0], [1.0, 0, -1]]])
@@ -494,8 +494,8 @@ class etching(surface_normal):
             self.update_surface_mirror_noetching(self.sumFilm)
             self.planes = self.get_pointcloud(self.surface_mirror)
 
-        if np.any(surface_film_etching):
-            self.depoFloat(type)
+        # if np.any(surface_film_etching):
+        #     self.depoFloat(type)
 
     def update_surface_mirror_noetching(self, surface_etching):
         self.surface_mirror[self.mirrorGap:self.mirrorGap+self.cellSizeX, self.mirrorGap:self.mirrorGap+self.cellSizeY, :] = surface_etching
@@ -590,7 +590,7 @@ class etching(surface_normal):
         self.toboundary()
 
         # self.removeFloat()
-        self.removeFloatPolymer()
+        # self.removeFloatPolymer()
 
         depo_count, ddshape, maxdd, ddi, dl1 = self.etching_film()
 
@@ -694,9 +694,9 @@ class etching(surface_normal):
                 self.update_logs(previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, weightMax, weightMin)
                 filmThickness = self.get_filmThickness()
                 
-                if ti%10 == 0:
-                    self.removeFloat()
-                    self.cleanMinusFilm()
+                # if ti%10 == 0:
+                #     self.removeFloat()
+                #     self.cleanMinusFilm()
         return self.film, filmThickness, self.parcel
     
     def update_logs(self, previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, weightMax, weightMin):
