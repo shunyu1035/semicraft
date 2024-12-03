@@ -2,18 +2,19 @@ from numba import jit, prange
 import numpy as np
 import src.reflection as reflect
 import src.Rn_coeffcient as Rn_coeffcient
+from src.config import react_table, react_type_table
 
 # react_table = np.array([[[0.1, -1, 0, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
 #                         [[0.8, -1, 1, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
 #                         [[1.0,  0, 0, 0], [1.0, 0, -2, 0], [1.0, 0, 0, 0]]])
 
-react_table = np.array([[[1.0, -1, 0, 0], [0.0, 0,  0, 0], [1.0, 0, 0, 0]],
-                        [[0.8, -1, 1, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
-                        [[1.0,  0, 0, 0], [1.0, 0, -2, 0], [1.0, 0, 0, 0]]])
+# react_table = np.array([[[1.0, -1, 0, 0], [0.0, 0,  0, 0], [1.0, 0, 0, 0]],
+#                         [[0.8, -1, 1, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],
+#                         [[1.0,  0, 0, 0], [1.0, 0, -2, 0], [1.0, 0, 0, 0]]])
 
-react_type_table = np.array([[2, 0, 0],
-                           [1, 0, 0],
-                           [4, 3, 1]])
+# react_type_table = np.array([[2, 0, 0],
+#                            [1, 0, 0],
+#                            [4, 3, 1]])
 
 rn_angle = np.arange(0, np.pi/2, 0.01)
 rn_prob = Rn_coeffcient.Rn_probability()
