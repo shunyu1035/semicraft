@@ -62,8 +62,8 @@ if __name__ == "__main__":
 
 
 
-    particle_list = [[int(1e6), 0, 'maxwell', 50], [int(1e6), 1, 'undown', 60]]
-    # particle_list = [[int(1e6), 0, 'maxwell', 50]]
+    # particle_list = [[int(1e6), 0, 'maxwell', 50], [int(1e6), 1, 'undown', 60]]
+    particle_list = [[int(1e6), 0, 'maxwell', 50]]
     vel_matrix = particleGenerator.vel_generator(particle_list)
 
     parcel = np.array([[95*celllength, 95*celllength, 159*celllength, 0, 0, 1, 95, 95, 159, 0.2, 50, 0]])
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     testMain.input(etchfilm, parcel,'etching', vel_matrix, 2)
 
     print(testMain.cellSizeX)
-    testMain.runEtch(int(1e4), int(1e5), int(1e6))
+    testMain.runEtch(int(1e4), int(1e5), int(1e5))
     PostProcess.PostProcess(etchfilm, colors=['dimgray', 'yellow', 'cyan'])

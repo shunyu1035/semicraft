@@ -41,7 +41,7 @@ class etching(configuration):
 
     def update_film(self, get_plane, get_theta, indice_inject, ddi, dl1, ddshape, maxdd):
         self.film[get_plane[:,0], get_plane[:,1], get_plane[:,2]], self.parcel[indice_inject, :], reactList, depo_parcel = \
-            reaction.reaction_rate(self.parcel[indice_inject], self.film[get_plane[:,0], get_plane[:,1], get_plane[:,2]], get_theta)
+            reaction.reaction_yield(self.parcel[indice_inject], self.film[get_plane[:,0], get_plane[:,1], get_plane[:,2]], get_theta)
 
         results = {
             'reactList': reactList,
