@@ -1,6 +1,6 @@
 import numpy as np
 from src.configuration import configuration
-from src.mirror import mirror
+import src.operations.mirror as mirror
 import time as Time
 from tqdm import tqdm
 from src.operations.boundary import boundaryNumba
@@ -16,7 +16,8 @@ class mainLoop(etching):
         inputAll = 0
         filmThickness = self.substrateTop
         self.sumFilm = np.sum(self.film, axis=-1)
-        self.update_surface_mirror_noetching(self.sumFilm)
+        # self.update_surface_mirror_noetching(self.sumFilm)
+        self.surface_mirror= mirror.update_surface_mirror(self.sumFilm,self.surface_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
         self.planes = self.get_pointcloud(self.surface_mirror)
 
         return start_time, t, count_reaction, inputAll, filmThickness
