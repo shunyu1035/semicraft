@@ -1,19 +1,24 @@
 import numpy as np
 import logging
-from src.operations.surface import surface_normal
+# from src.operations.surface import surface_normal
 
-
-class configuration(surface_normal):
+# class configuration(surface_normal):
+class configuration():
+    # def __init__(self, etchingPoint,depoPoint,density, 
+    #              center_with_direction, range3D, InOrOut, yield_hist,
+    #              maskTop, maskBottom, maskStep, maskCenter, backup,#surface_normal
+    #              mirrorGap, offset_distence, # mirror
+    #              reaction_type,  #reaction 
+    #              celllength, kdtreeN,filmKDTree,weightDepo,weightEtching,
+    #              tstep, substrateTop, logname):
     def __init__(self, etchingPoint,depoPoint,density, 
-                 center_with_direction, range3D, InOrOut, yield_hist,
-                 maskTop, maskBottom, maskStep, maskCenter, backup,#surface_normal
-                 mirrorGap, offset_distence, # mirror
+                 mirrorGap, # mirror
                  reaction_type,  #reaction 
                  celllength, kdtreeN,filmKDTree,weightDepo,weightEtching,
                  tstep, substrateTop, logname):
         # super().__init__(tstep, pressure_pa, temperature, cellSize, celllength, chamberSize)
-        surface_normal.__init__(self, center_with_direction, range3D, InOrOut,celllength, tstep, yield_hist,\
-                                maskTop, maskBottom, maskStep, maskCenter, backup, density, mirrorGap, offset_distence)
+        # surface_normal.__init__(self, center_with_direction, range3D, InOrOut,celllength, tstep, yield_hist,\
+        #                         maskTop, maskBottom, maskStep, maskCenter, backup, density, mirrorGap, offset_distence)
         self.kdtreeN = kdtreeN
         self.celllength = celllength
         self.timeStep = tstep

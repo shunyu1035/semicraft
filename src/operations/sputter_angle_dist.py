@@ -79,6 +79,16 @@ def resputter_emission(vel, normal, Eth, E):
     vel_reflect = tangentialMethod(vel, normal, velX, velY, velZ, pm)
     return vel_reflect
 
+@jit(nopython=True)
+def reemission_multi(vel, normal):
+    vels = np.zeros_like(vel)
+    Eth = 26.8
+    E = 50
+    for i in range(vels.shape[0]):
+        # vels[i] = reflect.DiffusionReflect(vel[i], normal[i])
+        # vels[i] = reflect.SpecularReflect(vel[i], normal[i])
+        vels[i] = resputter_emission(vel[i], normal[i], Eth, E)
+    return vels
 
 if __name__ == "__main__":
     N = 1e5

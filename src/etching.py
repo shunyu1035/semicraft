@@ -1,11 +1,33 @@
 import numpy as np
+from pykdtree.kdtree import KDTree
+
+from src.operations.surface import surface_normal
 from src.configuration import configuration
 import src.operations.reaction_ver1 as reaction
 import src.operations.mirror as mirror
-from pykdtree.kdtree import KDTree
+import src.operations.sputter_angle_dist as sp_angle
+from src.operations.parcel import Parcelgen
 
 
-class etching(configuration):
+
+class etching(configuration, surface_normal):
+    def __init__(self, etchingPoint,depoPoint,density, 
+                 center_with_direction, range3D, InOrOut, yield_hist,
+                 maskTop, maskBottom, maskStep, maskCenter, backup,#surface_normal
+                 mirrorGap, offset_distence, # mirror
+                 reaction_type,  #reaction 
+                 celllength, kdtreeN,filmKDTree,weightDepo,weightEtching,
+                 tstep, substrateTop, logname):
+        
+        configuration.__init__(self, etchingPoint,depoPoint,density, 
+                 mirrorGap, # mirror
+                 reaction_type,  #reaction 
+                 celllength, kdtreeN,filmKDTree,weightDepo,weightEtching,
+                 tstep, substrateTop, logname)
+        
+        surface_normal.__init__(self, center_with_direction, range3D, InOrOut,celllength, tstep, yield_hist,\
+                                maskTop, maskBottom, maskStep, maskCenter, backup, density, mirrorGap, offset_distence)
+
     def etching_film(self):
         i, j, k = self.get_indices()
         # self.sumFilm = np.sum(self.film, axis=-1)
@@ -163,8 +185,16 @@ class etching(configuration):
                 # self.film[i1, j1, k1, type[1]] -= 0 * etch_yield * dd[:, kdi] / ddsum  # etching
                 # self.film[i1, j1, k1, type[1]] -= weight * etch_yield * dd[:, kdi] / ddsum  # etching
                 self.film[i1, j1, k1, type[1]] -= weight * dd[:, kdi] / ddsum  # etching
+                # energy = 50
+                # self.redepo_Generator(pos, vel, normal, weight * etch_yield, energy)
 
-
+    def redepo_Generator(self, pos, vel, normal, weight, energy):
+        # pos[:,0] -= 2*self.mirrorGap*self.celllength
+        # pos[:,1] -= 2*self.mirrorGap*self.celllength
+        vels = sp_angle.reemission_multi(vel, normal)
+        typeID = np.zeros(vel.shape[0]) # 0 for Al depo
+        pos += vels*self.timeStep*5
+        self.parcel = Parcelgen(self.parcel, self.celllength, pos, vels, weight, energy, typeID)
 
     # def etching_film(self):
 

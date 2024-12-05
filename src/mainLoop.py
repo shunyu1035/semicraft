@@ -1,11 +1,14 @@
 import numpy as np
-from src.configuration import configuration
-import src.operations.mirror as mirror
 import time as Time
 from tqdm import tqdm
+
+import src.operations.mirror as mirror
 from src.operations.boundary import boundaryNumba
 from src.operations.update_parcel import update_parcel
+from src.operations.parcel import Parcelgen
+
 from src.etching import etching
+
 
 class mainLoop(etching):
 
@@ -60,31 +63,31 @@ class mainLoop(etching):
         energy = vel_matrix[:, 3]
         # typeIDIn = np.zeros(inputCount)
         # typeIDIn[:] = typeID
-        self.Parcelgen(p1, v1, self.weightEtching, energy, typeID)  
+        self.parcel = Parcelgen(self.parcel, self.celllength, p1, v1, self.weightEtching, energy, typeID)  
 
     # particle data struction np.array([posX, posY, posZ, velX, velY, velZ, i, j, k, weight, energy, typeID])
-    def Parcelgen(self, pos, vel, weight, energy, typeID):
+    # def Parcelgen(self, pos, vel, weight, energy, typeID):
 
-        # i = np.floor((pos[:, 0]/self.celllength) + 0.5).astype(int)
-        # j = np.floor((pos[:, 1]/self.celllength) + 0.5).astype(int)
-        # k = np.floor((pos[:, 2]/self.celllength) + 0.5).astype(int)
-        i = np.floor((pos[:, 0]/self.celllength)).astype(int)
-        j = np.floor((pos[:, 1]/self.celllength)).astype(int)
-        k = np.floor((pos[:, 2]/self.celllength)).astype(int)
-        # parcelIn = np.zeros((pos.shape[0], 10), order='F')
-        parcelIn = np.zeros((pos.shape[0], 12))
-        parcelIn[:, :3] = pos
-        parcelIn[:, 3:6] = vel
-        parcelIn[:, 6] = i
-        parcelIn[:, 7] = j
-        parcelIn[:, 8] = k
-        parcelIn[:, 9] = weight
-        parcelIn[:, 10] = energy
-        parcelIn[:, 11] = typeID
+    #     # i = np.floor((pos[:, 0]/self.celllength) + 0.5).astype(int)
+    #     # j = np.floor((pos[:, 1]/self.celllength) + 0.5).astype(int)
+    #     # k = np.floor((pos[:, 2]/self.celllength) + 0.5).astype(int)
+    #     i = np.floor((pos[:, 0]/self.celllength)).astype(int)
+    #     j = np.floor((pos[:, 1]/self.celllength)).astype(int)
+    #     k = np.floor((pos[:, 2]/self.celllength)).astype(int)
+    #     # parcelIn = np.zeros((pos.shape[0], 10), order='F')
+    #     parcelIn = np.zeros((pos.shape[0], 12))
+    #     parcelIn[:, :3] = pos
+    #     parcelIn[:, 3:6] = vel
+    #     parcelIn[:, 6] = i
+    #     parcelIn[:, 7] = j
+    #     parcelIn[:, 8] = k
+    #     parcelIn[:, 9] = weight
+    #     parcelIn[:, 10] = energy
+    #     parcelIn[:, 11] = typeID
 
-        # print(self.parcel.flags.f_contiguous)
-        self.parcel = np.concatenate((self.parcel, parcelIn))
-        # print(self.parcel.flags)
+    #     # print(self.parcel.flags.f_contiguous)
+    #     self.parcel = np.concatenate((self.parcel, parcelIn))
+    #     # print(self.parcel.flags)
 
     def toboundary(self):
         # self.parcel = boundary(self.parcel, self.cellSizeX, self.cellSizeY, self.cellSizeZ, self.celllength)
