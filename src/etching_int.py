@@ -1,13 +1,32 @@
 import numpy as np
 from pykdtree.kdtree import KDTree
 
+from src.operations.surface_int import surface_normal
 from src.configuration import configuration
 import src.operations.reaction_int as reaction
 import src.operations.mirror as mirror
 import src.operations.sputter_angle_dist as sp_angle
 from src.operations.parcel import Parcelgen
 
-class etching(configuration):
+
+
+class etching(configuration, surface_normal):
+    def __init__(self, etchingPoint,depoPoint,density, 
+                 center_with_direction, range3D, InOrOut, yield_hist,
+                 maskTop, maskBottom, maskStep, maskCenter, backup,#surface_normal
+                 mirrorGap, offset_distence, # mirror
+                 reaction_type,  #reaction 
+                 celllength, kdtreeN,filmKDTree,weightDepo,weightEtching,
+                 tstep, substrateTop, logname):
+        
+        configuration.__init__(self, etchingPoint,depoPoint,density, 
+                 mirrorGap, # mirror
+                 reaction_type,  #reaction 
+                 celllength, kdtreeN,filmKDTree,weightDepo,weightEtching,
+                 tstep, substrateTop, logname)
+        
+            # def __init__(self, center_with_direction, range3D, InOrOut, celllength, yield_hist = None):
+        surface_normal.__init__(self, center_with_direction, range3D, InOrOut, celllength, yield_hist)
     # def etching_film(self):
     #     i, j, k = self.get_indices()
     #     # self.sumFilm = np.sum(self.film, axis=-1)
