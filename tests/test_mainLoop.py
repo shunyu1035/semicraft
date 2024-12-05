@@ -3,7 +3,7 @@ sys.path.append("./")  # 确保根目录在 sys.path 中
 
 import src.postProcess as PostProcess
 import src.particleGenerator as particleGenerator
-import src.sputterYield as sputterYield
+import src.operations.sputterYield as sputterYield
 from src.config import sputter_yield
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"

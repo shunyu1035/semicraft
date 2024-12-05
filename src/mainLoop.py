@@ -3,8 +3,8 @@ from src.configuration import configuration
 from src.mirror import mirror
 import time as Time
 from tqdm import tqdm
-from src.boundary import boundaryNumba
-from src.update_parcel import update_parcel
+from src.operations.boundary import boundaryNumba
+from src.operations.update_parcel import update_parcel
 from src.etching import etching
 
 class mainLoop(etching):

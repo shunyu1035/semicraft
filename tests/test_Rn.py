@@ -2,7 +2,7 @@
 
 import sys
 sys.path.append("./")  # 确保根目录在 sys.path 中
-import src.Rn_coeffcient as Rn_coeffcient
+import src.operations.Rn_coeffcient as Rn_coeffcient
 import numpy as np
 import matplotlib.pyplot as plt
 import os

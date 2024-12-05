@@ -2,7 +2,7 @@
 
 import sys
 sys.path.append("./")  # 确保根目录在 sys.path 中
-import src.surface as surface
+import src.operations.surface as surface
 import numpy as np
 import matplotlib.pyplot as plt
 import os

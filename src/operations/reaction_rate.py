@@ -1,7 +1,7 @@
 from numba import jit, prange
 import numpy as np
-import src.reflection as reflect
-import src.Rn_coeffcient as Rn_coeffcient
+import src.operations.reflection as reflect
+import src.operations.Rn_coeffcient as Rn_coeffcient
 from src.config import react_table, react_type_table
 
 # react_table = np.array([[[0.1, -1, 0, 0], [0.0, 0,  0, 0], [0.0, 0, 0, 0]],

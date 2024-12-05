@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from src.surface import surface_normal
+from src.operations.surface import surface_normal
 
 
 class configuration(surface_normal):

@@ -1,6 +1,6 @@
 import numpy as np
 from src.configuration import configuration
-import src.reaction_ver1 as reaction
+import src.operations.reaction_ver1 as reaction
 # from src.mirror import mirror
 from pykdtree.kdtree import KDTree
 
