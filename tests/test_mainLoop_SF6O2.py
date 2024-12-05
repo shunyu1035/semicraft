@@ -1,15 +1,16 @@
 import sys
 sys.path.append("./")  # 确保根目录在 sys.path 中
+import pyvista as pv
+import numpy as np
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import src.postProcess as PostProcess
 import src.particleGenerator as particleGenerator
 import src.operations.sputterYield as sputterYield
 from src.config import sputter_yield
-import os
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-from src.config import sputter_yield
 from src.mainLoop_int import mainLoop
-import numpy as np
+
 
 if __name__ == "__main__":
     film = np.zeros((20, 100, 140, 10))
@@ -81,5 +82,7 @@ if __name__ == "__main__":
     testMain.input(etchfilm, parcel,'etching', vel_matrix, 0)
 
     print(testMain.cellSizeX)
-    testMain.runEtch(int(1e4), int(1e5), int(1e7))
-    PostProcess.PostProcess(etchfilm, colors=['dimgray', 'yellow', 'cyan'])
+    testMain.runEtch(int(1e4), int(1e5), int(1e6))
+
+    color_names = ['blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'orange', 'purple', 'pink', 'brown', 'black', 'white', 'gray']
+    PostProcess.PostProcess(etchfilm, colors=color_names)
