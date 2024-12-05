@@ -7,8 +7,8 @@ from src.operations.boundary import boundaryNumba
 from src.operations.update_parcel import update_parcel
 from src.operations.parcel import Parcelgen
 
-from src.etching_int import etching
-
+# from src.etching_int import etching
+from src.etching_SF6O2 import etching
 
 class mainLoop(etching):
 
