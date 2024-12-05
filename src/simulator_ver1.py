@@ -4,11 +4,11 @@ from pykdtree.kdtree import KDTree
 import time as Time
 from tqdm import tqdm
 import logging
-from .surface import surface_normal
+from .operations.surface import surface_normal
 from numba import jit, prange
-import src.sputter_angle_dist as sp_angle
-import src.reflection as reflect
-import src.reaction_ver1 as reaction
+import src.operations.sputter_angle_dist as sp_angle
+import src.operations.reflection as reflect
+import src.operations.reaction_ver1 as reaction
 
 # react_table = np.array([[[0.0, 0, 1], [0.0, 0, 1]],
 #                         [[0.0, -1, 0], [1.0, 0, -1]]])
