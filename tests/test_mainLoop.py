@@ -7,11 +7,9 @@ import src.sputterYield as sputterYield
 from src.config import sputter_yield
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-from src.configuration import configuration
 from src.config import sputter_yield
 from src.mainLoop import mainLoop
 import numpy as np
-from src.etching import etching
 
 if __name__ == "__main__":
     film = np.zeros((20, 100, 140, 3))
