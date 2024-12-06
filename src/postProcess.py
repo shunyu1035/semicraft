@@ -14,9 +14,9 @@ def layerLoop(film):
                         layer[i, j, k] = np.argmax(film[i, j, k]) + 1 
     return layer
 
-def PostProcess_multiLayer(film, colors=['dimgray', 'yellow', 'cyan']):
-    if film.shape[3] > len(colors):
-        print('error: please set colors')
+def PostProcess_multiLayer(film, colors=['dimgray', 'yellow', 'cyan'], labels=['Si', 'SiClx', 'Mask']):
+    if film.shape[3] > len(colors) or film.shape[3] > len(labels):
+        print('error: please set colors or labels')
         return 0 
     geom = pv.Box()
     p = pv.Plotter()
@@ -29,8 +29,9 @@ def PostProcess_multiLayer(film, colors=['dimgray', 'yellow', 'cyan']):
             layermesh = pv.PolyData(layerCube)
             layermesh["radius"] = np.ones(layerCube.shape[0])*0.5
             layerglyphed = layermesh.glyph(scale="radius", geom=geom, orient=False) # progress_bar=True)
-            p.add_mesh(layerglyphed, color=colors[ci])
+            p.add_mesh(layerglyphed, color=colors[ci], label=labels[ci])
     p.enable_eye_dome_lighting()
+    p.add_legend()
     p.show()
 
 def PostProcess(film, colors=['dimgray', 'yellow', 'cyan']):

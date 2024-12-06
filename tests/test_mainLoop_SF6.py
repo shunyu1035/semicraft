@@ -84,5 +84,6 @@ if __name__ == "__main__":
     print(testMain.cellSizeX)
     testMain.runEtch(int(1e4), int(1e5), int(1e7))
 
-    color_names = ['dimgray', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'orange', 'purple', 'pink', 'brown', 'black', 'white', 'gray']
-    PostProcess.PostProcess_multiLayer(etchfilm, colors=color_names)
+    labels = ['Si', 'SiF1', 'SiF2', 'SiF3', 'SiO', 'SiO2', 'SiOF', 'SiOF2', 'SiO2F', 'SiO2F2', 'mask']
+    color_names = ['dimgray', 'blue', 'red', 'green', 'yellow', 'brown', 'magenta', 'orange', 'purple', 'pink', 'cyan', 'black', 'white', 'gray']
+    PostProcess.PostProcess_multiLayer(etchfilm, colors=color_names, labels=labels)

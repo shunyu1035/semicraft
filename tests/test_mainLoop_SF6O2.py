@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
 
 
-    particle_list = [[int(1e6), 0, 'maxwell', 50], [int(1e6), 1, 'maxwell', 60], [int(1e6), 2, 'updown', 60]]
-    # particle_list = [[int(1e6), 0, 'maxwell', 50]]
+    # particle_list = [[int(1e6), 0, 'maxwell', 50], [int(1e6), 1, 'maxwell', 60], [int(1e6), 2, 'updown', 60]]
+    particle_list = [[int(1e6), 0, 'maxwell', 50]]
     vel_matrix = particleGenerator.vel_generator(particle_list)
 
     parcel = np.array([[95*celllength, 95*celllength, 159*celllength, 0, 0, 1, 95, 95, 159, 0.2, 50, 0]])
@@ -84,5 +84,6 @@ if __name__ == "__main__":
     print(testMain.cellSizeX)
     testMain.runEtch(int(1e4), int(1e5), int(1e7))
 
+    labels = ['Si', 'SiF1', 'SiF2', 'SiF3', 'SiO', 'SiO2', 'SiOF', 'SiOF2', 'SiO2F', 'SiO2F2', 'mask']
     color_names = ['dimgray', 'blue', 'red', 'green', 'yellow', 'brown', 'magenta', 'orange', 'purple', 'pink', 'cyan', 'black', 'white', 'gray']
-    PostProcess.PostProcess_multiLayer(etchfilm, colors=color_names)
+    PostProcess.PostProcess_multiLayer(etchfilm, colors=color_names, labels=labels)
