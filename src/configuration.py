@@ -27,7 +27,8 @@ class configuration():
         self.indepoThick = substrateTop
         self.log = logging.getLogger()
         self.log.setLevel(logging.INFO)
-        self.fh = logging.FileHandler(filename='./logfiles/{}.log'.format(logname), mode='w')
+        # self.fh = logging.FileHandler(filename='./logfiles/{}.log'.format(logname), mode='w')
+        self.fh = logging.FileHandler(filename='{}.log'.format(logname), mode='w')
         self.fh.setLevel(logging.INFO)
         self.formatter = logging.Formatter(
                     fmt='%(asctime)s %(levelname)s: %(message)s',

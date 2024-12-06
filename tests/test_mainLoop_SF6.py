@@ -13,7 +13,7 @@ from src.mainLoop_int import mainLoop
 
 
 if __name__ == "__main__":
-    film = np.zeros((20, 100, 140, 11))
+    film = np.zeros((20, 100, 140, 10))
 
     bottom = 100
     height = 104
@@ -22,8 +22,8 @@ if __name__ == "__main__":
 
     center = 50
 
-    film[:, :45, bottom:height, -1] = density
-    film[:, 55:, bottom:height, -1] = density
+    film[:, :45, bottom:height, 9] = density
+    film[:, 55:, bottom:height, 9] = density
     # film[:, :, 0:bottom, :] = 0
     film[:, :, 0:bottom, 0] = density # bottom
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     yield_hist = sputterYield.sputterYield_Func(sputter_yield[0], sputter_yield[1], sputter_yield[2])
 
-    logname = './logfiles/simulator_ver1_1203'
+    logname = 'simulator_ver1_1203'
     etchingPoint = np.array([center, center, bottom-30])
     depoPoint = np.array([center, center, bottom-30])
     density = 10
@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
 
 
-    particle_list = [[int(1e6), 0, 'maxwell', 50], [int(1e6), 1, 'maxwell', 60], [int(1e6), 2, 'updown', 60]]
-    # particle_list = [[int(1e6), 0, 'maxwell', 50]]
+    # particle_list = [[int(1e6), 0, 'maxwell', 50], [int(1e6), 1, 'undown', 60]]
+    particle_list = [[int(1e6), 0, 'maxwell', 50]]
     vel_matrix = particleGenerator.vel_generator(particle_list)
 
     parcel = np.array([[95*celllength, 95*celllength, 159*celllength, 0, 0, 1, 95, 95, 159, 0.2, 50, 0]])
@@ -84,5 +84,5 @@ if __name__ == "__main__":
     print(testMain.cellSizeX)
     testMain.runEtch(int(1e4), int(1e5), int(1e7))
 
-    color_names = ['dimgray', 'blue', 'red', 'green', 'yellow', 'brown', 'magenta', 'orange', 'purple', 'pink', 'cyan', 'black', 'white', 'gray']
+    color_names = ['dimgray', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'orange', 'purple', 'pink', 'brown', 'black', 'white', 'gray']
     PostProcess.PostProcess_multiLayer(etchfilm, colors=color_names)

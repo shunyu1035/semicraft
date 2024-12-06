@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     yield_hist = sputterYield.sputterYield_Func(sputter_yield[0], sputter_yield[1], sputter_yield[2])
 
-    logname = 'simulator_ver1_1203'
+    logname = './logfiles/simulator_ver1_1203'
     etchingPoint = np.array([center, center, bottom-30])
     depoPoint = np.array([center, center, bottom-30])
     density = 10
