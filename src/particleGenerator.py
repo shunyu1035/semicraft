@@ -85,10 +85,14 @@ def vel_generator(particle_list):
     vel_type_shuffle = np.zeros((1, 5))
     for i in particle_list:
         particle_matrix = np.zeros((i[0], 5))
+        print('generator particle counts:{}, type:{}, distribution:{}, energy:{}'.format(i[0], i[1], i[2], i[3]))
         if i[2] == 'maxwell':
             velosity_matrix = velGenerator_maxwell_normal(i[0])
-        elif i[2] == 'undown':
+        elif i[2] == 'updown':
             velosity_matrix = velGenerator_updown_normal(i[0])
+        else:
+            print('type error')
+            return 0
         particle_matrix[:, :3] = velosity_matrix
         particle_matrix[:, 3] = i[3]
         particle_matrix[:, -1] = i[1]

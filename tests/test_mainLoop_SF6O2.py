@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
 
 
-    # particle_list = [[int(1e6), 0, 'maxwell', 50], [int(1e6), 1, 'maxwell', 60], [int(1e6), 2, 'updown', 60]]
-    particle_list = [[int(1e6), 0, 'maxwell', 50]]
+    particle_list = [[int(1e6), 0, 'maxwell', 50], [int(1e6), 1, 'maxwell', 60], [int(1e6), 2, 'updown', 60]]
+    # particle_list = [[int(1e6), 0, 'maxwell', 50]]
     vel_matrix = particleGenerator.vel_generator(particle_list)
 
     parcel = np.array([[95*celllength, 95*celllength, 159*celllength, 0, 0, 1, 95, 95, 159, 0.2, 50, 0]])
