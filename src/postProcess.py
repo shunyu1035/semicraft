@@ -1,5 +1,37 @@
 import numpy as np
 import pyvista as pv
+from numba import jit, prange
+
+
+@jit(nopython=True)
+def layerLoop(film):
+    layer = np.zeros((film.shape[0],film.shape[1],film.shape[2]))
+    for i in range(film.shape[0]):
+        for j in range(film.shape[1]):
+            for k in range(film.shape[2]):
+                for c in range(film.shape[3]):
+                    if np.sum(film[i, j, k]) != 0:
+                        layer[i, j, k] = np.argmax(film[i, j, k]) + 1 
+    return layer
+
+def PostProcess_multiLayer(film, colors=['dimgray', 'yellow', 'cyan']):
+    if film.shape[3] > len(colors):
+        print('error: please set colors')
+        return 0 
+    geom = pv.Box()
+    p = pv.Plotter()
+
+    layer =layerLoop(film)
+
+    for ci in range(film.shape[3]):
+        layerCube = np.argwhere(layer == ci+1)
+        if layerCube.size != 0:
+            layermesh = pv.PolyData(layerCube)
+            layermesh["radius"] = np.ones(layerCube.shape[0])*0.5
+            layerglyphed = layermesh.glyph(scale="radius", geom=geom, orient=False) # progress_bar=True)
+            p.add_mesh(layerglyphed, color=colors[ci])
+    p.enable_eye_dome_lighting()
+    p.show()
 
 def PostProcess(film, colors=['dimgray', 'yellow', 'cyan']):
     if film.shape[3] > len(colors):

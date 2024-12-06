@@ -82,7 +82,7 @@ if __name__ == "__main__":
     testMain.input(etchfilm, parcel,'etching', vel_matrix, 0)
 
     print(testMain.cellSizeX)
-    testMain.runEtch(int(1e4), int(1e5), int(1e6))
+    testMain.runEtch(int(1e4), int(1e5), int(1e7))
 
-    color_names = ['blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'orange', 'purple', 'pink', 'brown', 'black', 'white', 'gray']
-    PostProcess.PostProcess(etchfilm, colors=color_names)
+    color_names = ['dimgray', 'blue', 'red', 'green', 'yellow', 'cyan', 'magenta', 'orange', 'purple', 'pink', 'brown', 'black', 'white', 'gray']
+    PostProcess.PostProcess_multiLayer(etchfilm, colors=color_names)
