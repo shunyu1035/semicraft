@@ -1,6 +1,8 @@
 import numpy as np
+from src.config_SF6O2 import sputter_yield_coefficient
+from numba import jit, prange
 
-def sputterYield_Func(gamma0, gammaMax, thetaMax):
+def sputter_yield_angle(gamma0, gammaMax, thetaMax):
     f = -np.log(gammaMax/gamma0)/(np.log(np.cos(gammaMax)) + 1 - np.cos(thetaMax))
     s = f*np.cos(thetaMax)
     theta = np.arange(0, np.pi/2, 0.01)
@@ -12,3 +14,17 @@ def sputterYield_Func(gamma0, gammaMax, thetaMax):
     yield_hist[0, :] = sputterYield
     yield_hist[1, :] = theta
     return yield_hist
+
+@jit(nopython=True, parallel=True)
+def sputter_yield_energy(E, Eth):
+    return E**0.5 - Eth**0.5
+
+
+# sputterYield_ion = sputter_yield_angle(0.3, 0.001, np.pi/4)
+
+@jit(nopython=True, parallel=True)
+def sputter_yield(theta, energy, Eth):
+    p0 = 1
+    return p0*np.interp(theta, sputterYield_ion[1], sputterYield_ion[0])*sputter_yield_energy(energy, Eth)
+
+sputterYield_ion = sputter_yield_angle(sputter_yield_coefficient[0], sputter_yield_coefficient[1], sputter_yield_coefficient[2])
