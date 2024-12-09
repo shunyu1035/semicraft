@@ -66,7 +66,7 @@ def sticking_probability(parcel, film, angle_rad):
             # dot_product = np.dot(parcel[3:6], normal)
             # dot_product = np.abs(dot_product)
             # angle_rad = np.arccos(dot_product)
-            rn_prob = rn_matrix[chose_rn_coeffcient(rn_energy, parcel[-1])]
+            rn_prob = rn_matrix[chose_rn_coeffcient(rn_energy, parcel[-2])]
             # rn_prob = rn_matrix[np.argwhere(variale_react_type == particle)[0][0]]
             react_rate = np.interp(angle_rad, rn_angle, rn_prob)
         else:
