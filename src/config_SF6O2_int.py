@@ -20,8 +20,6 @@ for i in range(react_table3.shape[0]):
                 react_plus_min = 0
             react_table[i, j, react_chem] = react_plus_min
 
-react_table_equation = np.copy(react_table[:, :, 1:]).astype(np.int32)
-
 sputter_yield_coefficient = [0.3, 0.001, np.pi/4]
 
 react_weight = 10
