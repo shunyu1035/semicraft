@@ -23,6 +23,6 @@ for i in range(react_table3.shape[0]):
 sputter_yield_coefficient = [0.3, 0.001, np.pi/4]
 
 react_weight = 10
-
+film_density = 100
 
 film_Eth = np.array([10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10])

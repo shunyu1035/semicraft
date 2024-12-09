@@ -15,14 +15,14 @@ def sputter_yield_angle(gamma0, gammaMax, thetaMax):
     yield_hist[1, :] = theta
     return yield_hist
 
-@jit(nopython=True, parallel=True)
+@jit(nopython=True)
 def sputter_yield_energy(E, Eth):
     return E**0.5 - Eth**0.5
 
 
 # sputterYield_ion = sputter_yield_angle(0.3, 0.001, np.pi/4)
 
-@jit(nopython=True, parallel=True)
+@jit(nopython=True)
 def sputter_yield(theta, energy, Eth):
     p0 = 1
     return p0*np.interp(theta, sputterYield_ion[1], sputterYield_ion[0])*sputter_yield_energy(energy, Eth)
