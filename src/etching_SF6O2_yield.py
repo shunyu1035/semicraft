@@ -3,7 +3,11 @@ import numpy as np
 from src.operations.surface_int import surface_normal
 from src.configuration import configuration
 import src.operations.reaction_rate as reaction
+# from numba import jit, prange
 
+# @jit(nopython=True)
+# def sumFilm_numba(film):
+#     return np.sum(film, axis=-1)
 
 class etching(configuration, surface_normal):
     def __init__(self, etchingPoint,depoPoint,density, 
@@ -61,8 +65,10 @@ class etching(configuration, surface_normal):
             if np.any(self.update_film):
                 # self.planes = self.update_pointcloud(self.planes, self.film, self.update_film)
                 self.sumFilm = np.sum(self.film, axis=-1)
+                # self.sumFilm = sumFilm_numba(self.film)
                 self.clear_minus()
                 self.planes, self.planes_vaccum = self.get_pointcloud(self.sumFilm)
+                self.update_film = np.zeros_like(self.sumFilm, dtype=np.bool_)
             # self.reactList_debug = reactList
             reactListAll[indice_inject] = reactList
             if np.any(reactListAll != -1):
