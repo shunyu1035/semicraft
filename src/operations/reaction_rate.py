@@ -54,9 +54,9 @@ def sticking_probability(parcel, film, angle_rad):
     # num_reactions = react_table.shape[1]
     film_layer = film.shape[0]
     choice = np.random.rand(film_layer)
-    for j in prange(film_layer):
-        if film[j] <= 0:
-            choice[j] = 1
+    for c in prange(film_layer):
+        if film[c] <= 0:
+            choice[c] = 1
 
     particle = int(parcel[-1])
     # particle > 3 for redepo
@@ -111,7 +111,6 @@ def reaction_rate(parcel, film, film_vaccum, normal, update_film):
             elif react_type == 0: # no reaction
                 depo_parcel[i] = 0
 
-    for i in prange(parcel.shape[0]):
         film_counts = np.sum(film[i, :],dtype=np.int32)
         if int(parcel[i, -1]) <= 2: # gas F O Ion
             react_add = react_table_equation[int(parcel[i, -1]), int(reactList[i]), :]

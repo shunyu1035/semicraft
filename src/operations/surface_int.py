@@ -211,12 +211,17 @@ class surface_normal:
 
         # print('cov', cov.shape)
         # # 单值分解 (SVD)
+        # u, s, vh = np.linalg.svd(cov)
+        # # # u, s, vh = svd_torch(cov)
+
+        # # # # 选择最小特征值对应的特征向量
+        # normal_all = eigen_min_numba(u, s, cov.shape[0])
+        # 单值分解 (SVD)
         u, s, vh = np.linalg.svd(cov)
-        # # u, s, vh = svd_torch(cov)
 
-        # # # 选择最小特征值对应的特征向量
-        normal_all = eigen_min_numba(u, s, cov.shape[0])
-
+        # 选择最小特征值对应的特征向量
+        minevindex = np.argmin(s, axis=1)
+        normal_all = np.array([u[i, :, minevindex[i]] for i in range(u.shape[0])])
         # normal_all = min_eigenvector(cov)
         # normal_all = svd_numba(cov)
         # 生成平面矩阵

@@ -62,13 +62,13 @@ class etching(configuration, surface_normal):
                            self.film[get_plane[:,0], get_plane[:,1],get_plane[:,2]], \
                            self.film[get_plane_vaccum[:,0], get_plane_vaccum[:,1], get_plane_vaccum[:,2]], \
                            get_theta, self.update_film)
-            if np.any(self.update_film):
-                # self.planes = self.update_pointcloud(self.planes, self.film, self.update_film)
-                self.sumFilm = np.sum(self.film, axis=-1)
-                # self.sumFilm = sumFilm_numba(self.film)
-                self.clear_minus()
-                self.planes, self.planes_vaccum = self.get_pointcloud(self.sumFilm)
-                self.update_film = np.zeros_like(self.sumFilm, dtype=np.bool_)
+            # if np.any(self.update_film):
+            #     # self.planes = self.update_pointcloud(self.planes, self.film, self.update_film)
+            #     self.sumFilm = np.sum(self.film, axis=-1)
+            #     self.clear_minus()
+            self.sumFilm = np.sum(self.film, axis=-1)
+            self.planes, self.planes_vaccum = self.get_pointcloud(self.sumFilm)
+                # self.update_film = np.zeros_like(self.sumFilm, dtype=np.bool_)
             # self.reactList_debug = reactList
             reactListAll[indice_inject] = reactList
             if np.any(reactListAll != -1):
