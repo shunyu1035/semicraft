@@ -108,24 +108,25 @@ def reaction_rate(parcel, film, film_vaccum, normal, update_film):
             film[i, :] += react_add
         if depo_parcel[i] == 4: # chemical remove
             film[i, :] += react_add
-            if np.all(film[i, :]) == 0:
+            if np.all(film[i, :] == 0):
                 update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
         if depo_parcel[i] == 2: # physics sputter
-            react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], film_Eth[int(reactList[i])]) # physics sputter || p0 (E**2 - Eth**2) f(theta)
+            react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], 10) # physics sputter || p0 (E**2 - Eth**2) f(theta)
+            # react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], film_Eth[int(reactList[i])])
             if react_yield > np.random.rand():
                 film[i, :] += react_add
-                if np.all(film[i, :]) == 0:
+                if np.all(film[i, :] == 0):
                     update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
                 
-        if depo_parcel[i] == 3: # depo
-            film_add_all = np.sum(react_add + film[i, :])
-            if film_add_all > film_density:
-                film_vaccum[i, :] += react_add
-                update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True  
-            else:
-                film[i, :] += react_add
-                if np.sum(film[i, :]) == film_density:
-                    update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
+        # if depo_parcel[i] == 3: # depo
+        #     film_add_all = np.sum(react_add + film[i, :])
+        #     if film_add_all > film_density:
+        #         film_vaccum[i, :] += react_add
+        #         update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True  
+        #     else:
+        #         film[i, :] += react_add
+        #         if np.sum(film[i, :]) == film_density:
+        #             update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
  
         if reactList[i] == -1:
             parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], normal[i])
