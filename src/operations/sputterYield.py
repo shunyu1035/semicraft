@@ -23,8 +23,7 @@ def sputter_yield_energy(E, Eth):
 # sputterYield_ion = sputter_yield_angle(0.3, 0.001, np.pi/4)
 
 @jit(nopython=True)
-def sputter_yield(theta, energy, Eth):
-    p0 = 1
+def sputter_yield(p0, theta, energy, Eth):
     return p0*np.interp(theta, sputterYield_ion[1], sputterYield_ion[0])*sputter_yield_energy(energy, Eth)
 
 sputterYield_ion = sputter_yield_angle(sputter_yield_coefficient[0], sputter_yield_coefficient[1], sputter_yield_coefficient[2])
