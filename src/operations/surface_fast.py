@@ -58,6 +58,13 @@ def min_eigenvector(cov):
     return vectors
 
 
+
+def find_adjacent_etching(film, indice):
+    cell_ijk = np.array(np.nonzero(indice)).T
+    cell_adjacent = np.zeros((6,3))
+    cell_adjacent[0, 1] = cell_ijk
+
+
 class surface_normal:
     def __init__(self, center_with_direction, range3D, InOrOut, celllength, yield_hist = None):
         # center xyz inOrout
@@ -209,21 +216,13 @@ class surface_normal:
         # 计算协方差矩阵
         cov = np.einsum('...ij,...ik->...jk', c, c)
 
-        # print('cov', cov.shape)
         # # 单值分解 (SVD)
-        # u, s, vh = np.linalg.svd(cov)
+        u, s, vh = np.linalg.svd(cov)
         # # # u, s, vh = svd_torch(cov)
 
-        # # # # 选择最小特征值对应的特征向量
-        # normal_all = eigen_min_numba(u, s, cov.shape[0])
-        # 单值分解 (SVD)
-        u, s, vh = np.linalg.svd(cov)
-
         # 选择最小特征值对应的特征向量
-        minevindex = np.argmin(s, axis=1)
-        normal_all = np.array([u[i, :, minevindex[i]] for i in range(u.shape[0])])
-        # normal_all = min_eigenvector(cov)
-        # normal_all = svd_numba(cov)
+        normal_all = eigen_min_numba(u, s, cov.shape[0])
+
         # 生成平面矩阵
         planes = np.hstack((normal_all, points))
 
@@ -234,38 +233,45 @@ class surface_normal:
         # planes_vaccum = np.array(np.nonzero(self.scanZ_vaccum(film))).T
         return planes_consist, planes_vaccum
 
-    # def update_pointcloud(self, planes, film, indice):
+    def update_pointcloud(self, planes, film, indice):
+        points = planes[:, 3:]
+        film
+        surface_tree = KDTree(points)
+        dd, ii = surface_tree.query(points, k=18)
 
-    #     surface_tree = cKDTree(points)
-    #     dd, ii = surface_tree.query(points, k=18, workers=5)
+        # # test = self.scanZ(film)
+        # surface = self.scanZ_numpy(film)
+        # points = np.array(np.nonzero(surface)).T
+        # # surface_tree = cKDTree(points)
+        # surface_tree = KDTree(points)
+        # dd, ii = surface_tree.query(points, k=18)
+        # 计算所有点的均值
+        knn_pts = points[ii]
+        xmn = np.mean(knn_pts[:, :, 0], axis=1)
+        ymn = np.mean(knn_pts[:, :, 1], axis=1)
+        zmn = np.mean(knn_pts[:, :, 2], axis=1)
 
-    #     pointsNP = points.numpy()
+        c = knn_pts - np.stack([xmn, ymn, zmn], axis=1)[:, np.newaxis, :]
 
-    #     # 计算所有点的均值
-    #     knn_pts = pointsNP[ii]
-    #     xmn = np.mean(knn_pts[:, :, 0], axis=1)
-    #     ymn = np.mean(knn_pts[:, :, 1], axis=1)
-    #     zmn = np.mean(knn_pts[:, :, 2], axis=1)
+        # 计算协方差矩阵
+        cov = np.einsum('...ij,...ik->...jk', c, c)
+        
+        # 单值分解 (SVD)
+        u, s, vh = np.linalg.svd(cov)
 
-    #     c = knn_pts - np.stack([xmn, ymn, zmn], axis=1)[:, np.newaxis, :]
+        # 选择最小特征值对应的特征向量
+        minevindex = np.argmin(s, axis=1)
+        normal_all = min_eigenvector(cov)
+        # normal_all = svd_numba(cov)
+        # 生成平面矩阵
+        planes = np.hstack((normal_all, points))
 
-    #     # 计算协方差矩阵
-    #     cov = np.einsum('...ij,...ik->...jk', c, c)
+        # 调用 normalconsistency_3D_real 方法
+        planes_consist = self.normalconsistency_3D_real(planes)
 
-    #     # 单值分解 (SVD)
-    #     u, s, vh = np.linalg.svd(cov)
-
-    #     # 选择最小特征值对应的特征向量
-    #     minevindex = np.argmin(s, axis=1)
-    #     normal_all = np.array([u[i, :, minevindex[i]] for i in range(u.shape[0])])
-
-    #     # 生成平面矩阵
-    #     planes = np.hstack((normal_all, pointsNP))
-
-    #     # 调用 normalconsistency_3D_real 方法
-    #     planes_consist = self.normalconsistency_3D_real(planes)
-
-    #     return planes_consist
+        planes_vaccum = self.scanZ_vaccum(film).indices().T.numpy()
+        # planes_vaccum = np.array(np.nonzero(self.scanZ_vaccum(film))).T
+        return planes_consist, planes_vaccum
 
     def get_inject_normal(self, plane, plane_vaccum, pos, vel):
         # plane = self.get_pointcloud(film)

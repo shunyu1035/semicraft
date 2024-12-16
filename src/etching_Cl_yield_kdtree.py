@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.operations.surface_int import surface_normal
+from src.operations.surface_fast import surface_normal
 from src.configuration import configuration
 import src.operations.reaction_Cl as reaction
 # from numba import jit, prange
