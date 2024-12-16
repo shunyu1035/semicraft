@@ -71,7 +71,7 @@ def surface_vector(plane):
 
 @jit(nopython=True)
 def transfer_to_plane(normal_array):
-    plane = np.zeros((normal_array.shape[0]**3, 6))
+    plane = np.zeros((normal_array.shape[0]*normal_array.shape[1]*normal_array.shape[2], 6))
     count = 0
     for i in range(normal_array.shape[0]):
         for j in range(normal_array.shape[1]):
