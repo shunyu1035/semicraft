@@ -46,24 +46,31 @@ class etching(configuration, surface_normal):
 
         pos_1 = self.parcel[indice_inject, :3]
         vel_1 = self.parcel[indice_inject, 3:6]
-        ijk_1 = self.parcel[indice_inject, 6:9]
+        ijk_1 = self.parcel[indice_inject, 6:9].astype(np.int32)
 
         if np.any(indice_inject):
             # self.planes = self.get_pointcloud(sumFilm)
             self.indice_inject = indice_inject
 
+            # get_theta = self.normal_matrix[ijk_1]
+            # get_plane = self.film[ijk_1]
             # 可以把kdtree分散方法写在这里用作判断反应发生位置
+            self.planes_vaccum = np.array(np.where(self.vacuum_film) != 0).T
+            self.planes = np.array(np.where(np.sum(self.normal_matrix, axis=-1) != 0)).T
             get_plane, get_theta, get_plane_vaccum = self.get_inject_normal(self.planes, self.planes_vaccum, pos_1, vel_1)
 
             self.film[get_plane[:,0], get_plane[:,1],get_plane[:,2]],\
             self.film[get_plane_vaccum[:,0], get_plane_vaccum[:,1], get_plane_vaccum[:,2]], \
-            self.parcel[indice_inject,:], self.update_film,\
+            self.parcel[indice_inject,:], update_film_etch, update_film_depo, \
             reactList, depo_parcel = \
             reaction.reaction_rate(self.parcel[indice_inject], \
                            self.film[get_plane[:,0], get_plane[:,1],get_plane[:,2]], \
                            self.film[get_plane_vaccum[:,0], get_plane_vaccum[:,1], get_plane_vaccum[:,2]], \
-                           get_theta, self.update_film)
-            if np.any(self.update_film):
+                           get_theta)
+            etch_size =  update_film_etch.size > 0
+            depo_size =  update_film_depo.size > 0
+            if etch_size | depo_size:
+                # self.normal_matrix[]
             #     # self.planes = self.update_pointcloud(self.planes, self.film, self.update_film)
             #     self.sumFilm = np.sum(self.film, axis=-1)
             #     self.clear_minus()
