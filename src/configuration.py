@@ -40,6 +40,8 @@ class configuration():
         
         self.film = None
         self.sumFilm = None
+        self.normal_matrix = None
+        self.vacuum_film = None
 
 
 

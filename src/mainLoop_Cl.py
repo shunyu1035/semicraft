@@ -32,7 +32,9 @@ class mainLoop(etching):
         # self.update_surface_mirror_noetching(self.sumFilm)
         self.surface_mirror= mirror.update_surface_mirror(self.sumFilm,self.surface_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
         # self.planes = self.get_pointcloud(self.surface_mirror)
-        self.planes, self.planes_vaccum = self.get_pointcloud(self.sumFilm)
+        self.normal_matrix, self.vacuum_film = self.build_normal_matrix(self.film, self.mirrorGap)
+        # self.planes, self.planes_vaccum = self.get_pointcloud(self.sumFilm)
+        self.planes = np.array(np.where(np.sum(self.normal_matrix, axis=-1) != 0)).T
         self.update_film = np.zeros_like(self.sumFilm, dtype=np.bool_)
         return start_time, t, count_reaction, inputAll, filmThickness
     

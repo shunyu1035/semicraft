@@ -4,6 +4,7 @@ from pykdtree.kdtree import KDTree
 import torch
 from scipy import interpolate
 from numba import jit, prange
+import src.operations.mirror as mirror
 
 def svd_torch(cov):
     cov_tensor = torch.tensor(cov)
@@ -138,140 +139,121 @@ class surface_normal:
         surface_sparse[condition] = 1
         
         return surface_sparse.to_sparse()
-    
-    def normalconsistency_3D_real(self, planes):
-        """
-        This function checks whether the normals are oriented towards the outside of the surface, i.e., it 
-        checks the consistency of the normals. The function changes the direction of the normals that do not 
-        point towards the outside of the shape. The function checks whether the normals are oriented towards 
-        the centre of the ellipsoid, and if YES, then, it turns their orientation.
-        
-        INPUTS:
-            planes: Vector N x 6, where N is the number of points whose normals and centroids have been calculated. 
-            The columns are the coordinates of the normals and the centroids.
-            
-        OUTPUTS:
-            planes_consist: N x 6 array, where N is the number of points whose planes have been calculated. This array 
-            has all the planes normals pointing outside the surface.
-        """
-        
-        # nbnormals = np.size(planes, 0)
-        planes_consist = []
-        sensorcentre = np.array([100, 100, 0])  # default value, will be updated in loop
 
-        for c in range(self.center_with_direction.shape[0]):
-            sensorcentre = self.center_with_direction[c]
-            sensorrange = self.range3D[c]
-            sensorInOut = self.InOrOut[c]
+    def scanZ_numpy(self, film):
+        # 初始化一个全零的表面数组
+        surface_sparse_depo = np.zeros_like(film)
 
-            # Determine which planes are in range using broadcasting
-            in_range_mask = (
-                (planes[:, 3] < sensorrange[0]) & (planes[:, 3] >= sensorrange[1]) &
-                (planes[:, 4] < sensorrange[2]) & (planes[:, 4] >= sensorrange[3]) &
-                (planes[:, 5] < sensorrange[4]) & (planes[:, 5] >= sensorrange[5])
-            )
+        # depo 条件
+        current_plane = film != 0
 
-            planes_in_range = planes[~in_range_mask]
-            nbnormals_in_range = np.size(planes_in_range, 0)
-            planes_in_range_consist = np.zeros((nbnormals_in_range, 6))
-            planes_in_range_consist[:, 3:6] = planes_in_range[:, 3:6]
+        # 创建邻居布尔索引数组
+        neighbors = np.zeros_like(film, dtype=bool)
 
-            if nbnormals_in_range > 0:
-                p1 = (sensorcentre - planes_in_range[:, 3:6]) / np.linalg.norm(sensorcentre - planes_in_range[:, 3:6], axis=1)[:, None]
-                p2 = planes_in_range[:, 0:3]
-                
-                cross_prod = np.cross(p1, p2)
-                dot_prod = np.einsum('ij,ij->i', p1, p2)
-                angles = np.arctan2(np.linalg.norm(cross_prod, axis=1), dot_prod)
+        # 获取周围邻居的布尔索引
+        neighbors[1:, :, :] |= film[:-1, :, :] == 0  # 上面
+        neighbors[:-1, :, :] |= film[1:, :, :] == 0  # 下面
+        neighbors[:, 1:, :] |= film[:, :-1, :] == 0  # 左边
+        neighbors[:, :-1, :] |= film[:, 1:, :] == 0  # 右边
+        neighbors[:, :, 1:] |= film[:, :, :-1] == 0  # 前面
+        neighbors[:, :, :-1] |= film[:, :, 1:] == 0  # 后面
 
-                flip_mask = (angles >= -np.pi/2) & (angles <= np.pi/2)
+        # 获取满足条件的索引
+        condition_depo = current_plane & neighbors
 
-                planes_in_range_consist[flip_mask, 0:3] = sensorInOut * planes_in_range[flip_mask, 0:3]
-                planes_in_range_consist[~flip_mask, 0:3] = -sensorInOut * planes_in_range[~flip_mask, 0:3]
+        # 更新表面稀疏张量
+        surface_sparse_depo[condition_depo] = 1
 
-            planes_consist.append(planes_in_range_consist)
+        return surface_sparse_depo
 
-        return np.concatenate(planes_consist, axis=0) 
+    def scanZ_vacuum_numpy(self, film):
+        # 初始化一个全零的表面数组
+        surface_sparse_depo = np.zeros_like(film)
 
-    def get_pointcloud(self, film):
-        test = self.scanZ(film)
-        points = test.indices().T.numpy()
-        surface_tree = KDTree(points)
-        dd, ii = surface_tree.query(points, k=18)
+        # depo 条件
+        current_plane = film == 0
 
-        # # test = self.scanZ(film)
-        # surface = self.scanZ_numpy(film)
-        # points = np.array(np.nonzero(surface)).T
-        # # surface_tree = cKDTree(points)
-        # surface_tree = KDTree(points)
-        # dd, ii = surface_tree.query(points, k=18)
-        # 计算所有点的均值
-        knn_pts = points[ii]
-        xmn = np.mean(knn_pts[:, :, 0], axis=1)
-        ymn = np.mean(knn_pts[:, :, 1], axis=1)
-        zmn = np.mean(knn_pts[:, :, 2], axis=1)
+        # 创建邻居布尔索引数组
+        neighbors = np.zeros_like(film, dtype=bool)
 
-        c = knn_pts - np.stack([xmn, ymn, zmn], axis=1)[:, np.newaxis, :]
+        # 获取周围邻居的布尔索引
+        neighbors[1:, :, :] |= film[:-1, :, :] > 0  # 上面
+        neighbors[:-1, :, :] |= film[1:, :, :] > 0  # 下面
+        neighbors[:, 1:, :] |= film[:, :-1, :] > 0  # 左边
+        neighbors[:, :-1, :] |= film[:, 1:, :] > 0  # 右边
+        neighbors[:, :, 1:] |= film[:, :, :-1] > 0  # 前面
+        neighbors[:, :, :-1] |= film[:, :, 1:] > 0  # 后面
 
-        # 计算协方差矩阵
-        cov = np.einsum('...ij,...ik->...jk', c, c)
+        # 获取满足条件的索引
+        condition_depo = current_plane & neighbors
 
-        # # 单值分解 (SVD)
-        u, s, vh = np.linalg.svd(cov)
-        # # # u, s, vh = svd_torch(cov)
+        # 更新表面稀疏张量
+        surface_sparse_depo[condition_depo] = 1
 
-        # 选择最小特征值对应的特征向量
-        normal_all = eigen_min_numba(u, s, cov.shape[0])
+        return surface_sparse_depo
 
-        # 生成平面矩阵
-        planes = np.hstack((normal_all, points))
+    def get_normal_from_grid(self, film, normal_matrix, mirrorGap, point):
+        # point += mirrorGap
+        x, y, z = point
+        x += mirrorGap
+        y += mirrorGap
+        grid_cube = film[x-3:x+4, y-3:y+4, z-3:z+4]
 
-        # 调用 normalconsistency_3D_real 方法
-        planes_consist = self.normalconsistency_3D_real(planes)
+        positions = np.array(np.where(grid_cube == 1)).T
 
-        planes_vaccum = self.scanZ_vaccum(film).indices().T.numpy()
-        # planes_vaccum = np.array(np.nonzero(self.scanZ_vaccum(film))).T
-        return planes_consist, planes_vaccum
+        xmn = np.mean(positions[:, 0])
+        ymn = np.mean(positions[:, 1])
+        zmn = np.mean(positions[:, 2])
+        # print(f'xyzMin:{np.array([xmn, ymn, zmn])}')
+        c = positions - np.stack([xmn, ymn, zmn])
+        cov = np.dot(c.T, c)
 
-    def update_pointcloud(self, planes, film, indice):
-        points = planes[:, 3:]
-        film
-        surface_tree = KDTree(points)
-        dd, ii = surface_tree.query(points, k=18)
-
-        # # test = self.scanZ(film)
-        # surface = self.scanZ_numpy(film)
-        # points = np.array(np.nonzero(surface)).T
-        # # surface_tree = cKDTree(points)
-        # surface_tree = KDTree(points)
-        # dd, ii = surface_tree.query(points, k=18)
-        # 计算所有点的均值
-        knn_pts = points[ii]
-        xmn = np.mean(knn_pts[:, :, 0], axis=1)
-        ymn = np.mean(knn_pts[:, :, 1], axis=1)
-        zmn = np.mean(knn_pts[:, :, 2], axis=1)
-
-        c = knn_pts - np.stack([xmn, ymn, zmn], axis=1)[:, np.newaxis, :]
-
-        # 计算协方差矩阵
-        cov = np.einsum('...ij,...ik->...jk', c, c)
-        
-        # 单值分解 (SVD)
+        # SVD 分解协方差矩阵
         u, s, vh = np.linalg.svd(cov)
 
-        # 选择最小特征值对应的特征向量
-        minevindex = np.argmin(s, axis=1)
-        normal_all = min_eigenvector(cov)
-        # normal_all = svd_numba(cov)
-        # 生成平面矩阵
-        planes = np.hstack((normal_all, points))
+        # 最小特征值对应的特征向量
+        normal = u[:, -1]  # 最小特征值的特征向量是最后一列
+        point[0] -= mirrorGap
+        point[1] -= mirrorGap
+        normal_matrix[point[0], point[1], point[2]] = normal
+        return normal_matrix
 
-        # 调用 normalconsistency_3D_real 方法
-        planes_consist = self.normalconsistency_3D_real(planes)
+    def build_normal_matrix(self, film, mirrorGap):
+        surface_film = self.scanZ_numpy(film)
+        vacuum_film = self.scanZ_vacuum_numpy(film)
+        cellSizeX, cellSizeY, cellSizeZ = surface_film.shape
 
-        planes_vaccum = self.scanZ_vaccum(film).indices().T.numpy()
-        # planes_vaccum = np.array(np.nonzero(self.scanZ_vaccum(film))).T
-        return planes_consist, planes_vaccum
+        surface_mirror = np.zeros((cellSizeX+int(mirrorGap*2), cellSizeY+int(mirrorGap*2), cellSizeZ))
+        film_mirror = mirror.update_surface_mirror(surface_film, surface_mirror, mirrorGap, cellSizeX, cellSizeY)
+
+        # normal_array shape(x,y,z,3) to film shape(x,y,z)
+        normal_matrix = np.zeros((cellSizeX, cellSizeY, cellSizeZ, 3))
+        surface_point = np.array(np.where(surface_film == 1)).T
+
+        for i in range(surface_point.shape[0]):
+            normal_matrix = self.get_normal_from_grid(film_mirror, normal_matrix, mirrorGap, surface_point[i])
+        return normal_matrix, vacuum_film
+
+    def update_normal_matrix(self, film_mirror, normal_matrix, mirrorGap, point_to_change):
+        point_nn_all = np.zeros((1,3))
+        for i in range(point_to_change.shape[0]):
+            x, y, z = point_to_change[i]
+            x += mirrorGap
+            y += mirrorGap
+            # print(x)
+            grid_cube = film_mirror[x-3:x+4, y-3:y+4, z-3:z+4]
+            # print(grid_cube)
+            point_nn = np.array(np.where(grid_cube == 1)).T
+            point_nn += point_to_change[i]
+            point_nn_all = np.vstack((point_nn_all, point_nn))
+        point_nn_all = np.unique(point_nn_all[1:], axis=0).astype(np.int64)
+        # print(point_nn_all)
+        for i in range(point_nn_all.shape[0]):
+            normal_matrix = self.get_normal_from_grid(film_mirror, normal_matrix, mirrorGap, point_nn_all[i])
+        return normal_matrix
+
+
+
 
     def get_inject_normal(self, plane, plane_vaccum, pos, vel):
         # plane = self.get_pointcloud(film)

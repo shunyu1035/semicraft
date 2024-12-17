@@ -29,7 +29,6 @@ class etching(configuration, surface_normal):
 
 
     def get_indices(self):
-        # 直接将切片操作和数据类型转换合并
         return self.parcel[:, 6].astype(int), self.parcel[:, 7].astype(int), self.parcel[:, 8].astype(int)
 
     def clear_minus(self):
@@ -52,6 +51,8 @@ class etching(configuration, surface_normal):
         if np.any(indice_inject):
             # self.planes = self.get_pointcloud(sumFilm)
             self.indice_inject = indice_inject
+
+            # 可以把kdtree分散方法写在这里用作判断反应发生位置
             get_plane, get_theta, get_plane_vaccum = self.get_inject_normal(self.planes, self.planes_vaccum, pos_1, vel_1)
 
             self.film[get_plane[:,0], get_plane[:,1],get_plane[:,2]],\

@@ -66,12 +66,18 @@ def sticking_probability(parcel, film, angle_rad):
     return sticking_acceptList, particle
 
 @jit(nopython=True, parallel=True)
-def reaction_rate(parcel, film, film_vaccum, normal, update_film):
+def reaction_rate(parcel, film, film_vaccum, normal):
     reactList = np.ones(parcel.shape[0], dtype=np.int_) * -1
     elements = film.shape[-1]
     react_add = np.zeros(elements)
     depo_parcel = np.zeros(parcel.shape[0])
     angle_rad = np.zeros(parcel.shape[0])
+
+    update_film_etch = np.zeros((parcel.shape[0], 3))
+    count_etch = 0
+    update_film_depo = np.zeros((parcel.shape[0], 3))
+    count_depo = 0
+
     for i in prange(parcel.shape[0]):
     #     particle = int(parcel[i, -1])
         dot_product = np.dot(parcel[i, 3:6], normal[i])
@@ -109,28 +115,29 @@ def reaction_rate(parcel, film, film_vaccum, normal, update_film):
         if depo_parcel[i] == 4: # chemical remove
             film[i, :] += react_add
             if np.all(film[i, :] == 0):
-                update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
+                update_film_etch[count_etch] =  np.array([int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])])
+                count_etch += 1
         if depo_parcel[i] == 2: # physics sputter
             react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], 10) # physics sputter || p0 (E**2 - Eth**2) f(theta)
             # react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], film_Eth[int(reactList[i])])
             if react_yield > np.random.rand():
                 film[i, :] += react_add
                 if np.all(film[i, :] == 0):
-                    update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
-                
+                    update_film_etch[count_etch] =  np.array([int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])])
+                    count_etch += 1       
         # if depo_parcel[i] == 3: # depo
         #     film_add_all = np.sum(react_add + film[i, :])
         #     if film_add_all > film_density:
         #         film_vaccum[i, :] += react_add
-        #         update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True  
+        #         update_film_etch[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True  
         #     else:
         #         film[i, :] += react_add
         #         if np.sum(film[i, :]) == film_density:
-        #             update_film[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
+        #             update_film_depo[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
  
         if reactList[i] == -1:
             parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], normal[i])
             # print('reflect')
             # parcel[i, 3:6] = reemission(parcel[i, 3:6], theta[i])
             # react_add = react_table[int(parcel[i, -1]), int(reactList[i]), 1:]
-    return film, film_vaccum, parcel, update_film, reactList, depo_parcel
+    return film, film_vaccum, parcel, update_film_etch[:count_etch], update_film_depo[:count_depo], reactList, depo_parcel
