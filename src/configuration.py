@@ -41,8 +41,10 @@ class configuration():
         self.film = None
         self.sumFilm = None
         self.normal_matrix = None
-        self.vacuum_film = None
-
+        # self.film_label = None
+        # self.film_label_mirror = None
+        self.film_label_index_normal = None
+        self.film_label_index_normal_mirror = None
 
 
     def input(self, film, parcel, depo_or_etching, vel_matrix, depo_count_type):

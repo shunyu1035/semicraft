@@ -29,13 +29,13 @@ class mainLoop(etching):
         inputAll = 0
         filmThickness = self.substrateTop
         self.sumFilm = np.sum(self.film, axis=-1)
-        # self.update_surface_mirror_noetching(self.sumFilm)
+
         self.surface_mirror= mirror.update_surface_mirror(self.sumFilm,self.surface_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
-        # self.planes = self.get_pointcloud(self.surface_mirror)
-        self.normal_matrix, self.vacuum_film = self.build_normal_matrix(self.film, self.mirrorGap)
-        # self.planes, self.planes_vaccum = self.get_pointcloud(self.sumFilm)
-        self.planes = np.array(np.where(np.sum(self.normal_matrix, axis=-1) != 0)).T
-        self.update_film = np.zeros_like(self.sumFilm, dtype=np.bool_)
+
+        self.film_label_index_normal = self.build_film_label_index_normal(self.sumFilm, self.mirrorGap)
+        self.film_label_index_normal_mirror = np.zeros((self.cellSizeX+int(self.mirrorGap*2), self.cellSizeY+int(self.mirrorGap*2), self.cellSizeZ, 7))
+        self.film_label_index_normal_mirror = mirror.update_surface_mirror(self.film_label_index_normal, self.film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
+
         return start_time, t, count_reaction, inputAll, filmThickness
     
     def count_time(self, start_time, count_reaction,inputAll):

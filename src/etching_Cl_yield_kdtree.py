@@ -3,6 +3,7 @@ import numpy as np
 from src.operations.surface_fast import surface_normal
 from src.configuration import configuration
 import src.operations.reaction_Cl as reaction
+import src.operations.mirror as mirror
 # from numba import jit, prange
 
 # @jit(nopython=True)
@@ -54,11 +55,14 @@ class etching(configuration, surface_normal):
 
             # get_theta = self.normal_matrix[ijk_1]
             # get_plane = self.film[ijk_1]
-            # 可以把kdtree分散方法写在这里用作判断反应发生位置
-            self.planes_vaccum = np.array(np.where(self.vacuum_film) != 0).T
-            self.planes = np.array(np.where(np.sum(self.normal_matrix, axis=-1) != 0)).T
-            get_plane, get_theta, get_plane_vaccum = self.get_inject_normal(self.planes, self.planes_vaccum, pos_1, vel_1)
 
+            # 可以把kdtree分散方法写在这里用作判断反应发生位置
+            plane_bool = self.film_label_index_normal[:, :, :, 0] == 1
+            # print(f'self.film_label_index_normas{self.film_label_index_normal[plane_bool]}')
+            vacuum_bool = self.film_label_index_normal[:, :, :, 0] == -1
+            get_plane, get_theta, get_plane_vaccum = self.get_inject_normal_kdtree(self.film_label_index_normal[plane_bool], self.film_label_index_normal[vacuum_bool], pos_1)
+
+            # reaction
             self.film[get_plane[:,0], get_plane[:,1],get_plane[:,2]],\
             self.film[get_plane_vaccum[:,0], get_plane_vaccum[:,1], get_plane_vaccum[:,2]], \
             self.parcel[indice_inject,:], update_film_etch, update_film_depo, \
@@ -67,18 +71,24 @@ class etching(configuration, surface_normal):
                            self.film[get_plane[:,0], get_plane[:,1],get_plane[:,2]], \
                            self.film[get_plane_vaccum[:,0], get_plane_vaccum[:,1], get_plane_vaccum[:,2]], \
                            get_theta)
-            etch_size =  update_film_etch.size > 0
-            depo_size =  update_film_depo.size > 0
-            if etch_size | depo_size:
-                # self.normal_matrix[]
-            #     # self.planes = self.update_pointcloud(self.planes, self.film, self.update_film)
-            #     self.sumFilm = np.sum(self.film, axis=-1)
-            #     self.clear_minus()
+            
+            # update film_label_index_normal
+            etch_bool =  update_film_etch.shape[0] > 0
+            depo_bool =  update_film_depo.shape[0] > 0
+            if etch_bool:
+                point_etch_add_depo = np.zeros((update_film_etch.shape[0] + update_film_depo.shape[0], 3))
+                point_etch_add_depo[:update_film_etch.shape[0], :] = update_film_etch
+                self.film_label_index_normal = self.update_film_label_index_normal_etch(self.film_label_index_normal, update_film_etch.astype(np.int64))
+            if depo_bool:
+                point_etch_add_depo[update_film_etch.shape[0]:, :] = update_film_depo
+                self.film_label_index_normal = self.update_film_label_index_normal_depo(self.film_label_index_normal, update_film_depo.astype(np.int64))
+            if etch_bool | depo_bool:
+                self.film_label_index_normal_mirror = mirror.update_surface_mirror(self.film_label_index_normal, self.film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
+                self.film_label_index_normal = self.update_normal_in_matrix(self.film_label_index_normal_mirror, self.film_label_index_normal, self.mirrorGap, point_etch_add_depo.astype(np.int64))
                 self.log.info('refreshFilm')
                 self.sumFilm = np.sum(self.film, axis=-1)
-                self.planes, self.planes_vaccum = self.get_pointcloud(self.sumFilm)
-                self.update_film = np.zeros_like(self.sumFilm, dtype=np.bool_)
-            # self.reactList_debug = reactList
+
+            # 去除反应的粒子
             reactListAll[indice_inject] = reactList
             if np.any(reactListAll != -1):
                 indice_inject[np.where(reactListAll == -1)] = False

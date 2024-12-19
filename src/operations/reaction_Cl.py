@@ -73,7 +73,7 @@ def reaction_rate(parcel, film, film_vaccum, normal):
     depo_parcel = np.zeros(parcel.shape[0])
     angle_rad = np.zeros(parcel.shape[0])
 
-    update_film_etch = np.zeros((parcel.shape[0], 3))
+    update_film_etch = np.zeros((parcel.shape[0], 3), dtype=np.int64)
     count_etch = 0
     update_film_depo = np.zeros((parcel.shape[0], 3))
     count_depo = 0
