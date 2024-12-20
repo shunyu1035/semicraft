@@ -252,6 +252,32 @@ class surface_normal:
         film_label_index_normal[x, y, z, -3:] = normal
         return film_label_index_normal
 
+    def get_normal_from_index_padded(self, film_label_index_normal_mirror, film_label_index_normal, mirrorGap, point):
+        x, y, z = point
+        x += mirrorGap
+        y += mirrorGap
+        grid_cube = film_label_index_normal_mirror[x-3:x+4, y-3:y+4, z-3:z+4]
+
+        plane_bool = grid_cube[:, :, :, 0] == 1
+        positions = grid_cube[plane_bool][:, 1:4]
+
+        xmn = np.mean(positions[:, 0])
+        ymn = np.mean(positions[:, 1])
+        zmn = np.mean(positions[:, 2])
+        c = positions - np.stack([xmn, ymn, zmn])
+        cov = np.dot(c.T, c)
+
+        # SVD 分解协方差矩阵
+        u, s, vh = np.linalg.svd(cov)
+
+        # 最小特征值对应的特征向量
+        normal = u[:, -1]  # 最小特征值的特征向量是最后一列
+
+        x -= mirrorGap
+        y -= mirrorGap
+        film_label_index_normal[x, y, z, -3:] = normal
+        return film_label_index_normal
+
     # film_label_index_normal[label, x. y, z, nx, ny, nz]
     def build_film_label_index_normal(self, sumfilm, mirrorGap):
         surface_film = self.scanZ_numpy_bool(sumfilm)
@@ -320,36 +346,38 @@ class surface_normal:
             normal_matrix = self.get_normal_from_grid(film_mirror, normal_matrix, mirrorGap, point_nn_all[i])
         return normal_matrix
 
-    def update_film_label_index_normal_etch(self, film_label_index_normal, point):
+    def update_film_label_index_normal_etch(self, film_label_index_normal_pad, mirrorGap, point):
         grid_cross = np.array([[1, 0, 0],
                             [-1, 0, 0],
                             [0, 1, 0],
                             [0, -1,0],
                             [0,0,  1],
                             [0, 0,-1]])
-        shape = film_label_index_normal.shape
-        film_label_index_normal[point[:, 0], point[:, 1], point[:, 2], 0] = -1 #etch
+
+        point[:, 0] += mirrorGap
+        point[:, 1] += mirrorGap
+        film_label_index_normal_pad[point[:, 0], point[:, 1], point[:, 2], 0] = -1 #etch
 
         # 向量化处理
         # 1. 计算所有点的邻居
         point_nn = (point[:, np.newaxis, :] + grid_cross).reshape(-1, 3)
-        print(point_nn)
+        # print(point_nn)
         # point_nn = check_valid(point_nn, shape)
         # 2. 筛选邻居点对应的 film_label 值为 2 的点
-        mask = film_label_index_normal[point_nn[:, 0], point_nn[:,1], point_nn[:,2], 0] == 2
+        mask = film_label_index_normal_pad[point_nn[:, 0], point_nn[:,1], point_nn[:,2], 0] == 2
 
         # 3. 更新这些点对应的值为 1
-        film_label_index_normal[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0] = 1
+        film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0] = 1
 
         # 4. 筛选邻居点对应的 film_label 值为 -1 的点
-        mask_vacuum = film_label_index_normal[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], -1] == -1
+        mask_vacuum = film_label_index_normal_pad[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], -1] == -1
 
         point_vacuum = point_nn[mask_vacuum]
         point_vacuum_nn = (point_vacuum[:, np.newaxis, :] + grid_cross)
         # point_vacuum_nn = check_valid(point_vacuum_nn, shape)
 
         # 获取邻居的值
-        neighbor_values = film_label_index_normal[
+        neighbor_values = film_label_index_normal_pad[
             point_vacuum_nn[:,:, 0],
             point_vacuum_nn[:,:, 1],
             point_vacuum_nn[:,:, 2],
@@ -359,13 +387,13 @@ class surface_normal:
         no_neighbor_equal_1 = ~np.any(neighbor_values == 1, axis=1)
 
         # 更新满足条件的点为 0
-        film_label_index_normal[point_vacuum[no_neighbor_equal_1, 0],
+        film_label_index_normal_pad[point_vacuum[no_neighbor_equal_1, 0],
                 point_vacuum[no_neighbor_equal_1, 1],
                 point_vacuum[no_neighbor_equal_1, 2], 0] = 0
         
-        return film_label_index_normal
+        return film_label_index_normal_pad[mirrorGap:-mirrorGap,mirrorGap:-mirrorGap,:], film_label_index_normal_pad
 
-    def update_film_label_index_normal_depo(self, film_label_index_normal, point):
+    def update_film_label_index_normal_depo(self, film_label_index_normal_pad, mirrorGap, point):
         grid_cross = np.array([[1, 0, 0],
                             [-1, 0, 0],
                             [0, 1, 0],
@@ -373,8 +401,9 @@ class surface_normal:
                             [0,0,  1],
                             [0, 0,-1]])
         
-        shape = film_label_index_normal.shape
-        film_label_index_normal[point[:, 0], point[:, 1], point[:, 2], 0] = 1 #depo
+        point[:, 0] += mirrorGap
+        point[:, 1] += mirrorGap
+        film_label_index_normal_pad[point[:, 0], point[:, 1], point[:, 2], 0] = 1 #depo
 
         # 向量化处理
         # 1. 计算所有点的邻居
@@ -382,19 +411,19 @@ class surface_normal:
         # point_nn = check_valid(point_nn, shape)
 
         # 2. 筛选邻居点对应的 film_label 值为 0 的点
-        mask = film_label_index_normal[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == 0
+        mask = film_label_index_normal_pad[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == 0
 
         # 3. 更新这些点对应的值为 -1
-        film_label_index_normal[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0] = -1
+        film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0] = -1
 
         # 4. 筛选邻居点对应的 film_label 值为 1 的点
-        mask_vacuum = film_label_index_normal[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == 1
+        mask_vacuum = film_label_index_normal_pad[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == 1
         point_vacuum = point_nn[mask_vacuum]
         point_vacuum_nn = (point_vacuum[:, np.newaxis, :] + grid_cross)
         # point_vacuum_nn = check_valid(point_vacuum_nn, shape)
 
         # 获取邻居的值
-        neighbor_values = film_label_index_normal[
+        neighbor_values = film_label_index_normal_pad[
             point_vacuum_nn[:,:, 0],
             point_vacuum_nn[:,:, 1],
             point_vacuum_nn[:,:, 2],
@@ -404,11 +433,11 @@ class surface_normal:
         no_neighbor_equal_1 = ~np.any(neighbor_values == -1, axis=1)
 
         # 更新满足条件的点为 2
-        film_label_index_normal[point_vacuum[no_neighbor_equal_1, 0],
+        film_label_index_normal_pad[point_vacuum[no_neighbor_equal_1, 0],
                 point_vacuum[no_neighbor_equal_1, 1],
                 point_vacuum[no_neighbor_equal_1, 2], 0] = 2
         
-        return film_label_index_normal
+        return film_label_index_normal_pad[mirrorGap:-mirrorGap,mirrorGap:-mirrorGap,:], film_label_index_normal_pad
 
     def update_normal_in_matrix(self, film_label_index_normal_mirror, film_label_index_normal, mirrorGap, point_to_change):
         point_nn_all = np.zeros((1,3))
@@ -423,7 +452,7 @@ class surface_normal:
             point_nn_all = np.vstack((point_nn_all, point_nn))
         point_nn_all = np.unique(point_nn_all[1:], axis=0).astype(np.int64)
         for i in range(point_nn_all.shape[0]):
-            film_label_index_normal = self.get_normal_from_index(film_label_index_normal_mirror, film_label_index_normal, mirrorGap, point_nn_all[i])
+            film_label_index_normal = self.get_normal_from_index(film_label_index_normal_mirror, film_label_index_normal_mirror[mirrorGap:-mirrorGap, mirrorGap:-mirrorGap, :], mirrorGap, point_nn_all[i])
         return film_label_index_normal
 
 

@@ -78,10 +78,10 @@ class etching(configuration, surface_normal):
             if etch_bool:
                 point_etch_add_depo = np.zeros((update_film_etch.shape[0] + update_film_depo.shape[0], 3))
                 point_etch_add_depo[:update_film_etch.shape[0], :] = update_film_etch
-                self.film_label_index_normal = self.update_film_label_index_normal_etch(self.film_label_index_normal, update_film_etch.astype(np.int64))
+                self.film_label_index_normal, self.film_label_index_normal_mirror = self.update_film_label_index_normal_etch(self.film_label_index_normal_mirror, self.mirrorGap, update_film_etch.astype(np.int64))
             if depo_bool:
                 point_etch_add_depo[update_film_etch.shape[0]:, :] = update_film_depo
-                self.film_label_index_normal = self.update_film_label_index_normal_depo(self.film_label_index_normal, update_film_depo.astype(np.int64))
+                self.film_label_index_normal, self.film_label_index_normal_mirror = self.update_film_label_index_normal_depo(self.film_label_index_normal_mirror, self.mirrorGap, update_film_depo.astype(np.int64))
             if etch_bool | depo_bool:
                 self.film_label_index_normal_mirror = mirror.update_surface_mirror(self.film_label_index_normal, self.film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
                 self.film_label_index_normal = self.update_normal_in_matrix(self.film_label_index_normal_mirror, self.film_label_index_normal, self.mirrorGap, point_etch_add_depo.astype(np.int64))
