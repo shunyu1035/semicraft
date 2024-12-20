@@ -65,7 +65,7 @@ def sticking_probability(parcel, film, angle_rad):
             sticking_acceptList[j] = True
     return sticking_acceptList, particle
 
-@jit(nopython=True, parallel=True)
+# @jit(nopython=True, parallel=True)
 def reaction_rate(parcel, film, film_vaccum, normal):
     reactList = np.ones(parcel.shape[0], dtype=np.int_) * -1
     elements = film.shape[-1]
@@ -73,12 +73,12 @@ def reaction_rate(parcel, film, film_vaccum, normal):
     depo_parcel = np.zeros(parcel.shape[0])
     angle_rad = np.zeros(parcel.shape[0])
 
-    update_film_etch = np.zeros((parcel.shape[0], 3), dtype=np.int64)
+    update_film_etch = np.zeros(parcel.shape[0], dtype=np.int64)
     count_etch = 0
-    update_film_depo = np.zeros((parcel.shape[0], 3))
+    update_film_depo = np.zeros(parcel.shape[0], dtype=np.int64)
     count_depo = 0
 
-    for i in prange(parcel.shape[0]):
+    for i in range(parcel.shape[0]):
     #     particle = int(parcel[i, -1])
         dot_product = np.dot(parcel[i, 3:6], normal[i])
         dot_product = np.abs(dot_product)
@@ -114,16 +114,17 @@ def reaction_rate(parcel, film, film_vaccum, normal):
             film[i, :] += react_add
         if depo_parcel[i] == 4: # chemical remove
             film[i, :] += react_add
-            if np.all(film[i, :] == 0):
-                update_film_etch[count_etch] =  np.array([int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])])
+            if np.sum(film[i, :]) == 0:
+                # if film[i, 3] == 0:
+                update_film_etch[count_etch] =  i
                 count_etch += 1
         if depo_parcel[i] == 2: # physics sputter
             react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], 10) # physics sputter || p0 (E**2 - Eth**2) f(theta)
             # react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], film_Eth[int(reactList[i])])
             if react_yield > np.random.rand():
                 film[i, :] += react_add
-                if np.all(film[i, :] == 0):
-                    update_film_etch[count_etch] =  np.array([int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])])
+                if np.sum(film[i, :]) == 0:
+                    update_film_etch[count_etch] =  i
                     count_etch += 1       
         # if depo_parcel[i] == 3: # depo
         #     film_add_all = np.sum(react_add + film[i, :])

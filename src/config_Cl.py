@@ -5,9 +5,11 @@ import numpy as np
 #react_t g[Cl,   ion] s   [1,      2,     3,     4,    5]
 
 # black CD
-react_prob_chemical = np.array([0.50, 0.50, 0.50, 0.9, 0.0])
+# react_prob_chemical = np.array([0.50, 0.50, 0.50, 0.9, 0.0])
+react_prob_chemical = np.array([0.90, 0.90, 0.90, 0.9, 0.0])
 
-react_yield_p0 = np.array([0.10, 0.10, 0.10, 0.10, 0.10])
+# react_yield_p0 = np.array([0.10, 0.10, 0.10, 0.10, 0.10])
+react_yield_p0 = np.array([0.90, 0.90, 0.90, 0.90, 0.90])
 
 react_redepo_sticking = np.array([1.0, 1.0, 1.0, 1.0, 1.0])
 

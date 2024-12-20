@@ -76,16 +76,21 @@ class etching(configuration, surface_normal):
             etch_bool =  update_film_etch.shape[0] > 0
             depo_bool =  update_film_depo.shape[0] > 0
             if etch_bool:
-                point_etch_add_depo = np.zeros((update_film_etch.shape[0] + update_film_depo.shape[0], 3))
-                point_etch_add_depo[:update_film_etch.shape[0], :] = update_film_etch
-                self.film_label_index_normal, self.film_label_index_normal_mirror = self.update_film_label_index_normal_etch(self.film_label_index_normal_mirror, self.mirrorGap, update_film_etch.astype(np.int64))
+                # a bug tobe fixed sometimes the film can not be etched when label is changed , maybe the reaction_rate func
+                self.film[get_plane[update_film_etch, 0], get_plane[update_film_etch, 1], get_plane[update_film_etch, 2], :] = 0
+                
+                point_etch_add_depo = np.zeros((get_plane[update_film_etch].shape[0] + get_plane[update_film_depo].shape[0], 3))
+                point_etch_add_depo[:update_film_etch.shape[0], :] = get_plane[update_film_etch]
+                # print(f'update_film_etch:{update_film_etch}')
+                self.film_label_index_normal, self.film_label_index_normal_mirror = self.update_film_label_index_normal_etch(self.film_label_index_normal_mirror, self.mirrorGap, get_plane[update_film_etch])
             if depo_bool:
-                point_etch_add_depo[update_film_etch.shape[0]:, :] = update_film_depo
-                self.film_label_index_normal, self.film_label_index_normal_mirror = self.update_film_label_index_normal_depo(self.film_label_index_normal_mirror, self.mirrorGap, update_film_depo.astype(np.int64))
+                point_etch_add_depo[update_film_etch.shape[0]:, :] = get_plane[update_film_depo]
+                self.film_label_index_normal, self.film_label_index_normal_mirror = self.update_film_label_index_normal_depo(self.film_label_index_normal_mirror, self.mirrorGap, get_plane[update_film_depo])
             if etch_bool | depo_bool:
+                # print(point_etch_add_depo)
                 self.film_label_index_normal_mirror = mirror.update_surface_mirror(self.film_label_index_normal, self.film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
                 self.film_label_index_normal = self.update_normal_in_matrix(self.film_label_index_normal_mirror, self.film_label_index_normal, self.mirrorGap, point_etch_add_depo.astype(np.int64))
-                self.log.info('refreshFilm')
+                # self.log.info('refreshFilm')
                 self.sumFilm = np.sum(self.film, axis=-1)
 
             # 去除反应的粒子

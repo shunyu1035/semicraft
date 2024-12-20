@@ -3,7 +3,8 @@ from pykdtree.kdtree import KDTree
 
 from src.operations.surface_int import surface_normal
 from src.configuration import configuration
-import src.operations.reaction_SF6O2 as reaction
+# import src.operations.reaction_SF6O2 as reaction
+import src.operations.reaction_Cl_slow as reaction
 import src.operations.mirror as mirror
 import src.operations.sputter_angle_dist as sp_angle
 from src.operations.parcel import Parcelgen

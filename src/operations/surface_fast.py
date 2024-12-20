@@ -361,19 +361,23 @@ class surface_normal:
         # 向量化处理
         # 1. 计算所有点的邻居
         point_nn = (point[:, np.newaxis, :] + grid_cross).reshape(-1, 3)
+        # print(f'point_nn: {point_nn}')
         # print(point_nn)
         # point_nn = check_valid(point_nn, shape)
         # 2. 筛选邻居点对应的 film_label 值为 2 的点
-        mask = film_label_index_normal_pad[point_nn[:, 0], point_nn[:,1], point_nn[:,2], 0] == 2
+        # print(f'before_film_point_nn: {film_label_index_normal_pad[point_nn[:, 0], point_nn[:,1], point_nn[:,2], 0]}')
 
+        mask = film_label_index_normal_pad[point_nn[:, 0], point_nn[:,1], point_nn[:,2], 0] == 2
+        # print(f'film_point_nn: {film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0]}')
         # 3. 更新这些点对应的值为 1
         film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0] = 1
-
+        # print(f'film_point_nn: {film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0]}')
         # 4. 筛选邻居点对应的 film_label 值为 -1 的点
-        mask_vacuum = film_label_index_normal_pad[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], -1] == -1
+        mask_vacuum = film_label_index_normal_pad[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == -1
 
         point_vacuum = point_nn[mask_vacuum]
         point_vacuum_nn = (point_vacuum[:, np.newaxis, :] + grid_cross)
+        # print(f'point_vacuum_nn: {point_vacuum_nn}')
         # point_vacuum_nn = check_valid(point_vacuum_nn, shape)
 
         # 获取邻居的值
@@ -382,10 +386,10 @@ class surface_normal:
             point_vacuum_nn[:,:, 1],
             point_vacuum_nn[:,:, 2],
             0]
-
+        # print(f'neighbor_values: {neighbor_values}')
         # 找出所有邻居都不等于 1 的点
         no_neighbor_equal_1 = ~np.any(neighbor_values == 1, axis=1)
-
+        # print(point_vacuum[no_neighbor_equal_1])
         # 更新满足条件的点为 0
         film_label_index_normal_pad[point_vacuum[no_neighbor_equal_1, 0],
                 point_vacuum[no_neighbor_equal_1, 1],
