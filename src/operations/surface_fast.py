@@ -74,6 +74,134 @@ def check_valid(point, shape):
     point_nn_valid = point[mask_valid]
     return point_nn_valid
 
+
+@jit(nopython=True)
+def get_normal_from_index_numba(film_label_index_normal_mirror, film_label_index_normal, mirrorGap, point):
+    x, y, z = point
+    x += mirrorGap
+    y += mirrorGap
+
+    # 提取 7x7x7 的局部区域
+    grid_cube = film_label_index_normal_mirror[x-3:x+4, y-3:y+4, z-3:z+4]
+
+    # 使用布尔掩码提取满足条件的索引
+    plane_bool = grid_cube[:, :, :, 0] == 1
+
+    # 预分配 positions 数组
+    max_positions = np.sum(plane_bool)  # 最大可能点数
+    positions = np.zeros((max_positions, 3))  # 假设每个点有 3 个坐标
+
+    idx = 0  # 索引计数器
+    for i in range(grid_cube.shape[0]):
+        for j in range(grid_cube.shape[1]):
+            for k in range(grid_cube.shape[2]):
+                if plane_bool[i, j, k]:
+                    positions[idx, :] = grid_cube[i, j, k, 1:4]
+                    idx += 1
+
+    # 截取有效部分
+    positions = positions[:idx, :]
+
+    if positions.shape[0] == 0:
+        return film_label_index_normal  # 如果没有点，直接返回
+
+    # 计算法向量
+    xmn = np.mean(positions[:, 0])
+    ymn = np.mean(positions[:, 1])
+    zmn = np.mean(positions[:, 2])
+    c = positions - np.array([xmn, ymn, zmn])
+    cov = np.dot(c.T, c)
+
+    # SVD 分解协方差矩阵
+    u, s, vh = np.linalg.svd(cov)
+
+    # 最小特征值对应的特征向量
+    normal = u[:, -1]  # 最小特征值的特征向量是最后一列
+
+    # 更新法向量到 film_label_index_normal
+    x -= mirrorGap
+    y -= mirrorGap
+    film_label_index_normal[x, y, z, -3:] = normal
+
+    return film_label_index_normal
+
+@jit(nopython=True)
+def unique_rows(data):
+    """手动实现二维数组按行去重"""
+    unique_data = []
+    seen = set()
+    for i in range(data.shape[0]):
+        row = data[i]
+        # 将数组的每行转为 `tuple` 的替代实现：用字符串表示
+        row_key = ",".join(map(str, row))
+        if row_key not in seen:
+            seen.add(row_key)
+            unique_data.append(row)
+    return np.array(unique_data, dtype=data.dtype)
+
+@jit(nopython=True)
+def update_normal_in_matrix_numba(film_label_index_normal_mirror, film_label_index_normal, mirrorGap, point_to_change):
+    max_points = 100000  # 预分配的最大点数，可以根据需要调整
+    point_nn_all = np.empty((max_points, 3), dtype=np.int64)  # 预分配数组
+    current_index = 0  # 当前写入位置
+
+    for i in range(point_to_change.shape[0]):
+        x, y, z = point_to_change[i]
+        x += mirrorGap
+        y += mirrorGap
+
+        # 提取邻域的 7x7x7 块
+        grid_cube = film_label_index_normal_mirror[x - 3:x + 4, y - 3:y + 4, z - 3:z + 4]
+
+        # 使用 np.where 提取满足条件的位置
+        plane_bool = grid_cube[:, :, :, 0] == 1
+        indices = np.where(plane_bool)  # 获取满足条件的索引 (3D)
+
+        # 将索引转换为点并调整偏移
+        for j in range(indices[0].shape[0]):
+            new_point = np.array(
+                [indices[0][j] - 3 + x - mirrorGap,
+                 indices[1][j] - 3 + y - mirrorGap,
+                 indices[2][j] - 3 + z - mirrorGap]
+            )
+            point_nn_all[current_index] = new_point
+            current_index += 1
+
+            # 防止数组溢出
+            if current_index >= max_points:
+                raise ValueError("Too many points, increase max_points.")
+
+    # 去重并裁剪到实际使用的大小
+    point_nn_all = point_nn_all[:current_index]
+
+    # 更新法向量
+    for i in range(point_nn_all.shape[0]):
+        film_label_index_normal = get_normal_from_index_numba(
+            film_label_index_normal_mirror,
+            film_label_index_normal_mirror[mirrorGap:-mirrorGap, mirrorGap:-mirrorGap, :],
+            mirrorGap,
+            point_nn_all[i],
+        )
+
+    return film_label_index_normal
+
+# def update_normal_in_matrix_numba(film_label_index_normal_mirror, film_label_index_normal, mirrorGap, point_to_change):
+#     point_nn_all = np.zeros((1,3))
+#     # film_label_index_normal[point_to_change[:,0],point_to_change[:,1],point_to_change[:,2], 4:] = 0
+#     for i in range(point_to_change.shape[0]):
+#         x, y, z = point_to_change[i]
+#         x += mirrorGap
+#         y += mirrorGap
+#         grid_cube = film_label_index_normal_mirror[x-3:x+4, y-3:y+4, z-3:z+4]
+#         plane_bool = grid_cube[:, :, :, 0] == 1
+#         point_nn = grid_cube[plane_bool][:, 1:4]
+#         point_nn_all = np.vstack((point_nn_all, point_nn))
+#     point_nn_all = np.unique(point_nn_all[1:], axis=0).astype(np.int64)
+#     for i in range(point_nn_all.shape[0]):
+#         film_label_index_normal = get_normal_from_index_numba(film_label_index_normal_mirror, film_label_index_normal_mirror[mirrorGap:-mirrorGap, mirrorGap:-mirrorGap, :], mirrorGap, point_nn_all[i])
+#     return film_label_index_normal
+
+
 class surface_normal:
     def __init__(self, center_with_direction, range3D, InOrOut, celllength, yield_hist = None):
         # center xyz inOrout
@@ -457,6 +585,7 @@ class surface_normal:
         point_nn_all = np.unique(point_nn_all[1:], axis=0).astype(np.int64)
         for i in range(point_nn_all.shape[0]):
             film_label_index_normal = self.get_normal_from_index(film_label_index_normal_mirror, film_label_index_normal_mirror[mirrorGap:-mirrorGap, mirrorGap:-mirrorGap, :], mirrorGap, point_nn_all[i])
+            # film_label_index_normal = get_normal_from_index_numba(film_label_index_normal_mirror, film_label_index_normal_mirror[mirrorGap:-mirrorGap, mirrorGap:-mirrorGap, :], mirrorGap, point_nn_all[i])
         return film_label_index_normal
 
 
