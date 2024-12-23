@@ -48,7 +48,7 @@ class etching(configuration, surface_normal):
         pos_1 = self.parcel[indice_inject, :3]
 
         if np.any(indice_inject):
-            
+
             # 可以把kdtree分散方法写在这里用作判断反应发生位置
             plane_bool = self.film_label_index_normal[:, :, :, 0] == 1
             # print(f'self.film_label_index_normas{self.film_label_index_normal[plane_bool]}')
@@ -59,22 +59,23 @@ class etching(configuration, surface_normal):
             self.film, self.parcel[indice_inject], update_film_etch, update_film_depo, reactList, depo_parcel = \
             reaction.reaction_rate_parallel(self.film, self.parcel[indice_inject], get_plane, get_plane_vaccum, get_theta)
 
-            point_etch = self.film_label_index_normal[update_film_etch, 1:4]
-            point_depo = self.film_label_index_normal[update_film_depo, 1:4]
-            point_etch_add_depo = np.zeros((point_etch.shape[0] + point_depo.shape[0], 3))
+            point_etch = self.film_label_index_normal[update_film_etch, 1:4].astype(np.int64)
+            point_depo = self.film_label_index_normal[update_film_depo, 1:4].astype(np.int64)
+            point_etch_add_depo = np.zeros((point_etch.shape[0] + point_depo.shape[0], 3), dtype=np.int64)
             if update_film_etch.any():
                 point_etch_add_depo[:point_etch.shape[0], :] = point_etch
                 self.film_label_index_normal, self.film_label_index_normal_mirror = \
-                    self.update_film_label_index_normal_etch(self.film_label_index_normal_mirror, self.mirrorGap, point_etch.astype(np.int64))
+                    self.update_film_label_index_normal_etch(self.film_label_index_normal_mirror, self.mirrorGap, point_etch)
             if update_film_depo.any():
                 point_etch_add_depo[point_etch.shape[0]:, :] = point_depo
                 self.film_label_index_normal, self.film_label_index_normal_mirror = \
-                    self.update_film_label_index_normal_depo(self.film_label_index_normal_mirror, self.mirrorGap, point_depo.astype(np.int64))
+                    self.update_film_label_index_normal_depo(self.film_label_index_normal_mirror, self.mirrorGap, point_depo)
             if update_film_etch.any() or update_film_depo.any():
                 self.film_label_index_normal_mirror = mirror.update_surface_mirror(self.film_label_index_normal, self.film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
-                self.film_label_index_normal = self.update_normal_in_matrix(self.film_label_index_normal_mirror, self.film_label_index_normal, self.mirrorGap, point_etch_add_depo.astype(np.int64))
+                self.film_label_index_normal = self.update_normal_in_matrix(self.film_label_index_normal_mirror, self.film_label_index_normal, self.mirrorGap, point_etch_add_depo)
                 # self.log.info('refreshFilm')
-                self.sumFilm = np.sum(self.film, axis=-1)
+                # self.sumFilm = np.sum(self.film, axis=-1)
+                self.sumFilm[point_etch_add_depo[:, 0], point_etch_add_depo[:, 1], point_etch_add_depo[:, 2]] = np.sum(self.film[point_etch_add_depo[:, 0], point_etch_add_depo[:, 1], point_etch_add_depo[:, 2]], axis=-1)
 
             # 去除反应的粒子
             reactListAll[indice_inject] = reactList

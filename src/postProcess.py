@@ -10,7 +10,7 @@ def layerLoop(film):
         for j in range(film.shape[1]):
             for k in range(film.shape[2]):
                 for c in range(film.shape[3]):
-                    if np.sum(film[i, j, k]) != 0:
+                    if np.sum(film[i, j, k]) > 0:
                         layer[i, j, k] = np.argmax(film[i, j, k]) + 1 
     return layer
 
