@@ -35,7 +35,9 @@ class mainLoop(etching):
         self.film_label_index_normal = self.build_film_label_index_normal(self.sumFilm, self.mirrorGap)
         self.film_label_index_normal_mirror = np.zeros((self.cellSizeX+int(self.mirrorGap*2), self.cellSizeY+int(self.mirrorGap*2), self.cellSizeZ, 7))
         self.film_label_index_normal_mirror = mirror.update_surface_mirror(self.film_label_index_normal, self.film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
-        self.plane_pointcloud, self.vacuum_pointcloud = self.build_pointcloud_from_matrix(self.film_label_index_normal)
+        self.plane_pointcloud_hash, self.vacuum_pointcloud_hash = self.build_pointcloud_from_matrix(self.film_label_index_normal)
+        print(self.film_label_index_normal.shape)
+
         return start_time, t, count_reaction, inputAll, filmThickness
     
     def count_time(self, start_time, count_reaction,inputAll):

@@ -593,20 +593,148 @@ class surface_normal:
     #   12/24 pointcloud也要动态更新在update里面
     # -----------------------------------------
 
+    # plane_pointcloud (x,y,z) int64
     def build_pointcloud_from_matrix(self, film_label_index_normal):
         labels = film_label_index_normal[:, :, :, 0]
         plane_bool = labels == 1
         vacuum_bool = labels == -1
         plane_indices = np.argwhere(plane_bool)
         vacuum_indices = np.argwhere(vacuum_bool)
-        plane_pointcloud = film_label_index_normal[plane_indices[:, 0], plane_indices[:, 1], plane_indices[:, 2]]
-        vacuum_pointcloud = film_label_index_normal[vacuum_indices[:, 0], vacuum_indices[:, 1], vacuum_indices[:, 2]]
-        return plane_pointcloud, vacuum_pointcloud
+        plane_pointcloud_numpy = film_label_index_normal[plane_indices[:, 0], plane_indices[:, 1], plane_indices[:, 2], 1:4].astype(np.int64)
+        vacuum_pointcloud_numpy = film_label_index_normal[vacuum_indices[:, 0], vacuum_indices[:, 1], vacuum_indices[:, 2], 1:4].astype(np.int64)
+
+        plane_pointcloud_hash = {}
+        vacuum_pointcloud_hash = {}
+
+        for i in range(plane_pointcloud_numpy.shape[0]):
+            plane_pointcloud_hash[(plane_pointcloud_numpy[i, 0], plane_pointcloud_numpy[i, 1], plane_pointcloud_numpy[i, 2])] = plane_pointcloud_numpy[i]
+        for j in range(vacuum_pointcloud_numpy.shape[0]):
+            vacuum_pointcloud_hash[(vacuum_pointcloud_numpy[j, 0], vacuum_pointcloud_numpy[j, 1], vacuum_pointcloud_numpy[j, 2])] = vacuum_pointcloud_numpy[j]
+
+        return plane_pointcloud_hash, vacuum_pointcloud_hash
 
 
+    def update_film_label_index_normal_etch_hash(self, film_label_index_normal_pad, mirrorGap, point, plane_pointcloud_hash, vacuum_pointcloud_hash):
+        grid_cross = np.array([[1, 0, 0],
+                            [-1, 0, 0],
+                            [0, 1, 0],
+                            [0, -1,0],
+                            [0,0,  1],
+                            [0, 0,-1]])
 
+        point[:, 0] += mirrorGap
+        point[:, 1] += mirrorGap
+        film_label_index_normal_pad[point[:, 0], point[:, 1], point[:, 2], 0] = -1 #etch
+        for i in range(point.shape[0]):
+            vacuum_pointcloud_hash[(point[i, 0], point[i, 1], point[i, 2])] = point[i]
+        # 向量化处理
+        # 1. 计算所有点的邻居
+        point_nn = (point[:, np.newaxis, :] + grid_cross).reshape(-1, 3)
+        # print(f'point_nn: {point_nn}')
+        # print(point_nn)
+        # point_nn = check_valid(point_nn, shape)
+        # 2. 筛选邻居点对应的 film_label 值为 2 的点
+        # print(f'before_film_point_nn: {film_label_index_normal_pad[point_nn[:, 0], point_nn[:,1], point_nn[:,2], 0]}')
 
+        mask = film_label_index_normal_pad[point_nn[:, 0], point_nn[:,1], point_nn[:,2], 0] == 2
+        # print(f'film_point_nn: {film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0]}')
+        # 3. 更新这些点对应的值为 1
+        film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0] = 1
+        for i in range(point_nn[mask].shape[0]):
+            plane_pointcloud_hash[(point_nn[mask][i, 0], point_nn[mask][i, 1], point_nn[mask][i, 2])] = point_nn[mask][i]
+        # print(f'film_point_nn: {film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0]}')
+        # 4. 筛选邻居点对应的 film_label 值为 -1 的点
+        mask_vacuum = film_label_index_normal_pad[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == -1
 
+        point_vacuum = point_nn[mask_vacuum]
+        point_vacuum_nn = (point_vacuum[:, np.newaxis, :] + grid_cross)
+        # print(f'point_vacuum_nn: {point_vacuum_nn}')
+        # point_vacuum_nn = check_valid(point_vacuum_nn, shape)
+
+        # 获取邻居的值
+        neighbor_values = film_label_index_normal_pad[
+            point_vacuum_nn[:,:, 0],
+            point_vacuum_nn[:,:, 1],
+            point_vacuum_nn[:,:, 2],
+            0]
+        # print(f'neighbor_values: {neighbor_values}')
+        # 找出所有邻居都不等于 1 的点
+        no_neighbor_equal_1 = ~np.any(neighbor_values == 1, axis=1)
+        # print(point_vacuum[no_neighbor_equal_1])
+        # 更新满足条件的点为 0
+        film_label_index_normal_pad[point_vacuum[no_neighbor_equal_1, 0],
+                point_vacuum[no_neighbor_equal_1, 1],
+                point_vacuum[no_neighbor_equal_1, 2], 0] = 0
+        
+        for i in range(point_vacuum[no_neighbor_equal_1].shape[0]):
+            vacuum_pointcloud_hash.pop((point_vacuum[no_neighbor_equal_1][i, 0], point_vacuum[no_neighbor_equal_1][i, 1], point_vacuum[no_neighbor_equal_1][i, 2]), None)
+
+        return film_label_index_normal_pad[mirrorGap:-mirrorGap,mirrorGap:-mirrorGap,:], film_label_index_normal_pad, plane_pointcloud_hash, vacuum_pointcloud_hash
+
+    def update_film_label_index_normal_depo_hash(self, film_label_index_normal_pad, mirrorGap, point, plane_pointcloud_hash, vacuum_pointcloud_hash):
+        grid_cross = np.array([[1, 0, 0],
+                            [-1, 0, 0],
+                            [0, 1, 0],
+                            [0, -1,0],
+                            [0,0,  1],
+                            [0, 0,-1]])
+        
+        point[:, 0] += mirrorGap
+        point[:, 1] += mirrorGap
+        film_label_index_normal_pad[point[:, 0], point[:, 1], point[:, 2], 0] = 1 #depo
+        for i in range(point.shape[0]):
+            plane_pointcloud_hash[(point[i, 0], point[i, 1], point[i, 2])] = point[i]
+        # 向量化处理
+        # 1. 计算所有点的邻居
+        point_nn = (point[:, np.newaxis, :] + grid_cross).reshape(-1, 3)
+        # point_nn = check_valid(point_nn, shape)
+
+        # 2. 筛选邻居点对应的 film_label 值为 0 的点
+        mask = film_label_index_normal_pad[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == 0
+
+        # 3. 更新这些点对应的值为 -1
+        film_label_index_normal_pad[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 0] = -1
+        for i in range(point_nn[mask].shape[0]):
+            vacuum_pointcloud_hash[(point_nn[mask][i, 0], point_nn[mask][i, 1], point_nn[mask][i, 2])] = point_nn[mask][i]
+        # 4. 筛选邻居点对应的 film_label 值为 1 的点
+        mask_vacuum = film_label_index_normal_pad[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == 1
+        point_vacuum = point_nn[mask_vacuum]
+        point_vacuum_nn = (point_vacuum[:, np.newaxis, :] + grid_cross)
+        # point_vacuum_nn = check_valid(point_vacuum_nn, shape)
+
+        # 获取邻居的值
+        neighbor_values = film_label_index_normal_pad[
+            point_vacuum_nn[:,:, 0],
+            point_vacuum_nn[:,:, 1],
+            point_vacuum_nn[:,:, 2],
+            0]
+
+        # 找出所有邻居都不等于 -1 的点
+        no_neighbor_equal_1 = ~np.any(neighbor_values == -1, axis=1)
+
+        # 更新满足条件的点为 2
+        film_label_index_normal_pad[point_vacuum[no_neighbor_equal_1, 0],
+                point_vacuum[no_neighbor_equal_1, 1],
+                point_vacuum[no_neighbor_equal_1, 2], 0] = 2
+
+        for i in range(point_vacuum[no_neighbor_equal_1].shape[0]):
+            plane_pointcloud_hash.pop((point_vacuum[no_neighbor_equal_1][i, 0], point_vacuum[no_neighbor_equal_1][i, 1], point_vacuum[no_neighbor_equal_1][i, 2]), None)
+
+    
+        return film_label_index_normal_pad[mirrorGap:-mirrorGap,mirrorGap:-mirrorGap,:], film_label_index_normal_pad, plane_pointcloud_hash, vacuum_pointcloud_hash
+
+    def get_inject_normal_kdtree_hash(self, plane, plane_vaccum, pos):
+        plane_point = plane[:, 1:4]
+        normal = plane[:, -3:]
+        plane_tree = KDTree(plane_point*self.celllength)
+        dd, ii = plane_tree.query(pos, k=1)
+        plane_point_int = np.array(plane_point[ii]).astype(int)
+        
+        plane_vaccum_tree = KDTree(plane_vaccum[:, 1:4]*self.celllength)
+        dd_v, ii_v = plane_vaccum_tree.query(pos, k=1)
+        plane_point_vaccum_int = np.array(plane_vaccum[ii_v, 1:4]).astype(int)
+
+        return plane_point_int, normal[ii], plane_point_vaccum_int
 
     # -----------------------------------------
     #   12/24 pointcloud也要动态更新在update里面

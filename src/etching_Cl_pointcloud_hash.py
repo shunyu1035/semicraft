@@ -73,6 +73,17 @@ class etching(configuration, surface_normal):
     def reaction_numba(self, film, parcel, get_plane, get_plane_vaccum, get_theta):
         return reaction.reaction_rate_parallel(film, parcel, get_plane, get_plane_vaccum, get_theta)
 
+    def hash_to_plane(self):
+        plane_indices = np.array(list(self.plane_pointcloud_hash.values()))
+        vacuum_indices = np.array(list(self.vacuum_pointcloud_hash.values()))   
+        plane = self.film_label_index_normal_mirror[plane_indices[:, 0], plane_indices[:, 1], plane_indices[:, 2]]
+        vacuum = self.film_label_index_normal_mirror[vacuum_indices[:, 0], vacuum_indices[:, 1], vacuum_indices[:, 2]]
+        plane[:, 0] -= self.mirrorGap
+        plane[:, 1] -= self.mirrorGap
+        vacuum[:, 0] -= self.mirrorGap
+        vacuum[:, 0] -= self.mirrorGap
+        return plane, vacuum
+
     def etching_film(self):
 
         i_etch, j_etch, k_etch  = self.get_indices()
@@ -91,15 +102,15 @@ class etching(configuration, surface_normal):
             # plane_bool = self.film_label_index_normal[:, :, :, 0] == 1
             # # print(f'self.film_label_index_normas{self.film_label_index_normal[plane_bool]}')
             # vacuum_bool = self.film_label_index_normal[:, :, :, 0] == -1
-            plane_bool, vacuum_bool = self.plane_index()
+            # plane_bool, vacuum_bool = self.plane_index()
             # print(self.film_label_index_normal.shape)
             # plane_data, vacuum_data = plane_index_fast_cython(self.film_label_index_normal)
             # plane_data, vacuum_data = plane_index_numba(self.film_label_index_normal)
             # get_plane, get_theta, get_plane_vaccum = self.get_inject_normal_kdtree(plane_data, vacuum_data, pos_1)
-            # get_plane, get_theta, get_plane_vaccum = self.get_inject_normal_kdtree(self.film_label_index_normal[plane_indices[:, 0], plane_indices[:, 1], plane_indices[:, 2]], \
-            #                                         self.film_label_index_normal[vacuum_indices[:, 0], vacuum_indices[:, 1], vacuum_indices[:, 2]], pos_1)
+            plane, vacuum = self.hash_to_plane()
+            get_plane, get_theta, get_plane_vaccum = self.get_inject_normal_kdtree_hash(plane, vacuum, pos_1)
 
-            get_plane, get_theta, get_plane_vaccum = self.get_inject_normal_kdtree(self.film_label_index_normal[plane_bool], self.film_label_index_normal[vacuum_bool], pos_1)
+            # get_plane, get_theta, get_plane_vaccum = self.get_inject_normal_kdtree(self.film_label_index_normal[plane_bool], self.film_label_index_normal[vacuum_bool], pos_1)
 
             # reaction parallel
             # self.film, self.parcel[indice_inject], update_film_etch, update_film_depo, reactList, depo_parcel = \
@@ -113,12 +124,12 @@ class etching(configuration, surface_normal):
             point_etch_add_depo = np.zeros((point_etch.shape[0] + point_depo.shape[0], 3), dtype=np.int64)
             if update_film_etch.any():
                 point_etch_add_depo[:point_etch.shape[0], :] = point_etch
-                self.film_label_index_normal, self.film_label_index_normal_mirror = \
-                    self.update_film_label_index_normal_etch(self.film_label_index_normal_mirror, self.mirrorGap, point_etch)
+                self.film_label_index_normal, self.film_label_index_normal_mirror, self.plane_pointcloud_hash, self.vacuum_pointcloud_hash = \
+                    self.update_film_label_index_normal_etch_hash(self.film_label_index_normal_mirror, self.mirrorGap, point_etch, self.plane_pointcloud_hash, self.vacuum_pointcloud_hash)
             if update_film_depo.any():
                 point_etch_add_depo[point_etch.shape[0]:, :] = point_depo
-                self.film_label_index_normal, self.film_label_index_normal_mirror = \
-                    self.update_film_label_index_normal_depo(self.film_label_index_normal_mirror, self.mirrorGap, point_depo)
+                self.film_label_index_normal, self.film_label_index_normal_mirror, self.plane_pointcloud_hash, self.vacuum_pointcloud_hash = \
+                    self.update_film_label_index_normal_depo_hash(self.film_label_index_normal_mirror, self.mirrorGap, point_depo, self.plane_pointcloud_hash, self.vacuum_pointcloud_hash)
             if update_film_etch.any() or update_film_depo.any():
                 self.film_label_index_normal_mirror = mirror.update_surface_mirror(self.film_label_index_normal, self.film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
                 self.film_label_index_normal = self.update_normal_in_matrix(self.film_label_index_normal_mirror, self.film_label_index_normal, self.mirrorGap, point_etch_add_depo)

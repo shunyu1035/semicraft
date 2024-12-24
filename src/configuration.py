@@ -45,6 +45,9 @@ class configuration():
         # self.film_label_mirror = None
         self.film_label_index_normal = None
         self.film_label_index_normal_mirror = None
+        self.plane_pointcloud_hash = None
+        self.vacuum_pointcloud_hash = None
+
 
 
     def input(self, film, parcel, depo_or_etching, vel_matrix, depo_count_type):
