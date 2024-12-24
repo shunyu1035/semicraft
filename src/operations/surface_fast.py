@@ -589,6 +589,30 @@ class surface_normal:
         return film_label_index_normal
 
 
+    # ------------------------------------------------------------------------
+    #   12/24 pointcloud也要动态更新在update里面
+    # -----------------------------------------
+
+    def build_pointcloud_from_matrix(self, film_label_index_normal):
+        labels = film_label_index_normal[:, :, :, 0]
+        plane_bool = labels == 1
+        vacuum_bool = labels == -1
+        plane_indices = np.argwhere(plane_bool)
+        vacuum_indices = np.argwhere(vacuum_bool)
+        plane_pointcloud = film_label_index_normal[plane_indices[:, 0], plane_indices[:, 1], plane_indices[:, 2]]
+        vacuum_pointcloud = film_label_index_normal[vacuum_indices[:, 0], vacuum_indices[:, 1], vacuum_indices[:, 2]]
+        return plane_pointcloud, vacuum_pointcloud
+
+
+
+
+
+
+    # -----------------------------------------
+    #   12/24 pointcloud也要动态更新在update里面
+    # ------------------------------------------------------------------------
+
+
     def update_film_label_etch(self, film_label, point):
         grid_cross = np.array([[1, 0, 0],
                             [-1, 0, 0],
@@ -727,55 +751,3 @@ class surface_normal:
         # yield_func = interpolate.interp1d(self.yield_hist[1], self.yield_hist[0], kind='quadratic')
         etch_yield = self.yield_func(theta)
         return etch_yield
-
-    # def scanZ_numpy(self,film):
-    #     # 初始化一个全零的表面数组
-    #     surface_sparse_depo = np.zeros_like(film)
-
-    #     # depo 条件
-    #     current_plane = film != 0
-
-    #     # 创建邻居布尔索引数组
-    #     neighbors = np.zeros_like(film, dtype=bool)
-
-    #     # 获取周围邻居的布尔索引
-    #     neighbors[1:, :, :] |= film[:-1, :, :] == 0  # 上面
-    #     neighbors[:-1, :, :] |= film[1:, :, :] == 0  # 下面
-    #     neighbors[:, 1:, :] |= film[:, :-1, :] == 0  # 左边
-    #     neighbors[:, :-1, :] |= film[:, 1:, :] == 0  # 右边
-    #     neighbors[:, :, 1:] |= film[:, :, :-1] == 0  # 前面
-    #     neighbors[:, :, :-1] |= film[:, :, 1:] == 0  # 后面
-
-    #     # 获取满足条件的索引
-    #     condition_depo = current_plane & neighbors
-
-    #     # 更新表面稀疏张量
-    #     surface_sparse_depo[condition_depo] = 1
-
-    #     return surface_sparse_depo
-            
-    # def scanZ_vaccum(self, film): # fast scanZ
-    #     # 初始化一个全零的表面数组
-    #     surface_sparse = np.zeros_like(film)
-
-    #     # depo 条件
-    #     current_plane = film == 0
-
-    #     # 创建邻居布尔索引数组
-    #     neighbors = np.zeros_like(film, dtype=bool)
-        
-    #     neighbors[1:, :, :] |= film[:-1, :, :] > 0  # 上面
-    #     neighbors[:-1, :, :] |= film[1:, :, :] > 0  # 下面
-    #     neighbors[:, 1:, :] |= film[:, :-1, :] > 0  # 左边
-    #     neighbors[:, :-1, :] |= film[:, 1:, :] > 0  # 右边
-    #     neighbors[:, :, 1:] |= film[:, :, :-1] > 0  # 前面
-    #     neighbors[:, :, :-1] |= film[:, :, 1:] > 0  # 后面
-        
-    #     # 获取满足条件的索引
-    #     condition = current_plane & neighbors
-        
-    #     # 更新表面稀疏张量
-    #     surface_sparse[condition] = 1
-        
-
-    #     return surface_sparse
