@@ -141,7 +141,8 @@ def reaction_rate_parallel(filmMatrix, parcel, get_plane, get_plane_vaccum, get_
         filmMatrix[get_plane[i,0], get_plane[i,1],get_plane[i,2]] = film
         filmMatrix[get_plane_vaccum[i,0], get_plane_vaccum[i,1], get_plane_vaccum[i,2]] = film_vaccum
         if reactList[i] == -1:
-            parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], get_theta[i])
+            # parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], get_theta[i])
+            parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], get_theta[i])
             # print('reflect')
             # parcel[i, 3:6] = reemission(parcel[i, 3:6], theta[i])
             # react_add = react_table[int(parcel[i, -1]), int(reactList[i]), 1:]
