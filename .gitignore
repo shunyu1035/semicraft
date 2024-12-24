@@ -28,6 +28,8 @@ cppTest/
 cppTest/*
 __pycache__/
 testNote.ipynb
+*.c
+*.pyd
 *.pyc
 *.cpython-*.pyc
 *.drawio
