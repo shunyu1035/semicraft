@@ -7,9 +7,7 @@ from src.operations.boundary import boundaryNumba
 from src.operations.update_parcel import update_parcel
 from src.operations.parcel import Parcelgen
 
-# from src.etching_int import etching
-from src.etching_Cl_yield_kdtree import etching
-# from src.etching_Cl_yield_noKDtree import etching
+from src.etching_Cl_yield_noKDtree import etching
 from numba import jit, prange
 
 @jit(nopython=True)

@@ -440,8 +440,10 @@ class surface_normal:
         film_label = np.zeros_like(sumfilm)
 
         solid_mask = sumfilm != 0
-        film_label[solid_mask] = 2
+        film_label[solid_mask] = 3
         film_label[surface_film] = 1
+        undersurface_film = self.scanZ_underSurface_bool(film_label)
+        film_label[undersurface_film] = 2
         film_label[vacuum_film] = -1
 
         film_label_index_normal = np.zeros((film_label.shape[0], film_label.shape[1], film_label.shape[2], 7))
@@ -549,6 +551,14 @@ class surface_normal:
                 point_vacuum[no_neighbor_equal_1, 1],
                 point_vacuum[no_neighbor_equal_1, 2], 0] = 0
         
+        # 5. 筛选邻居点对应的 film_label 值为 2 的点
+        point_undersurface = (point_nn[mask, np.newaxis, :] + grid_cross).reshape(-1, 3)
+
+        # 2. 筛选邻居点对应的 film_label 值为 3 的点
+        mask_undersurface = film_label_index_normal_pad[point_undersurface[:, 0], point_undersurface[:, 1], point_undersurface[:, 2], 0] == 3
+        # 3. 更新这些点对应的值为 2
+        film_label_index_normal_pad[point_undersurface[mask_undersurface, 0], point_undersurface[mask_undersurface, 1], point_undersurface[mask_undersurface, 2], 0] = 2
+
         return film_label_index_normal_pad[mirrorGap:-mirrorGap,mirrorGap:-mirrorGap,:], film_label_index_normal_pad
 
     def update_film_label_index_normal_depo(self, film_label_index_normal_pad, mirrorGap, point):
