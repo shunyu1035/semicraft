@@ -83,8 +83,8 @@ class etching(configuration, surface_normal):
         vacuum_data = self.film_label_index_normal[vacuum_indices[:, 0], vacuum_indices[:, 1], vacuum_indices[:, 2]]
         return plane_data, vacuum_data
 
-    def get_inject_normal_direct(self, i_etch, j_etch, k_etch):
-        indice_1 = np.array(self.film_label_index_normal[i_etch, j_etch, k_etch, 0] == 1 ) # surface
+    def get_inject_normal_direct(self, indice_1):
+        # indice_1 = np.array(self.film_label_index_normal[i_etch, j_etch, k_etch, 0] == 1 ) # surface
         get_plane = self.parcel[indice_1, 6:9].astype(int)
         get_theta = self.film_label_index_normal[get_plane[:, 0], get_plane[:, 1], get_plane[:, 2], -3:]
         # get_plane_vaccum = np.zeros_like(get_plane)
@@ -106,7 +106,7 @@ class etching(configuration, surface_normal):
         #     vaccum_candidate_indice = np.arange(vaccum_candidate.shape[0])
         #     candi = np.random.choice(vaccum_candidate_indice)
         #     get_plane_vaccum[i] = vaccum_candidate[candi]
-        return get_plane, get_theta, indice_1
+        return get_plane, get_theta
 
 
     def reaction_numba(self, film, parcel, get_plane, get_plane_vaccum, get_theta):
@@ -122,9 +122,9 @@ class etching(configuration, surface_normal):
         # reactListAll = np.ones(indice_inject.shape[0])*-2
 
         # pos_1 = self.parcel[indice_inject, :3]
-        indice_inject, reactListAll = self.inject(i_etch, j_etch, k_etch)
+        indice_1, reactListAll = self.inject(i_etch, j_etch, k_etch)
 
-        if np.any(indice_inject):
+        if np.any(indice_1):
 
             # 可以把kdtree分散方法写在这里用作判断反应发生位置
             # plane_bool = self.film_label_index_normal[:, :, :, 0] == 1
@@ -139,7 +139,7 @@ class etching(configuration, surface_normal):
             # #                                         self.film_label_index_normal[vacuum_indices[:, 0], vacuum_indices[:, 1], vacuum_indices[:, 2]], pos_1)
 
             # get_plane, get_theta, get_plane_vaccum = self.get_inject_normal_kdtree(self.film_label_index_normal[plane_bool], self.film_label_index_normal[vacuum_bool], pos_1)
-            get_plane, get_theta, indice_1 = self.get_inject_normal_direct(i_etch, j_etch, k_etch)
+            get_plane, get_theta = self.get_inject_normal_direct(indice_1)
             get_plane_vaccum = get_plane
             # get_plane_vaccum = get_plane_vaccum_cython.get_plane_vaccum(get_plane,
             #                                     self.film_label_index_normal_mirror,

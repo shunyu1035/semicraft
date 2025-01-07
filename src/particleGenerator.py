@@ -53,6 +53,21 @@ def velGenerator_maxwell_normal(IN):
 
     return velosity_matrix
 
+def velGenerator_maxwell_normal_nolength(IN):
+    Random1 = np.random.rand(IN)
+    Random2 = np.random.rand(IN)
+    Random3 = np.random.rand(IN)
+    velosity_matrix = np.array([max_velocity_u(Random1, Random2), \
+                                max_velocity_w(Random1, Random2), \
+                                    max_velocity_v(Random3)]).T
+
+    energy = np.linalg.norm(velosity_matrix, axis=1)
+    velosity_matrix[:,0] = np.divide(velosity_matrix[:,0], energy)
+    velosity_matrix[:,1] = np.divide(velosity_matrix[:,1], energy)
+    velosity_matrix[:,2] = np.divide(velosity_matrix[:,2], energy)
+
+    return velosity_matrix
+
 def velGenerator_updown_normal(IN):
     velosity_matrix = np.zeros((IN, 3))
     velosity_matrix[:, 0] = np.random.randn(IN)*0.001
@@ -82,6 +97,27 @@ def velGenerator_benchmark_normal(IN):
 # [[counts, typeID, distribution, Energy]]
 # particle_list = [[int(1e3), 1, 'maxwell', 50], [int(1e3), 2, 'undown', 50]]
 def vel_generator(particle_list):
+    vel_type_shuffle = np.zeros((1, 5))
+    for i in particle_list:
+        particle_matrix = np.zeros((i[0], 5))
+        print('generator particle counts:{}, type:{}, distribution:{}, energy:{}'.format(i[0], i[1], i[2], i[3]))
+        if i[2] == 'maxwell':
+            velosity_matrix = velGenerator_maxwell_normal(i[0])
+        elif i[2] == 'updown':
+            velosity_matrix = velGenerator_updown_normal(i[0])
+        else:
+            print('type error')
+            return 0
+        particle_matrix[:, :3] = velosity_matrix
+        particle_matrix[:, 3] = i[3]
+        particle_matrix[:, -1] = i[1]
+        vel_type_shuffle = np.vstack((vel_type_shuffle, particle_matrix))
+    vel_type_shuffle = vel_type_shuffle[1:,:]
+    np.random.shuffle(vel_type_shuffle)
+
+    return vel_type_shuffle
+
+def vel_generator_nolength(particle_list):
     vel_type_shuffle = np.zeros((1, 5))
     for i in particle_list:
         particle_matrix = np.zeros((i[0], 5))

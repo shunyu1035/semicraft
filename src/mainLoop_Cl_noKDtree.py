@@ -3,9 +3,9 @@ import time as Time
 from tqdm import tqdm
 
 import src.operations.mirror as mirror
-from src.operations.boundary import boundaryNumba
-from src.operations.update_parcel import update_parcel
-from src.operations.parcel import Parcelgen
+from src.operations.boundary import boundaryNumba, boundaryNumba_nolength, boundaryNumba_nolength_parallel
+from src.operations.update_parcel import update_parcel, update_parcel_nolength
+from src.operations.parcel import Parcelgen, Parcelgen_nolength
 
 from src.etching_Cl_yield_noKDtree import etching
 from numba import jit, prange
@@ -52,6 +52,10 @@ class mainLoop(etching):
         self.posGenerator = self.posGenerator_top
         self.velGenerator = self.velGenerator_input_normal  
 
+    def posvelGenerator_nolength(self):
+        self.posGenerator = self.posGenerator_top_nolength
+        self.velGenerator = self.velGenerator_input_normal  
+
     def posGenerator_top(self, IN):
         emptyZ = 5
         position_matrix = np.array([np.random.rand(IN)*self.cellSizeX, \
@@ -60,7 +64,13 @@ class mainLoop(etching):
         position_matrix *= self.celllength
         return position_matrix
      
-    
+    def posGenerator_top_nolength(self, IN):
+        emptyZ = 5
+        position_matrix = np.array([np.random.rand(IN)*self.cellSizeX, \
+                                    np.random.rand(IN)*self.cellSizeY, \
+                                    np.random.uniform(0, emptyZ, IN) + self.cellSizeZ - emptyZ]).T
+        return position_matrix
+
     def velGenerator_input_normal(self, IN):
 
         velosity_matrix = np.random.default_rng().choice(self.vel_matrix, IN)
@@ -73,24 +83,35 @@ class mainLoop(etching):
         v1 = vel_matrix[:, :3]
         typeID = vel_matrix[:, 4]
         energy = vel_matrix[:, 3]
-        # typeIDIn = np.zeros(inputCount)
-        # typeIDIn[:] = typeID
         self.parcel = Parcelgen(self.parcel, self.celllength, p1, v1, self.weightEtching, energy, typeID)  
 
+    def particleIn_nolength(self, inputCount):
+        p1 = self.posGenerator(inputCount)
+        vel_matrix = self.velGenerator(inputCount)
+        v1 = vel_matrix[:, :3]
+        typeID = vel_matrix[:, 4]
+        energy = vel_matrix[:, 3]
+        self.parcel = Parcelgen_nolength(self.parcel, p1, v1, self.weightEtching, energy, typeID)  
+
     def toboundary(self):
-        # self.parcel = boundary(self.parcel, self.cellSizeX, self.cellSizeY, self.cellSizeZ, self.celllength)
         self.parcel = boundaryNumba(self.parcel, self.cellSizeX, self.cellSizeY, self.cellSizeZ, self.celllength)
 
     def toupdate_parcel(self, tStep):
         self.parcel = update_parcel(self.parcel, self.celllength, tStep)
 
-    def getAcc_depo(self, tStep):
+    def toboundary_nolength(self):
+        self.parcel = boundaryNumba_nolength_parallel(self.parcel, self.cellSizeX, self.cellSizeY, self.cellSizeZ)
 
-        self.toboundary()
+    def toupdate_parcel_nolength(self):
+        self.parcel = update_parcel_nolength(self.parcel)
+
+    def getAcc_depo(self):
+
+        self.toboundary_nolength()
 
         depo_count, ddshape, maxdd, ddi, dl1 = self.etching_film()
 
-        self.toupdate_parcel(tStep)
+        self.toupdate_parcel_nolength()
 
         return depo_count, ddshape, maxdd, ddi, dl1 #, film_max, surface_true
           
@@ -112,15 +133,15 @@ class mainLoop(etching):
     def runEtch(self, inputCount, runningCount, max_react_count):
 
         start_time, t, count_reaction, inputAll, filmThickness = self.initial()
-        self.posvelGenerator()
-        self.particleIn(inputCount)
+        self.posvelGenerator_nolength()
+        self.particleIn_nolength(inputCount)
 
         ti = 0
         with tqdm(total=100, desc='particle input', leave=True, ncols=100, unit='B', unit_scale=True) as pbar:
             previous_percentage = 0  # 记录上一次的百分比
             while self.parcel.shape[0] > 500:
                 ti += 1
-                depo_count, ddshape, maxdd, ddi, dl1 = self.getAcc_depo(self.timeStep)
+                depo_count, ddshape, maxdd, ddi, dl1 = self.getAcc_depo()
                 count_reaction += depo_count
                 t += self.timeStep
                 if count_reaction > max_react_count:
@@ -139,10 +160,10 @@ class mainLoop(etching):
                 if self.depo_or_etching == 'depo':
                     if self.parcel.shape[0] < runningCount and self.depoPoint[2] >= filmThickness and ti%3 == 0:
                         inputAll += inputCount
-                        self.particleIn(inputCount)
+                        self.particleIn_nolength(inputCount)
                 elif self.parcel.shape[0] < runningCount and self.depo_or_etching == 'etching':
                     inputAll += inputCount
-                    self.particleIn(inputCount)
+                    self.particleIn_nolength(inputCount)
 
                 current_percentage = int(count_reaction / max_react_count * 100)  # 当前百分比
                 if current_percentage > previous_percentage:
