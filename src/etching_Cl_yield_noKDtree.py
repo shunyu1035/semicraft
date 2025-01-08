@@ -50,19 +50,34 @@ class etching(configuration, surface_normal):
     def get_indices(self):
         return self.parcel[:, 6].astype(int), self.parcel[:, 7].astype(int), self.parcel[:, 8].astype(int)
 
+    def get_indices_ijk(self):
+        return self.parcel[:, 6:9].astype(int)
+    
+    def get_indices_posvel(self):
+        return (self.parcel[:, 0] + 0.5).astype(int), (self.parcel[:, 1] + 0.5).astype(int), (self.parcel[:, 2] + 0.5).astype(int)
+
     def clear_minus(self):
         minus_indice = self.sumFilm < 0
         self.film[minus_indice, :] = 0
 
     def inject(self, i_etch, j_etch, k_etch):
         # indice_1 = np.array(self.sumFilm[i_etch, j_etch, k_etch] > 0 ) # ethicng
-        indice_1 = np.array(self.film_label_index_normal[i_etch, j_etch, k_etch, 0] == 1 ) # surface
+        indice_1 = self.film_label_index_normal[i_etch, j_etch, k_etch, 0] == 1 # surface
 
         reactListAll = np.ones(indice_1.shape[0])*-2
 
         # pos_1 = self.parcel[indice_inject, :3] 
         return indice_1, reactListAll
+    
+    def inject_ijk(self, ijk):
+        # indice_1 = np.array(self.sumFilm[i_etch, j_etch, k_etch] > 0 ) # ethicng
+        indice_1 = self.film_label_index_normal[ijk[:, 0], ijk[:, 1], ijk[:, 2], 0] == 1 # surface
 
+        reactListAll = np.ones(indice_1.shape[0])*-2
+
+        # pos_1 = self.parcel[indice_inject, :3] 
+        return indice_1, reactListAll
+    
     def plane_index(self):
         labels = self.film_label_index_normal[:, :, :, 0]
         plane_bool = labels == 1
@@ -108,22 +123,53 @@ class etching(configuration, surface_normal):
         #     get_plane_vaccum[i] = vaccum_candidate[candi]
         return get_plane, get_theta
 
+    def get_inject_normal_direct_posvel(self, indice_1):
+        # indice_1 = np.array(self.film_label_index_normal[i_etch, j_etch, k_etch, 0] == 1 ) # surface
+        get_plane = self.parcel[indice_1, 6:9].astype(int)
+        get_theta = self.film_label_index_normal[get_plane[:, 0], get_plane[:, 1], get_plane[:, 2], -3:]
+        # get_plane_vaccum = np.zeros_like(get_plane)
+        # grid_cross =  np.array([[1, 0, 0],
+        #                         [-1,0, 0],
+        #                         [0, 1, 0],
+        #                         [0,-1, 0],
+        #                         [0, 0, 1],
+        #                         [0, 0,-1]])
+        
+        # for i in range(get_plane.shape[0]):
+        #     point_1 = get_plane[i]
+        #     point_nn = point_1 + grid_cross
+        #     point_nn[:, 0]  += self.mirrorGap
+        #     point_nn[:, 1]  += self.mirrorGap
+        #     # 2. 筛选邻居点对应的 film_label 值为 0 的点
+        #     mask = self.film_label_index_normal_mirror[point_nn[:, 0], point_nn[:, 1], point_nn[:, 2], 0] == -1
+        #     vaccum_candidate = self.film_label_index_normal_mirror[point_nn[mask, 0], point_nn[mask, 1], point_nn[mask, 2], 1:4]
+        #     vaccum_candidate_indice = np.arange(vaccum_candidate.shape[0])
+        #     candi = np.random.choice(vaccum_candidate_indice)
+        #     get_plane_vaccum[i] = vaccum_candidate[candi]
+        return get_plane, get_theta
+    
 
     def reaction_numba(self, film, parcel, get_plane, get_plane_vaccum, get_theta):
         return reaction.reaction_rate_parallel(film, parcel, get_plane, get_plane_vaccum, get_theta)
 
+    def remove_noReact(self, reactListAll, reactList, indice_1):
+        reactListAll[indice_1] = reactList
+        if np.any(reactListAll != -1):
+            indice_1[np.where(reactListAll == -1)] = False
+            self.parcel = self.parcel[~indice_1]
+
     def etching_film(self):
 
-        i_etch, j_etch, k_etch  = self.get_indices()
-
+        # i_etch, j_etch, k_etch  = self.get_indices()
+        ijk  = self.get_indices_ijk()
         # indice_inject_depo = np.array(self.sumFilm[i_depo, j_depo, k_depo] >= 10) # depo
         # indice_inject = np.array(self.sumFilm[i_etch, j_etch, k_etch] > 0 ) # ethicng
 
         # reactListAll = np.ones(indice_inject.shape[0])*-2
 
         # pos_1 = self.parcel[indice_inject, :3]
-        indice_1, reactListAll = self.inject(i_etch, j_etch, k_etch)
-
+        # indice_1, reactListAll = self.inject(i_etch, j_etch, k_etch)
+        indice_1, reactListAll = self.inject_ijk(ijk)
         if np.any(indice_1):
 
             # 可以把kdtree分散方法写在这里用作判断反应发生位置
@@ -171,11 +217,11 @@ class etching(configuration, surface_normal):
                 self.sumFilm[point_etch_add_depo[:, 0], point_etch_add_depo[:, 1], point_etch_add_depo[:, 2]] = np.sum(self.film[point_etch_add_depo[:, 0], point_etch_add_depo[:, 1], point_etch_add_depo[:, 2]], axis=-1)
 
             # 去除反应的粒子
-            reactListAll[indice_1] = reactList
-            if np.any(reactListAll != -1):
-                indice_1[np.where(reactListAll == -1)] = False
-                self.parcel = self.parcel[~indice_1]
-
+            # reactListAll[indice_1] = reactList
+            # if np.any(reactListAll != -1):
+            #     indice_1[np.where(reactListAll == -1)] = False
+            #     self.parcel = self.parcel[~indice_1]
+            self.remove_noReact(reactListAll, reactList, indice_1)
             return np.sum(depo_parcel == self.depo_count_type), 0, 0, 0, 0
         else:
             return 0, 0, 0, 0, 0

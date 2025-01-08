@@ -149,6 +149,173 @@ def reaction_rate_parallel(filmMatrix, parcel, get_plane, get_plane_vaccum, get_
     return filmMatrix, parcel, update_film_etch, update_film_depo, reactList, depo_parcel
 
 
+@jit(nopython=True, parallel=True)
+def reaction_rate_parallel_indice(filmMatrix, parcel, indice, get_plane, get_plane_vaccum, get_theta):
+    reactList = np.ones(parcel.shape[0], dtype=np.int_) * -1
+    elements = filmMatrix.shape[-1]
+    depo_parcel = np.zeros(parcel.shape[0])
+    angle_rad = np.zeros(parcel.shape[0])
+    shape = filmMatrix.shape
+    # print(shape)
+    update_film_etch = np.zeros((shape[0], shape[1], shape[2]), dtype=np.bool_)
+    update_film_depo = np.zeros((shape[0], shape[1], shape[2]), dtype=np.bool_)
+    # count_etch = 0
+    # update_film_depo = np.zeros(parcel.shape[0], dtype=np.int64)
+    # count_depo = 0
+
+    for i in prange(parcel.shape[0]):
+        react_add = np.zeros(elements)
+        film = filmMatrix[get_plane[i,0], get_plane[i,1],get_plane[i,2]]
+        film_vaccum = filmMatrix[get_plane_vaccum[i,0], get_plane_vaccum[i,1], get_plane_vaccum[i,2]]
+    #     particle = int(parcel[i, -1])
+        dot_product = np.dot(parcel[i, 3:6], get_theta[i])
+        dot_product = np.abs(dot_product)
+        angle_rad[i] = np.arccos(dot_product)
+
+        sticking_acceptList, particle = sticking_probability(parcel[i], film, angle_rad[i])
+
+        react_choice_indices = np.where(sticking_acceptList)[0]
+        if react_choice_indices.size > 0:
+            react_choice = react_choice_indices[np.random.randint(react_choice_indices.size)]
+            reactList[i] = react_choice
+            react_type = react_type_table[particle, react_choice]
+
+            if react_type == 1: # chemical transfer || p0 reaction type
+                depo_parcel[i] = 1
+            elif react_type == 2: # physics sputter || p0 (E**2 - Eth**2) f(theta)
+                depo_parcel[i] = 2
+            elif react_type == 3: # redepo
+                depo_parcel[i] = 3
+            elif react_type == 4: # Themal etch || p0 reaction type
+                depo_parcel[i] = 4
+            elif react_type == 0: # no reaction
+                depo_parcel[i] = 0
+
+        if int(parcel[i, -1]) <= 1: # gas Cl Ion
+            react_add = react_table_equation[int(parcel[i, -1]), int(reactList[i]), :]
+        else: # redepo solid
+            react_add = np.zeros(elements, dtype=np.int32)
+            parcel_index = int(parcel[i, -1])-2
+            react_add[int(parcel_index)] = 1
+
+        if depo_parcel[i] == 1: # chemical transfer
+            film += react_add
+        if depo_parcel[i] == 4: # chemical remove
+            film += react_add
+            if np.sum(film) == 0:
+                # if film[i, 3] == 0:
+                update_film_etch[get_plane[i,0], get_plane[i,1],get_plane[i,2]] =  True
+        if depo_parcel[i] == 2: # physics sputter
+            react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], 10) # physics sputter || p0 (E**2 - Eth**2) f(theta)
+            # react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], film_Eth[int(reactList[i])])
+            if react_yield > np.random.rand():
+                film += react_add
+                if np.sum(film) == 0:
+                    update_film_etch[get_plane[i,0], get_plane[i,1],get_plane[i,2]] =  True
+    
+        # if depo_parcel[i] == 3: # depo
+        #     film_add_all = np.sum(react_add + film[i, :])
+        #     if film_add_all > film_density:
+        #         film_vaccum[i, :] += react_add
+        #         update_film_etch[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True  
+        #     else:
+        #         film[i, :] += react_add
+        #         if np.sum(film[i, :]) == film_density:
+        #             update_film_depo[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
+        filmMatrix[get_plane[i,0], get_plane[i,1],get_plane[i,2]] = film
+        filmMatrix[get_plane_vaccum[i,0], get_plane_vaccum[i,1], get_plane_vaccum[i,2]] = film_vaccum
+        if reactList[i] == -1:
+            # parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], get_theta[i])
+            parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], get_theta[i])
+            # print('reflect')
+            # parcel[i, 3:6] = reemission(parcel[i, 3:6], theta[i])
+            # react_add = react_table[int(parcel[i, -1]), int(reactList[i]), 1:]
+    return filmMatrix, parcel, update_film_etch, update_film_depo, reactList, depo_parcel
+
+@jit(nopython=True, parallel=True)
+def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal):
+    reactList = np.ones(parcel.shape[0], dtype=np.int_) * -1
+    elements = filmMatrix.shape[-1]
+    depo_parcel = np.zeros(parcel.shape[0])
+    angle_rad = np.zeros(parcel.shape[0])
+    shape = filmMatrix.shape
+    # print(shape)
+    update_film_etch = np.zeros((shape[0], shape[1], shape[2]), dtype=np.bool_)
+    update_film_depo = np.zeros((shape[0], shape[1], shape[2]), dtype=np.bool_)
+    # count_etch = 0
+    # update_film_depo = np.zeros(parcel.shape[0], dtype=np.int64)
+    # count_depo = 0
+
+    for i in prange(parcel.shape[0]):
+        ijk = parcel[i, 6:9].astype(int)
+        if film_label_index_normal[ijk[0], ijk[1], ijk[2], 0] == 1:
+            react_add = np.zeros(elements)
+            film = filmMatrix[ijk[0], ijk[1], ijk[2]]
+            get_theta = film_label_index_normal[ijk[0], ijk[1], ijk[2], -3:]
+            # film_vaccum = filmMatrix[get_plane_vaccum[i,0], get_plane_vaccum[i,1], get_plane_vaccum[i,2]]
+            dot_product = np.dot(parcel[i, 3:6], get_theta)
+            dot_product = np.abs(dot_product)
+            angle_rad[i] = np.arccos(dot_product)
+
+            sticking_acceptList, particle = sticking_probability(parcel[i], film, angle_rad[i])
+
+            react_choice_indices = np.where(sticking_acceptList)[0]
+            if react_choice_indices.size > 0:
+                react_choice = react_choice_indices[np.random.randint(react_choice_indices.size)]
+                reactList[i] = react_choice
+                react_type = react_type_table[particle, react_choice]
+
+                if react_type == 1: # chemical transfer || p0 reaction type
+                    depo_parcel[i] = 1
+                elif react_type == 2: # physics sputter || p0 (E**2 - Eth**2) f(theta)
+                    depo_parcel[i] = 2
+                elif react_type == 3: # redepo
+                    depo_parcel[i] = 3
+                elif react_type == 4: # Themal etch || p0 reaction type
+                    depo_parcel[i] = 4
+                elif react_type == 0: # no reaction
+                    depo_parcel[i] = 0
+
+            if int(parcel[i, -1]) <= 1: # gas Cl Ion
+                react_add = react_table_equation[int(parcel[i, -1]), int(reactList[i]), :]
+            else: # redepo solid
+                react_add = np.zeros(elements, dtype=np.int32)
+                parcel_index = int(parcel[i, -1])-2
+                react_add[int(parcel_index)] = 1
+
+            if depo_parcel[i] == 1: # chemical transfer
+                film += react_add
+            if depo_parcel[i] == 4: # chemical remove
+                film += react_add
+                if np.sum(film) == 0:
+                    # if film[i, 3] == 0:
+                    update_film_etch[ijk[0], ijk[1], ijk[2]] =  True
+            if depo_parcel[i] == 2: # physics sputter
+                react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], 10) # physics sputter || p0 (E**2 - Eth**2) f(theta)
+                # react_yield = sputterYield.sputter_yield(react_yield_p0[0], angle_rad[i], parcel[i,-2], film_Eth[int(reactList[i])])
+                if react_yield > np.random.rand():
+                    film += react_add
+                    if np.sum(film) == 0:
+                        update_film_etch[ijk[0], ijk[1], ijk[2]] =  True
+        
+            # if depo_parcel[i] == 3: # depo
+            #     film_add_all = np.sum(react_add + film[i, :])
+            #     if film_add_all > film_density:
+            #         film_vaccum[i, :] += react_add
+            #         update_film_etch[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True  
+            #     else:
+            #         film[i, :] += react_add
+            #         if np.sum(film[i, :]) == film_density:
+            #             update_film_depo[int(parcel[i, 6]), int(parcel[i, 7]), int(parcel[i, 8])] = True
+            filmMatrix[ijk[0], ijk[1], ijk[2]] = film
+            # filmMatrix[get_plane_vaccum[i,0], get_plane_vaccum[i,1], get_plane_vaccum[i,2]] = film_vaccum
+            if reactList[i] == -1:
+                # parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], get_theta[i])
+                parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], get_theta[i])
+            # print('reflect')
+            # parcel[i, 3:6] = reemission(parcel[i, 3:6], theta[i])
+            # react_add = react_table[int(parcel[i, -1]), int(reactList[i]), 1:]
+    return filmMatrix, parcel, update_film_etch, update_film_depo, reactList, depo_parcel
 
 
 # @jit(nopython=True, parallel=True)

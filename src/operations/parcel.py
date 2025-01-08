@@ -45,3 +45,16 @@ def Parcelgen_nolength(parcel, pos, vel, weight, energy, typeID):
     parcel = np.concatenate((parcel, parcelIn))
 
     return parcel
+
+def posvel(parcel, pos, vel, weight, energy, typeID):
+
+    parcelIn = np.zeros((pos.shape[0], 9))
+    parcelIn[:, :3] = pos
+    parcelIn[:, 3:6] = vel
+    parcelIn[:, 6] = weight
+    parcelIn[:, 7] = energy
+    parcelIn[:, 8] = typeID
+
+    parcel = np.concatenate((parcel, parcelIn))
+
+    return parcel

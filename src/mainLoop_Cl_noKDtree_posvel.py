@@ -3,9 +3,9 @@ import time as Time
 from tqdm import tqdm
 
 import src.operations.mirror as mirror
-from src.operations.boundary import boundaryNumba, boundaryNumba_nolength, boundaryNumba_nolength_parallel
+from src.operations.boundary import boundaryNumba, boundaryNumba_nolength, boundaryNumba_nolength_parallel, boundaryNumba_nolength_posvel
 from src.operations.update_parcel import update_parcel, update_parcel_nolength
-from src.operations.parcel import Parcelgen, Parcelgen_nolength
+from src.operations.parcel import Parcelgen, Parcelgen_nolength, posvel
 
 from src.etching_Cl_yield_noKDtree import etching
 from numba import jit, prange
