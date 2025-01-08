@@ -7,7 +7,7 @@ from src.operations.boundary import boundaryNumba, boundaryNumba_nolength, bound
 from src.operations.update_parcel import update_parcel, update_parcel_nolength
 from src.operations.parcel import Parcelgen, Parcelgen_nolength, posvel
 
-from src.etching_Cl_yield_noKDtree import etching
+from src.etching_Cl_yield_parallel import etching
 from numba import jit, prange
 
 @jit(nopython=True)
@@ -91,7 +91,8 @@ class mainLoop(etching):
         v1 = vel_matrix[:, :3]
         typeID = vel_matrix[:, 4]
         energy = vel_matrix[:, 3]
-        self.parcel = Parcelgen_nolength(self.parcel, p1, v1, self.weightEtching, energy, typeID)  
+        # self.parcel = Parcelgen_nolength(self.parcel, p1, v1, self.weightEtching, energy, typeID)  
+        self.parcel = posvel(self.parcel, p1, v1, self.weightEtching, energy, typeID)  
 
     def toboundary(self):
         self.parcel = boundaryNumba(self.parcel, self.cellSizeX, self.cellSizeY, self.cellSizeZ, self.celllength)
@@ -100,8 +101,8 @@ class mainLoop(etching):
         self.parcel = update_parcel(self.parcel, self.celllength, tStep)
 
     def toboundary_nolength(self):
-        self.parcel = boundaryNumba_nolength_parallel(self.parcel, self.cellSizeX, self.cellSizeY, self.cellSizeZ)
-
+        # self.parcel = boundaryNumba_nolength(self.parcel, self.cellSizeX, self.cellSizeY, self.cellSizeZ)
+        self.parcel = boundaryNumba_nolength_posvel(self.parcel, self.cellSizeX, self.cellSizeY, self.cellSizeZ)
     def toupdate_parcel_nolength(self):
         self.parcel = update_parcel_nolength(self.parcel)
 
@@ -111,7 +112,7 @@ class mainLoop(etching):
 
         depo_count, ddshape, maxdd, ddi, dl1 = self.etching_film()
 
-        self.toupdate_parcel_nolength()
+        # self.toupdate_parcel_nolength()
 
         return depo_count, ddshape, maxdd, ddi, dl1 #, film_max, surface_true
           
@@ -139,21 +140,24 @@ class mainLoop(etching):
         ti = 0
         with tqdm(total=100, desc='particle input', leave=True, ncols=100, unit='B', unit_scale=True) as pbar:
             previous_percentage = 0  # 记录上一次的百分比
-            while self.parcel.shape[0] > 500:
+            while True:
+                # self.log.info('particleIn:{},'.format(self.parcel.shape[0]))
                 ti += 1
                 depo_count, ddshape, maxdd, ddi, dl1 = self.getAcc_depo()
                 count_reaction += depo_count
                 t += self.timeStep
                 if count_reaction > max_react_count:
                     self.count_time(start_time, count_reaction,inputAll)
+                    self.log.info('1:{},'.format(self.parcel.shape[0]))
                     break
                 
                 if self.depo_or_etching == 'depo' and self.depoPoint[2] <= filmThickness and depo_count < 1 and self.parcel.shape[0] < 2000:
                     self.count_time(start_time, count_reaction,inputAll)
+                    self.log.info('2:{},'.format(self.parcel.shape[0]))
                     break
 
-                # vzMax = np.max(self.parcel[:,5])
-                # vzMin = np.min(self.parcel[:,5])
+                vzMax = np.max(self.parcel[:,5])
+                vzMin = np.min(self.parcel[:,5])
                 # weightMin = np.min(self.parcel[:,9])
                 # weightMax = np.max(self.parcel[:,9])
                 # if self.inputMethod == 'bunch' and inputAll < max_react_count:
@@ -171,12 +175,13 @@ class mainLoop(etching):
                     pbar.update(update_value)
                     previous_percentage = current_percentage  # 更新上一次的百分比
 
-                # gen_redepo = np.sum(self.parcel[:, -1] == 0)
+                gen_redepo = np.sum(self.parcel[:, -1] == 0)
 
                 filmThickness = get_filmThickness_numba(self.sumFilm)
-                # self.update_logs(previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, weightMax, weightMin)
+                self.update_logs(previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, 0, 0)
                 
                 # if ti%10 == 0:
                 #     self.removeFloat()
                 #     self.cleanMinusFilm()
+        print('--------end----------')
         return self.film, filmThickness, self.parcel
