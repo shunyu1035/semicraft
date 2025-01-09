@@ -108,7 +108,7 @@ class mainLoop(etching):
 
     def getAcc_depo(self):
 
-        self.toboundary_nolength()
+        # self.toboundary_nolength()
 
         depo_count, ddshape, maxdd, ddi, dl1 = self.etching_film()
 
@@ -173,12 +173,15 @@ class mainLoop(etching):
                 if current_percentage > previous_percentage:
                     update_value = current_percentage - previous_percentage  # 计算进度差值
                     pbar.update(update_value)
+                    gen_redepo = np.sum(self.parcel[:, -1] == 0)
+                    filmThickness = get_filmThickness_numba(self.sumFilm)
+                    self.update_logs(previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, 0, 0)
                     previous_percentage = current_percentage  # 更新上一次的百分比
 
-                gen_redepo = np.sum(self.parcel[:, -1] == 0)
+                # gen_redepo = np.sum(self.parcel[:, -1] == 0)
 
-                filmThickness = get_filmThickness_numba(self.sumFilm)
-                self.update_logs(previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, 0, 0)
+                # filmThickness = get_filmThickness_numba(self.sumFilm)
+                # self.update_logs(previous_percentage, depo_count, count_reaction, inputAll,  vzMax, vzMin,  filmThickness, ddi, dl1, ddshape, maxdd, gen_redepo, 0, 0)
                 
                 # if ti%10 == 0:
                 #     self.removeFloat()

@@ -59,6 +59,7 @@ class configuration():
         self.cellSizeX = self.film.shape[0]
         self.cellSizeY = self.film.shape[1]
         self.cellSizeZ = self.film.shape[2]
+        self.cellSizeXYZ = np.array([self.cellSizeX, self.cellSizeY, self.cellSizeZ])
         self.surface_etching_mirror = np.zeros((self.cellSizeX+int(self.mirrorGap*2), self.cellSizeY+int(self.mirrorGap*2), self.cellSizeZ))
         self.surface_mirror = np.zeros((self.cellSizeX+int(self.mirrorGap*2), self.cellSizeY+int(self.mirrorGap*2), self.cellSizeZ))
 

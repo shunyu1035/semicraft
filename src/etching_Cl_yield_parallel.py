@@ -72,7 +72,7 @@ class etching(configuration, surface_normal):
         return plane_data, vacuum_data
 
     def reaction_numba(self, film, parcel, film_label_index_normal):
-        return reaction.reaction_rate_parallel_all(film, parcel, film_label_index_normal)
+        return reaction.reaction_rate_parallel_all(film, parcel, film_label_index_normal, self.cellSizeXYZ)
 
     def remove_noReact(self, reactListAll, reactList, indice_1):
         reactListAll[indice_1] = reactList

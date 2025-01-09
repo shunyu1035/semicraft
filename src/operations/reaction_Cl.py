@@ -233,7 +233,7 @@ def reaction_rate_parallel_indice(filmMatrix, parcel, indice, get_plane, get_pla
     return filmMatrix, parcel, update_film_etch, update_film_depo, reactList, depo_parcel
 
 @jit(nopython=True, parallel=True)
-def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal):
+def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal, cellSizeXYZ):
     elements = filmMatrix.shape[-1]
     shape = filmMatrix.shape
     update_film_etch = np.zeros((shape[0], shape[1], shape[2]), dtype=np.bool_)
@@ -313,18 +313,42 @@ def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal):
                 parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], get_theta)
 
         parcel[i, :3] += parcel[i, 3:6]
-            # print('reflect')
-            # parcel[i, 3:6] = reemission(parcel[i, 3:6], theta[i])
-            # react_add = react_table[int(parcel[i, -1]), int(reactList[i]), 1:]
+        if indice_1[i] == True:
+            if parcel[i, 0] >= cellSizeXYZ[0]:
+                parcel[i, 0] -= cellSizeXYZ[0]
+            elif parcel[i, 0] < 0:
+                parcel[i, 0] += cellSizeXYZ[0]
+            if parcel[i, 1] >= cellSizeXYZ[1]:
+                parcel[i, 1] -= cellSizeXYZ[1]
+            elif parcel[i, 1] < 0:
+                parcel[i, 1] += cellSizeXYZ[1]
+            if (parcel[i,0] > cellSizeXYZ[0] or parcel[i,0] < 0 or
+                parcel[i,1] > cellSizeXYZ[1] or parcel[i,1] < 0 or
+                parcel[i,2] > cellSizeXYZ[2] or parcel[i,2] < 0):
+                indice_1[i] = False
+        # parcel[i], indice_1[i] = boundary(parcel[i], indice_1[i], cellSizeXYZ)
+
     parcel = parcel[indice_1]
 
     return filmMatrix, parcel, update_film_etch, update_film_depo, depo_parcel
 
-# def remove_noReact(reactListAll, reactList, indice_1):
-#     reactListAll[indice_1] = reactList
-#     if np.any(reactListAll != -1):
-#         indice_1[np.where(reactListAll == -1)] = False
-#         parcel = parcel[~indice_1]
+@jit(nopython=True)
+def boundary(parcel, indice_1, cellSizeXYZ):
+    indice = True
+    if indice_1 == True:
+        # indice = True
+        for i in range(2):
+            if parcel[i] >= cellSizeXYZ[i]:
+                parcel[i] -= cellSizeXYZ[i]
+            elif parcel[i] < 0:
+                parcel[i] += cellSizeXYZ[i]
+        if (parcel[0] > cellSizeXYZ[0] or parcel[0] < 0 or
+            parcel[1] > cellSizeXYZ[1] or parcel[1] < 0 or
+            parcel[2] > cellSizeXYZ[2] or parcel[2] < 0):
+            indice = False
+    return parcel, indice
+
+
 
 # @jit(nopython=True, parallel=True)
 def reaction_rate(parcel, film, film_vaccum, normal):
