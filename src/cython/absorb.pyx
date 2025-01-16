@@ -19,24 +19,16 @@ react_yield_p0 = np.array([0.30, 0.30, 0.30, 0.30, 0.30])
 
 cdef extern from "particle.h":
     ctypedef struct Particle:
-        double px
-        double py
-        double pz
-        double vx
-        double vy
-        double vz
+        double[3] pos
+        double[3] vel
         double E
         long long id
 
 cdef extern from "film.h":
     ctypedef struct Cell:
         int id
-        int i
-        int j
-        int k
-        double nx
-        double ny
-        double nz
+        int[3] index
+        double[3] normal
 
 def Rn_coeffcient(double c1, 
                   double c2, 

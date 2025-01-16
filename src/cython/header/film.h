@@ -1,12 +1,8 @@
 // film.h
 typedef struct {
     int id;
-    int i;
-    int j;
-    int k;
-    double nx;
-    double ny;
-    double nz;
+    int index[3];
+    double normal[3];
 } Cell;
 
 typedef struct {

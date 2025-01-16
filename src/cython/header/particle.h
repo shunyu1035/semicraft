@@ -1,11 +1,7 @@
 // particle.h
 typedef struct {
-    double px;
-    double py;
-    double pz;
-    double vx;
-    double vy;
-    double vz;
+    double pos[3];
+    double vel[3];
     double E;
     long long id;
 } Particle;
