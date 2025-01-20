@@ -1,5 +1,6 @@
 # distutils: language = c++
 
+
 import numpy as np
 cimport cython
 from cython.parallel import prange
@@ -83,20 +84,26 @@ def react_add_test2(Particle particle):
     return testpy  # 返回 NumPy 数组
 
 
-'''
 def react_add_test3(Particle[:] particle):
-    cdef int[5] test
-    cdef int i, j
-    testpy = np.zeros((particle.shape[0], 5), dtype=np.int32)  # 确保类型匹配
-    cdef int[:,:] testpy_view = testpy
+    cdef int[5] test  # Use a fixed size array
+    cdef int i, j, k
+    cdef cnp.ndarray[cnp.int32_t, ndim=2] testpy = np.zeros((particle.shape[0], 5), dtype=np.int32)  # NumPy array
+    cdef int[:, :] testpy_view = testpy
 
+    # Parallelize the loop with prange
     for i in prange(particle.shape[0], nogil=True):
-        test = react_table_equation[particle[i].id][1]  # 确保 react_table_equation 是 cdef 定义的二维数组
+        # Load data into C array
+        for k in range(5):
+            test[k] = react_table_equation[particle[i].id][1][k]
+
+        # Assign values back to NumPy array
         for j in range(5):
             testpy_view[i, j] = test[j]
-        # testpy_view[i] = test  # 将 C 数组的值赋给 NumPy 数组
-    # print(testpy)  # 打印每个值
-    return testpy  # 返回 NumPy 数组
+        
+    return testpy  # Return the result as a NumPy array
+
+
+
 
 cdef double[5] react_prob_chemical = [0.50, 0.50, 0.50, 0.9, 0.0]
 
@@ -144,7 +151,6 @@ def Rn_probability(double[:] c_list):
         rn_prob_view[i] = 1-rn_prob_view[i]
     return rn_prob
 
-# rn_matrix = np.array([Rn_probability(i) for i in rn_coeffcients])
 
 # def Rn_matrix_func(double[:,:] rn_coeffcients):
 
@@ -232,9 +238,14 @@ cdef double linear_interp(double x, double* xp, double* fp) noexcept nogil:
     # 如果没有找到区间（理论上不应该发生），返回 0
     return 0.0
 
-# 通过 C 标准库 rand 生成 [0, 1) 之间的随机数
-cdef double generate_random_number() noexcept nogil:
-    return rand() / RAND_MAX
+# # 通过 C 标准库 rand 生成 [0, 1) 之间的随机数
+# cdef double generate_random_number() noexcept nogil:
+#     return rand() / RAND_MAX
+
+
+
+
+
 
 @cython.boundscheck(False)  # 禁用边界检查以提升性能
 @cython.wraparound(False)   # 禁用负索引支持以提升性能
@@ -249,16 +260,17 @@ cdef int* sticking_probability_structed(Particle particle, Cell cell, double ang
     cdef int* sticking_acceptList = <int*>malloc(5 * sizeof(int))  # 动态分配内存
 
     for i in range(5):
-        choice[i] = generate_random_number()  # 用 C 库的随机数填充数组
+        choice[i] = dist(rng)  # 用 C 库的随机数填充数组
     # cdef bint[5] sticking_acceptList
 
     cdef int e, energy_range
-    cdef double sticking_rate
+    cdef double sticking_rate = 0
     
     if particle.id >= 2:
         particle.id = 2
 
     for i in range(5):
+        sticking_acceptList[i] = 0
         if cell.film[i] <= 0:
             choice[i] = 1.0
 
@@ -278,14 +290,12 @@ cdef int* sticking_probability_structed(Particle particle, Cell cell, double ang
         if sticking_rate > choice[j]:
             sticking_acceptList[j] = 1
 
-    result = sticking_acceptList
-    free(sticking_acceptList)
-    return result
+    return sticking_acceptList
 
 
 
 cdef double dot3(double[3] a, double[3] b) noexcept nogil:
-    cdef double result
+    cdef double result = 0
     cdef int i
     for i in range(3):
         result += a[i]*b[i]
@@ -312,16 +322,46 @@ cdef int find_max_position(double[5] arr) noexcept nogil:
 
 
 
+# cdef int* int5_add(int[5] a, int[5] b) noexcept nogil:
+#     cdef int i = 0
+#     for i in range(5):
+#         a[i] += b[i]
+#     return a
+
+
+# cdef double* double5_add(double[5] a, double[5] b) noexcept nogil:
+#     cdef int i = 0
+#     for i in range(5):
+#         a[i] += b[i]
+#     return a
 
 
 
 
 
+cdef int* pointer_to_numpy_c():
+    cdef int size = 5
+    cdef int* ptr = <int*>malloc(size * sizeof(int))  # 动态分配内存
+    cdef int i
 
+    # 给指针赋值
+    for i in range(size):
+        ptr[i] = i + 1  # 指针赋值为 [1, 2, 3, 4, 5]
 
+    # 释放指针
+    # result = ptr
+    # free(ptr)
 
+    return ptr
 
-
+def pointer_np():
+    cdef int i
+    cdef cnp.ndarray[cnp.int32_t, ndim=1] testpy = np.zeros(5, dtype=np.int32)
+    result = pointer_to_numpy_c()
+    for i in range(5):
+        testpy[i] = result[i]
+    free(result)
+    return testpy
 
 
 
@@ -335,29 +375,31 @@ def particle_parallel(Particle[:] particles, Cell[:,:,:] cell):
     cdef int celli
     cdef int cellj
     cdef int cellk
-    cdef int i
-    cdef int j
+    cdef int i, j, k
     cdef double angle_rad
     # cdef int react_choice_indices
     cdef double dot_product
     cdef double[5] react_choice_random
     cdef int react_choice
-    cdef int react_add
+    cdef int[5] react_add
     cdef int react_type
 
-    # react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
-    # cdef int[:] react_choice_indices_view = react_choice_indices
+    # cdef int[5] sticking_acceptList
+    react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
+    cdef int[:] react_choice_indices_view = react_choice_indices
 
+    sticking_acceptList_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
     # react_type_indices = np.zeros(particles.shape[0], dtype=np.int32)
     # cdef int[:] react_type_indices_view = react_type_indices
 
-    react_add_indices = np.zeros((particles.shape[0]), dtype=np.int32)
-    cdef int[:] react_add_indices_view = react_add_indices
+    # react_add_indices = np.zeros((particles.shape[0]), dtype=np.int32)
+    # cdef int[:] react_add_indices_view = react_add_indices
 
-    # dot_product = np.zeros(particles.shape[0], dtype=np.double)
-    # cdef double[:] dot_product_view = dot_product
+    dot_product_all = np.zeros(particles.shape[0], dtype=np.double)
+    cdef double[:] dot_product_view = dot_product_all
 
-    for i in prange(particles.shape[0], nogil=True):
+    for i in range(particles.shape[0]):
+    # for i in prange(particles.shape[0], nogil=True):
         celli = <int> particles[i].pos[0]
         cellj = <int> particles[i].pos[1]
         cellk = <int> particles[i].pos[2]  
@@ -366,29 +408,47 @@ def particle_parallel(Particle[:] particles, Cell[:,:,:] cell):
             dot_product = dot3(particles[i].vel, cell[celli, cellj, cellk].normal)
             dot_product = fabs(dot_product)
             angle_rad = acos(dot_product)
-
+            # dot_product_view[i] = angle_rad
             # Calculate sticking probability
             sticking_acceptList = sticking_probability_structed(particles[i], cell[celli, cellj, cellk], angle_rad)
             for j in range(5):
-                if sticking_acceptList[j] == 1:
-                    react_choice_random[j] = dist(rng)
-                else:
-                    react_choice_random[j] = 0
-                react_choice = find_max_position(react_choice_random)
-    #             react_choice_indices_view[i] = react_choice
+                sticking_acceptList_indices[i][j] = sticking_acceptList[j]
+            free(sticking_acceptList)
+            # for j in range(5):
+            #     if sticking_acceptList[j] == 1:
+            #         react_choice_random[j] = dist(rng)
+            #     else:
+            #         react_choice_random[j] = 0
+            # react_choice = find_max_position(react_choice_random)
+            # react_choice_indices_view[i] = react_choice
     # return react_choice_indices
-                react_type = react_type_table[particles[i].id][react_choice]
-    #             react_type_indices_view[i] = react_type
-    # return react_type_indices
+    #         react_type = react_type_table[particles[i].id][react_choice]
+    # #             react_type_indices_view[i] = react_type
+    # # return react_type_indices
 
-                # # Update film based on reaction type
-                # if particles[i].id <= 1:  # Gas Cl Ion
-                react_add = react_table_equation[0][0][0]
+    #             # # Update film based on reaction type
+    #         if particles[i].id <= 1:  # Gas Cl Ion
+    #             for k in range(5):
+    #                 react_add[k] = react_table_equation[particles[i].id][react_choice][k]
+                # react_add = int5_add(react_add, react_table_equation[particles[i].id][react_choice])
+
+            # else:  # Redeposited solid
+            #     react_add[particles[i].id - 2] = 1
+                # if react_type == 1 or react_type == 4:  # Chemical transfer or remove
+                #     cell[celli, cellj, cellk].film += react_add
+                #     reactList[i] = react_choice
+                #     indice_1[i] = False
+                # react_add = react_table_equation[0][0][0]
                 # react_add = react_table_equation[particles[i].id, react_choice]
-                react_add_indices_view[i] = react_add
-    return react_add_indices
+            # react_add_indices_view[i] = react_add[0]
 
-'''
+
+
+
+
+    return sticking_acceptList_indices
+
+
                 # print(react_add)
                 # else:  # Redeposited solid
                 #     react_add = np.zeros(elements, dtype=np.int32)

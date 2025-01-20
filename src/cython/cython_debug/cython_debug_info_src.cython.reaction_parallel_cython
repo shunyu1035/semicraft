@@ -1,0 +1,548 @@
+<cython_debug version="1.0">
+  <Module module_name="src.cython.reaction_parallel_cython" filename="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" c_filename="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.c">
+    <Functions>
+      <Function name="__Pyx_carray_from_py_double" cname="__Pyx_carray_from_py_double" pf_cname="" qualified_name="carray.from_py.__Pyx_carray_from_py_double" lineno="79">
+        <Locals>
+          <LocalVar name="o" cname="__pyx_v_o" qualified_name="carray.from_py.__Pyx_carray_from_py_double.o" type="PythonObject" lineno="79"/>
+          <LocalVar name="v" cname="__pyx_v_v" qualified_name="carray.from_py.__Pyx_carray_from_py_double.v" type="CObject" lineno="79"/>
+          <LocalVar name="length" cname="__pyx_v_length" qualified_name="carray.from_py.__Pyx_carray_from_py_double.length" type="CObject" lineno="79"/>
+          <LocalVar name="i" cname="__pyx_v_i" qualified_name="carray.from_py.__Pyx_carray_from_py_double.i" type="CObject" lineno="80"/>
+          <LocalVar name="item" cname="__pyx_v_item" qualified_name="carray.from_py.__Pyx_carray_from_py_double.item" type="PythonObject" lineno="86"/>
+        </Locals>
+        <Arguments>
+          <o/>
+          <v/>
+          <length/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyObject_Length"/>
+          <StepIntoFunction name="PyErr_Format"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle" cname="__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle" pf_cname="" qualified_name="FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle" lineno="12">
+        <Locals>
+          <LocalVar name="obj" cname="__pyx_v_obj" qualified_name="FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle.obj" type="PythonObject" lineno="12"/>
+          <LocalVar name="result" cname="__pyx_v_result" qualified_name="FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle.result" type="CObject" lineno="13"/>
+          <LocalVar name="value" cname="__pyx_v_value" qualified_name="FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle.value" type="PythonObject" lineno="18"/>
+        </Locals>
+        <Arguments>
+          <obj/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyMapping_Check"/>
+          <StepIntoFunction name="__Pyx_RaiseUnexpectedTypeError"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="__Pyx_carray_to_py_int" cname="__Pyx_carray_to_py_int" pf_cname="" qualified_name="carray.to_py.__Pyx_carray_to_py_int" lineno="114">
+        <Locals>
+          <LocalVar name="v" cname="__pyx_v_v" qualified_name="carray.to_py.__Pyx_carray_to_py_int.v" type="CObject" lineno="114"/>
+          <LocalVar name="length" cname="__pyx_v_length" qualified_name="carray.to_py.__Pyx_carray_to_py_int.length" type="CObject" lineno="114"/>
+          <LocalVar name="i" cname="__pyx_v_i" qualified_name="carray.to_py.__Pyx_carray_to_py_int.i" type="CObject" lineno="115"/>
+          <LocalVar name="value" cname="__pyx_v_value" qualified_name="carray.to_py.__Pyx_carray_to_py_int.value" type="PythonObject" lineno="116"/>
+          <LocalVar name="l" cname="__pyx_v_l" qualified_name="carray.to_py.__Pyx_carray_to_py_int.l" type="PythonObject" lineno="117"/>
+        </Locals>
+        <Arguments>
+          <v/>
+          <length/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyList_New"/>
+          <StepIntoFunction name="Py_INCREF"/>
+          <StepIntoFunction name="PyList_SET_ITEM"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="__Pyx_carray_to_tuple_int" cname="__Pyx_carray_to_tuple_int" pf_cname="" qualified_name="carray.to_py.__Pyx_carray_to_tuple_int" lineno="126">
+        <Locals>
+          <LocalVar name="v" cname="__pyx_v_v" qualified_name="carray.to_py.__Pyx_carray_to_tuple_int.v" type="CObject" lineno="126"/>
+          <LocalVar name="length" cname="__pyx_v_length" qualified_name="carray.to_py.__Pyx_carray_to_tuple_int.length" type="CObject" lineno="126"/>
+          <LocalVar name="i" cname="__pyx_v_i" qualified_name="carray.to_py.__Pyx_carray_to_tuple_int.i" type="CObject" lineno="127"/>
+          <LocalVar name="value" cname="__pyx_v_value" qualified_name="carray.to_py.__Pyx_carray_to_tuple_int.value" type="PythonObject" lineno="128"/>
+          <LocalVar name="t" cname="__pyx_v_t" qualified_name="carray.to_py.__Pyx_carray_to_tuple_int.t" type="PythonObject" lineno="129"/>
+        </Locals>
+        <Arguments>
+          <v/>
+          <length/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyTuple_New"/>
+          <StepIntoFunction name="Py_INCREF"/>
+          <StepIntoFunction name="PyTuple_SET_ITEM"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="base" cname="__pyx_f_5numpy_7ndarray_4base_base" pf_cname="" qualified_name="numpy.ndarray.base.base" lineno="245">
+        <Locals>
+          <LocalVar name="self" cname="__pyx_v_self" qualified_name="numpy.ndarray.base.base.self" type="PythonObject" lineno="245"/>
+        </Locals>
+        <Arguments>
+          <self/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_BASE"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="descr" cname="__pyx_f_5numpy_7ndarray_5descr_descr" pf_cname="" qualified_name="numpy.ndarray.descr.descr" lineno="251">
+        <Locals>
+          <LocalVar name="self" cname="__pyx_v_self" qualified_name="numpy.ndarray.descr.descr.self" type="PythonObject" lineno="251"/>
+        </Locals>
+        <Arguments>
+          <self/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_DESCR"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="ndim" cname="__pyx_f_5numpy_7ndarray_4ndim_ndim" pf_cname="" qualified_name="numpy.ndarray.ndim.ndim" lineno="257">
+        <Locals>
+          <LocalVar name="self" cname="__pyx_v_self" qualified_name="numpy.ndarray.ndim.ndim.self" type="PythonObject" lineno="257"/>
+        </Locals>
+        <Arguments>
+          <self/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_NDIM"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="shape" cname="__pyx_f_5numpy_7ndarray_5shape_shape" pf_cname="" qualified_name="numpy.ndarray.shape.shape" lineno="263">
+        <Locals>
+          <LocalVar name="self" cname="__pyx_v_self" qualified_name="numpy.ndarray.shape.shape.self" type="PythonObject" lineno="263"/>
+        </Locals>
+        <Arguments>
+          <self/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_DIMS"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="strides" cname="__pyx_f_5numpy_7ndarray_7strides_strides" pf_cname="" qualified_name="numpy.ndarray.strides.strides" lineno="271">
+        <Locals>
+          <LocalVar name="self" cname="__pyx_v_self" qualified_name="numpy.ndarray.strides.strides.self" type="PythonObject" lineno="271"/>
+        </Locals>
+        <Arguments>
+          <self/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_STRIDES"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="size" cname="__pyx_f_5numpy_7ndarray_4size_size" pf_cname="" qualified_name="numpy.ndarray.size.size" lineno="278">
+        <Locals>
+          <LocalVar name="self" cname="__pyx_v_self" qualified_name="numpy.ndarray.size.size.self" type="PythonObject" lineno="278"/>
+        </Locals>
+        <Arguments>
+          <self/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_SIZE"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="data" cname="__pyx_f_5numpy_7ndarray_4data_data" pf_cname="" qualified_name="numpy.ndarray.data.data" lineno="284">
+        <Locals>
+          <LocalVar name="self" cname="__pyx_v_self" qualified_name="numpy.ndarray.data.data.self" type="PythonObject" lineno="284"/>
+        </Locals>
+        <Arguments>
+          <self/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_BYTES"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="PyArray_MultiIterNew1" cname="__pyx_f_5numpy_PyArray_MultiIterNew1" pf_cname="" qualified_name="numpy.PyArray_MultiIterNew1" lineno="776">
+        <Locals>
+          <LocalVar name="a" cname="__pyx_v_a" qualified_name="numpy.PyArray_MultiIterNew1.a" type="PythonObject" lineno="776"/>
+        </Locals>
+        <Arguments>
+          <a/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_MultiIterNew"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="PyArray_MultiIterNew2" cname="__pyx_f_5numpy_PyArray_MultiIterNew2" pf_cname="" qualified_name="numpy.PyArray_MultiIterNew2" lineno="779">
+        <Locals>
+          <LocalVar name="a" cname="__pyx_v_a" qualified_name="numpy.PyArray_MultiIterNew2.a" type="PythonObject" lineno="779"/>
+          <LocalVar name="b" cname="__pyx_v_b" qualified_name="numpy.PyArray_MultiIterNew2.b" type="PythonObject" lineno="779"/>
+        </Locals>
+        <Arguments>
+          <a/>
+          <b/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_MultiIterNew"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="PyArray_MultiIterNew3" cname="__pyx_f_5numpy_PyArray_MultiIterNew3" pf_cname="" qualified_name="numpy.PyArray_MultiIterNew3" lineno="782">
+        <Locals>
+          <LocalVar name="a" cname="__pyx_v_a" qualified_name="numpy.PyArray_MultiIterNew3.a" type="PythonObject" lineno="782"/>
+          <LocalVar name="b" cname="__pyx_v_b" qualified_name="numpy.PyArray_MultiIterNew3.b" type="PythonObject" lineno="782"/>
+          <LocalVar name="c" cname="__pyx_v_c" qualified_name="numpy.PyArray_MultiIterNew3.c" type="PythonObject" lineno="782"/>
+        </Locals>
+        <Arguments>
+          <a/>
+          <b/>
+          <c/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_MultiIterNew"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="PyArray_MultiIterNew4" cname="__pyx_f_5numpy_PyArray_MultiIterNew4" pf_cname="" qualified_name="numpy.PyArray_MultiIterNew4" lineno="785">
+        <Locals>
+          <LocalVar name="a" cname="__pyx_v_a" qualified_name="numpy.PyArray_MultiIterNew4.a" type="PythonObject" lineno="785"/>
+          <LocalVar name="b" cname="__pyx_v_b" qualified_name="numpy.PyArray_MultiIterNew4.b" type="PythonObject" lineno="785"/>
+          <LocalVar name="c" cname="__pyx_v_c" qualified_name="numpy.PyArray_MultiIterNew4.c" type="PythonObject" lineno="785"/>
+          <LocalVar name="d" cname="__pyx_v_d" qualified_name="numpy.PyArray_MultiIterNew4.d" type="PythonObject" lineno="785"/>
+        </Locals>
+        <Arguments>
+          <a/>
+          <b/>
+          <c/>
+          <d/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_MultiIterNew"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="PyArray_MultiIterNew5" cname="__pyx_f_5numpy_PyArray_MultiIterNew5" pf_cname="" qualified_name="numpy.PyArray_MultiIterNew5" lineno="788">
+        <Locals>
+          <LocalVar name="a" cname="__pyx_v_a" qualified_name="numpy.PyArray_MultiIterNew5.a" type="PythonObject" lineno="788"/>
+          <LocalVar name="b" cname="__pyx_v_b" qualified_name="numpy.PyArray_MultiIterNew5.b" type="PythonObject" lineno="788"/>
+          <LocalVar name="c" cname="__pyx_v_c" qualified_name="numpy.PyArray_MultiIterNew5.c" type="PythonObject" lineno="788"/>
+          <LocalVar name="d" cname="__pyx_v_d" qualified_name="numpy.PyArray_MultiIterNew5.d" type="PythonObject" lineno="788"/>
+          <LocalVar name="e" cname="__pyx_v_e" qualified_name="numpy.PyArray_MultiIterNew5.e" type="PythonObject" lineno="788"/>
+        </Locals>
+        <Arguments>
+          <a/>
+          <b/>
+          <c/>
+          <d/>
+          <e/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_MultiIterNew"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="PyDataType_SHAPE" cname="__pyx_f_5numpy_PyDataType_SHAPE" pf_cname="" qualified_name="numpy.PyDataType_SHAPE" lineno="791">
+        <Locals>
+          <LocalVar name="d" cname="__pyx_v_d" qualified_name="numpy.PyDataType_SHAPE.d" type="PythonObject" lineno="791"/>
+        </Locals>
+        <Arguments>
+          <d/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyDataType_HASSUBARRAY"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="set_array_base" cname="__pyx_f_5numpy_set_array_base" pf_cname="" qualified_name="numpy.set_array_base" lineno="970">
+        <Locals>
+          <LocalVar name="arr" cname="__pyx_v_arr" qualified_name="numpy.set_array_base.arr" type="PythonObject" lineno="970"/>
+          <LocalVar name="base" cname="__pyx_v_base" qualified_name="numpy.set_array_base.base" type="PythonObject" lineno="970"/>
+        </Locals>
+        <Arguments>
+          <arr/>
+          <base/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="Py_INCREF"/>
+          <StepIntoFunction name="PyArray_SetBaseObject"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="get_array_base" cname="__pyx_f_5numpy_get_array_base" pf_cname="" qualified_name="numpy.get_array_base" lineno="974">
+        <Locals>
+          <LocalVar name="arr" cname="__pyx_v_arr" qualified_name="numpy.get_array_base.arr" type="PythonObject" lineno="974"/>
+          <LocalVar name="base" cname="__pyx_v_base" qualified_name="numpy.get_array_base.base" type="CObject" lineno="975"/>
+        </Locals>
+        <Arguments>
+          <arr/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyArray_BASE"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="import_array" cname="__pyx_f_5numpy_import_array" pf_cname="" qualified_name="numpy.import_array" lineno="982">
+        <Locals/>
+        <Arguments/>
+        <StepIntoFunctions>
+          <StepIntoFunction name="_import_array"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="import_umath" cname="__pyx_f_5numpy_import_umath" pf_cname="" qualified_name="numpy.import_umath" lineno="988">
+        <Locals/>
+        <Arguments/>
+        <StepIntoFunctions>
+          <StepIntoFunction name="_import_umath"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="import_ufunc" cname="__pyx_f_5numpy_import_ufunc" pf_cname="" qualified_name="numpy.import_ufunc" lineno="994">
+        <Locals/>
+        <Arguments/>
+        <StepIntoFunctions>
+          <StepIntoFunction name="_import_umath"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="is_timedelta64_object" cname="__pyx_f_5numpy_is_timedelta64_object" pf_cname="" qualified_name="numpy.is_timedelta64_object" lineno="1001">
+        <Locals>
+          <LocalVar name="obj" cname="__pyx_v_obj" qualified_name="numpy.is_timedelta64_object.obj" type="PythonObject" lineno="1001"/>
+        </Locals>
+        <Arguments>
+          <obj/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyObject_TypeCheck"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="is_datetime64_object" cname="__pyx_f_5numpy_is_datetime64_object" pf_cname="" qualified_name="numpy.is_datetime64_object" lineno="1016">
+        <Locals>
+          <LocalVar name="obj" cname="__pyx_v_obj" qualified_name="numpy.is_datetime64_object.obj" type="PythonObject" lineno="1016"/>
+        </Locals>
+        <Arguments>
+          <obj/>
+        </Arguments>
+        <StepIntoFunctions>
+          <StepIntoFunction name="PyObject_TypeCheck"/>
+        </StepIntoFunctions>
+      </Function>
+      <Function name="get_datetime64_value" cname="__pyx_f_5numpy_get_datetime64_value" pf_cname="" qualified_name="numpy.get_datetime64_value" lineno="1031">
+        <Locals>
+          <LocalVar name="obj" cname="__pyx_v_obj" qualified_name="numpy.get_datetime64_value.obj" type="PythonObject" lineno="1031"/>
+        </Locals>
+        <Arguments>
+          <obj/>
+        </Arguments>
+        <StepIntoFunctions/>
+      </Function>
+      <Function name="get_timedelta64_value" cname="__pyx_f_5numpy_get_timedelta64_value" pf_cname="" qualified_name="numpy.get_timedelta64_value" lineno="1041">
+        <Locals>
+          <LocalVar name="obj" cname="__pyx_v_obj" qualified_name="numpy.get_timedelta64_value.obj" type="PythonObject" lineno="1041"/>
+        </Locals>
+        <Arguments>
+          <obj/>
+        </Arguments>
+        <StepIntoFunctions/>
+      </Function>
+      <Function name="get_datetime64_unit" cname="__pyx_f_5numpy_get_datetime64_unit" pf_cname="" qualified_name="numpy.get_datetime64_unit" lineno="1048">
+        <Locals>
+          <LocalVar name="obj" cname="__pyx_v_obj" qualified_name="numpy.get_datetime64_unit.obj" type="PythonObject" lineno="1048"/>
+        </Locals>
+        <Arguments>
+          <obj/>
+        </Arguments>
+        <StepIntoFunctions/>
+      </Function>
+      <Function name="react_add_test" cname="__pyx_pf_3src_6cython_24reaction_parallel_cython_react_add_test" pf_cname="" qualified_name="src.cython.reaction_parallel_cython.react_add_test" lineno="61">
+        <Locals>
+          <LocalVar name="test" cname="__pyx_v_test" qualified_name="src.cython.reaction_parallel_cython.react_add_test.test" type="CObject" lineno="62"/>
+          <LocalVar name="i" cname="__pyx_v_i" qualified_name="src.cython.reaction_parallel_cython.react_add_test.i" type="CObject" lineno="63"/>
+          <LocalVar name="testpy" cname="__pyx_v_testpy" qualified_name="src.cython.reaction_parallel_cython.react_add_test.testpy" type="PythonObject" lineno="64"/>
+        </Locals>
+        <Arguments/>
+        <StepIntoFunctions/>
+      </Function>
+      <Function name="react_add_test2" cname="__pyx_pf_3src_6cython_24reaction_parallel_cython_2react_add_test2" pf_cname="" qualified_name="src.cython.reaction_parallel_cython.react_add_test2" lineno="74">
+        <Locals>
+          <LocalVar name="particle" cname="__pyx_v_particle" qualified_name="src.cython.reaction_parallel_cython.react_add_test2.particle" type="CObject" lineno="74"/>
+          <LocalVar name="test" cname="__pyx_v_test" qualified_name="src.cython.reaction_parallel_cython.react_add_test2.test" type="CObject" lineno="75"/>
+          <LocalVar name="testpy" cname="__pyx_v_testpy" qualified_name="src.cython.reaction_parallel_cython.react_add_test2.testpy" type="PythonObject" lineno="77"/>
+        </Locals>
+        <Arguments>
+          <particle/>
+        </Arguments>
+        <StepIntoFunctions/>
+      </Function>
+      <Function name="reaction_parallel_cython" cname="__pyx_pymod_exec_reaction_parallel_cython" pf_cname="" qualified_name="" lineno="1" is_initmodule_function="True">
+        <Locals>
+          <LocalVar name="__builtins__" cname="__builtins__" qualified_name="carray.to_py.__builtins__" type="PythonObject" lineno="0"/>
+          <LocalVar name="__name__" cname="__name__" qualified_name="carray.to_py.__name__" type="PythonObject" lineno="0"/>
+          <LocalVar name="__file__" cname="__file__" qualified_name="carray.to_py.__file__" type="PythonObject" lineno="0"/>
+          <LocalVar name="__doc__" cname="__doc__" qualified_name="carray.to_py.__doc__" type="PythonObject" lineno="0"/>
+          <LocalVar name="__path__" cname="__path__" qualified_name="carray.to_py.__path__" type="PythonObject" lineno="0"/>
+          <LocalVar name="__spec__" cname="__spec__" qualified_name="carray.to_py.__spec__" type="PythonObject" lineno="0"/>
+          <LocalVar name="__loader__" cname="__loader__" qualified_name="carray.to_py.__loader__" type="PythonObject" lineno="0"/>
+          <LocalVar name="__package__" cname="__package__" qualified_name="carray.to_py.__package__" type="PythonObject" lineno="0"/>
+          <LocalVar name="__cached__" cname="__cached__" qualified_name="carray.to_py.__cached__" type="PythonObject" lineno="0"/>
+          <LocalVar name="Particle" cname="__pyx_t_3src_6cython_24reaction_parallel_cython_Particle" qualified_name="src.cython.reaction_parallel_cython.Particle" type="CObject" lineno="22"/>
+          <LocalVar name="Cell" cname="__pyx_t_3src_6cython_24reaction_parallel_cython_Cell" qualified_name="src.cython.reaction_parallel_cython.Cell" type="CObject" lineno="29"/>
+          <LocalVar name="np" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_np" qualified_name="src.cython.reaction_parallel_cython.np" type="PythonObject" lineno="2"/>
+          <LocalVar name="cython" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_cython" qualified_name="src.cython.reaction_parallel_cython.cython" type="PythonObject" lineno="3"/>
+          <LocalVar name="cnp" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_cnp" qualified_name="src.cython.reaction_parallel_cython.cnp" type="PythonObject" lineno="5"/>
+          <LocalVar name="fabs" cname="fabs" qualified_name="libc.math.fabs" type="CObject" lineno="78"/>
+          <LocalVar name="acos" cname="acos" qualified_name="libc.math.acos" type="CObject" lineno="27"/>
+          <LocalVar name="rand" cname="rand" qualified_name="libc.stdlib.rand" type="CObject" lineno="24"/>
+          <LocalVar name="RAND_MAX" cname="RAND_MAX" qualified_name="libc.stdlib.RAND_MAX" type="CObject" lineno="23"/>
+          <LocalVar name="malloc" cname="malloc" qualified_name="libc.stdlib.malloc" type="CObject" lineno="30"/>
+          <LocalVar name="free" cname="free" qualified_name="libc.stdlib.free" type="CObject" lineno="29"/>
+          <LocalVar name="printf" cname="printf" qualified_name="libc.stdio.printf" type="CObject" lineno="60"/>
+          <LocalVar name="react_table_equation" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_react_table_equation" qualified_name="src.cython.reaction_parallel_cython.react_table_equation" type="CObject" lineno="37"/>
+          <LocalVar name="react_type_table" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_react_type_table" qualified_name="src.cython.reaction_parallel_cython.react_type_table" type="CObject" lineno="55"/>
+          <LocalVar name="react_add_test" cname="react_add_test" qualified_name="src.cython.reaction_parallel_cython.react_add_test" type="PythonObject" lineno="61"/>
+          <LocalVar name="react_add_test2" cname="react_add_test2" qualified_name="src.cython.reaction_parallel_cython.react_add_test2" type="PythonObject" lineno="74"/>
+          <LocalVar name="__test__" cname="__test__" qualified_name="src.cython.reaction_parallel_cython.__test__" type="PythonObject" lineno="2"/>
+          <LocalVar name="__pyx_ctuple_long_struct" cname="__pyx_ctuple_long" qualified_name="src.cython.reaction_parallel_cython.__pyx_ctuple_long_struct" type="CObject" lineno="64"/>
+          <LocalVar name="__pyx_ctuple_long" cname="__pyx_ctuple_long" qualified_name="src.cython.reaction_parallel_cython.__pyx_ctuple_long" type="CObject" lineno="64"/>
+          <LocalVar name="base_type" cname="base_type" qualified_name="carray.to_py.base_type" type="CObject" lineno="0"/>
+          <LocalVar name="PyErr_Format" cname="PyErr_Format" qualified_name="FromPyStructUtility.PyErr_Format" type="CObject" lineno="8"/>
+          <LocalVar name="__Pyx_carray_from_py_double" cname="__Pyx_carray_from_py_double" qualified_name="carray.from_py.__Pyx_carray_from_py_double" type="CObject" lineno="79"/>
+          <LocalVar name="PyTypeObject" cname="PyTypeObject" qualified_name="FromPyStructUtility.PyTypeObject" type="CObject" lineno="4"/>
+          <LocalVar name="struct_type" cname="struct_type" qualified_name="FromPyStructUtility.struct_type" type="CObject" lineno="0"/>
+          <LocalVar name="Py_TYPE" cname="Py_TYPE" qualified_name="FromPyStructUtility.Py_TYPE" type="CObject" lineno="6"/>
+          <LocalVar name="PyMapping_Check" cname="PyMapping_Check" qualified_name="FromPyStructUtility.PyMapping_Check" type="CObject" lineno="7"/>
+          <LocalVar name="__Pyx_RaiseUnexpectedTypeError" cname="__Pyx_RaiseUnexpectedTypeError" qualified_name="FromPyStructUtility.__Pyx_RaiseUnexpectedTypeError" type="CObject" lineno="9"/>
+          <LocalVar name="__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle" cname="__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle" qualified_name="FromPyStructUtility.__pyx_convert__from_py_struct____pyx_t_3src_6cython_24reaction_parallel_cython_Particle" type="CObject" lineno="12"/>
+          <LocalVar name="Py_INCREF" cname="Py_INCREF" qualified_name="carray.to_py.Py_INCREF" type="CObject" lineno="106"/>
+          <LocalVar name="PyTuple_New" cname="PyTuple_New" qualified_name="carray.to_py.PyTuple_New" type="CObject" lineno="107"/>
+          <LocalVar name="PyList_New" cname="PyList_New" qualified_name="carray.to_py.PyList_New" type="CObject" lineno="108"/>
+          <LocalVar name="PyTuple_SET_ITEM" cname="PyTuple_SET_ITEM" qualified_name="carray.to_py.PyTuple_SET_ITEM" type="CObject" lineno="109"/>
+          <LocalVar name="PyList_SET_ITEM" cname="PyList_SET_ITEM" qualified_name="carray.to_py.PyList_SET_ITEM" type="CObject" lineno="110"/>
+          <LocalVar name="__Pyx_carray_to_py_int" cname="__Pyx_carray_to_py_int" qualified_name="carray.to_py.__Pyx_carray_to_py_int" type="CObject" lineno="114"/>
+          <LocalVar name="__Pyx_carray_to_tuple_int" cname="__Pyx_carray_to_tuple_int" qualified_name="carray.to_py.__Pyx_carray_to_tuple_int" type="CObject" lineno="126"/>
+          <LocalVar name="__pyx_ctuple_size_t_struct" cname="__pyx_ctuple_size_t" qualified_name="carray.to_py.__pyx_ctuple_size_t_struct" type="CObject" lineno="118"/>
+          <LocalVar name="__pyx_ctuple_size_t" cname="__pyx_ctuple_size_t" qualified_name="carray.to_py.__pyx_ctuple_size_t" type="CObject" lineno="118"/>
+        </Locals>
+        <Arguments/>
+        <StepIntoFunctions/>
+      </Function>
+    </Functions>
+    <Globals>
+      <LocalVar name="__builtins__" cname="__builtins__" qualified_name="carray.to_py.__builtins__" type="PythonObject" lineno="0"/>
+      <LocalVar name="__name__" cname="__name__" qualified_name="carray.to_py.__name__" type="PythonObject" lineno="0"/>
+      <LocalVar name="__file__" cname="__file__" qualified_name="carray.to_py.__file__" type="PythonObject" lineno="0"/>
+      <LocalVar name="__doc__" cname="__doc__" qualified_name="carray.to_py.__doc__" type="PythonObject" lineno="0"/>
+      <LocalVar name="__path__" cname="__path__" qualified_name="carray.to_py.__path__" type="PythonObject" lineno="0"/>
+      <LocalVar name="__spec__" cname="__spec__" qualified_name="carray.to_py.__spec__" type="PythonObject" lineno="0"/>
+      <LocalVar name="__loader__" cname="__loader__" qualified_name="carray.to_py.__loader__" type="PythonObject" lineno="0"/>
+      <LocalVar name="__package__" cname="__package__" qualified_name="carray.to_py.__package__" type="PythonObject" lineno="0"/>
+      <LocalVar name="__cached__" cname="__cached__" qualified_name="carray.to_py.__cached__" type="PythonObject" lineno="0"/>
+      <LocalVar name="Particle" cname="__pyx_t_3src_6cython_24reaction_parallel_cython_Particle" qualified_name="src.cython.reaction_parallel_cython.Particle" type="CObject" lineno="22"/>
+      <LocalVar name="Cell" cname="__pyx_t_3src_6cython_24reaction_parallel_cython_Cell" qualified_name="src.cython.reaction_parallel_cython.Cell" type="CObject" lineno="29"/>
+      <LocalVar name="np" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_np" qualified_name="src.cython.reaction_parallel_cython.np" type="PythonObject" lineno="2"/>
+      <LocalVar name="cython" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_cython" qualified_name="src.cython.reaction_parallel_cython.cython" type="PythonObject" lineno="3"/>
+      <LocalVar name="cnp" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_cnp" qualified_name="src.cython.reaction_parallel_cython.cnp" type="PythonObject" lineno="5"/>
+      <LocalVar name="RAND_MAX" cname="RAND_MAX" qualified_name="libc.stdlib.RAND_MAX" type="CObject" lineno="23"/>
+      <LocalVar name="react_table_equation" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_react_table_equation" qualified_name="src.cython.reaction_parallel_cython.react_table_equation" type="CObject" lineno="37"/>
+      <LocalVar name="react_type_table" cname="__pyx_v_3src_6cython_24reaction_parallel_cython_react_type_table" qualified_name="src.cython.reaction_parallel_cython.react_type_table" type="CObject" lineno="55"/>
+      <LocalVar name="__test__" cname="__test__" qualified_name="src.cython.reaction_parallel_cython.__test__" type="PythonObject" lineno="2"/>
+      <LocalVar name="base_type" cname="base_type" qualified_name="carray.to_py.base_type" type="CObject" lineno="0"/>
+      <LocalVar name="PyTypeObject" cname="PyTypeObject" qualified_name="FromPyStructUtility.PyTypeObject" type="CObject" lineno="4"/>
+      <LocalVar name="struct_type" cname="struct_type" qualified_name="FromPyStructUtility.struct_type" type="CObject" lineno="0"/>
+    </Globals>
+    <LineNumberMapping>
+      <LineNumber c_linenos="4165 4166 4167 4168 4169 4170 4171 4172 4173 4174 4175 4186 4187 4188 4189 4190 4191 4192 4193 4194 4195 4196 4197 4198" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="245"/>
+      <LineNumber c_linenos="4176 4177 4178 4179 4180 4181 4182 4183 4184 4185" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="248"/>
+      <LineNumber c_linenos="4199 4200 4201 4202 4203 4204 4205 4206 4207 4208 4209 4210 4211 4212 4226 4227 4228 4229 4230 4231 4232 4233 4234 4235 4236 4237 4238 4239 4240" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="251"/>
+      <LineNumber c_linenos="4213 4214 4215 4216 4217 4218 4219 4220 4221 4222 4223 4224 4225" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="254"/>
+      <LineNumber c_linenos="4241 4242 4243 4244 4245 4246 4247 4248 4249 4250 4251 4262 4263 4264 4265 4266 4267 4268 4269 4270 4271 4272 4273 4274" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="257"/>
+      <LineNumber c_linenos="4252 4253 4254 4255 4256 4257 4258 4259 4260 4261" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="260"/>
+      <LineNumber c_linenos="4275 4276 4277 4278 4279 4280 4281 4282 4283 4284 4285 4296 4297 4298 4299 4300 4301 4302 4303 4304 4305 4306 4307 4308" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="263"/>
+      <LineNumber c_linenos="4286 4287 4288 4289 4290 4291 4292 4293 4294 4295" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="268"/>
+      <LineNumber c_linenos="4309 4310 4311 4312 4313 4314 4315 4316 4317 4318 4319 4330 4331 4332 4333 4334 4335 4336 4337 4338 4339 4340 4341 4342" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="271"/>
+      <LineNumber c_linenos="4320 4321 4322 4323 4324 4325 4326 4327 4328 4329" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="275"/>
+      <LineNumber c_linenos="4343 4344 4345 4346 4347 4348 4349 4350 4351 4352 4353 4364 4365 4366 4367 4368 4369 4370 4371 4372 4373 4374 4375 4376" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="278"/>
+      <LineNumber c_linenos="4354 4355 4356 4357 4358 4359 4360 4361 4362 4363" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="281"/>
+      <LineNumber c_linenos="4377 4378 4379 4380 4381 4382 4383 4384 4385 4386 4387 4398 4399 4400 4401 4402 4403 4404 4405 4406 4407 4408 4409 4410" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="284"/>
+      <LineNumber c_linenos="4388 4389 4390 4391 4392 4393 4394 4395 4396 4397" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="290"/>
+      <LineNumber c_linenos="1516 1517 1518 1519 1520 1521 1522 1523 1524" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="731"/>
+      <LineNumber c_linenos="1525 1526 1527 1528 1529 1530 1531 1532 1533" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="732"/>
+      <LineNumber c_linenos="1534 1535 1536 1537 1538 1539 1540 1541 1542" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="733"/>
+      <LineNumber c_linenos="1543 1544 1545 1546 1547 1548 1549 1550 1551" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="734"/>
+      <LineNumber c_linenos="1552 1553 1554 1555 1556 1557 1558 1559 1560" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="738"/>
+      <LineNumber c_linenos="1561 1562 1563 1564 1565 1566 1567 1568 1569" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="739"/>
+      <LineNumber c_linenos="1570 1571 1572 1573 1574 1575 1576 1577 1578" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="740"/>
+      <LineNumber c_linenos="1579 1580 1581 1582 1583 1584 1585 1586 1587" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="741"/>
+      <LineNumber c_linenos="1588 1589 1590 1591 1592 1593 1594 1595 1596" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="745"/>
+      <LineNumber c_linenos="1597 1598 1599 1600 1601 1602 1603 1604 1605" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="746"/>
+      <LineNumber c_linenos="1606 1607 1608 1609 1610 1611 1612 1613 1614" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="755"/>
+      <LineNumber c_linenos="1615 1616 1617 1618 1619 1620 1621 1622 1623" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="756"/>
+      <LineNumber c_linenos="1624 1625 1626 1627 1628 1629 1630 1631 1632" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="757"/>
+      <LineNumber c_linenos="1633 1634 1635 1636 1637 1638 1639 1640 1641" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="759"/>
+      <LineNumber c_linenos="1642 1643 1644 1645 1646 1647 1648 1649 1650" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="760"/>
+      <LineNumber c_linenos="1651 1652 1653 1654 1655 1656 1657 1658 1659" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="761"/>
+      <LineNumber c_linenos="1660 1661 1662 1663 1664 1665 1666 1667 1668" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="763"/>
+      <LineNumber c_linenos="1669 1670 1671 1672 1673 1674 1675 1676 1677" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="764"/>
+      <LineNumber c_linenos="1678 1679 1680 1681 1682 1683 1684 1685 1686" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="766"/>
+      <LineNumber c_linenos="1687 1688 1689 1690 1691 1692 1693 1694 1695" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="767"/>
+      <LineNumber c_linenos="1696 1697 1698 1699 1700 1701 1702 1703 1704" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="768"/>
+      <LineNumber c_linenos="1733 1734 1735 1736 1737 1738 1739 1740 1741" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="770"/>
+      <LineNumber c_linenos="1742 1743 1744 1745 1746 1747 1748 1749 1750" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="771"/>
+      <LineNumber c_linenos="1751 1752 1753 1754 1755 1756 1757 1758 1759" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="772"/>
+      <LineNumber c_linenos="1760 1761 1762 1763 1764 1765 1766 1767 1768 1769 1770" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="774"/>
+      <LineNumber c_linenos="4411 4412 4413 4414 4415 4416 4417 4418 4419 4420 4421 4422 4423 4424 4425 4426 4427 4442 4443 4444 4445 4446 4447 4448 4449 4450 4451 4452 4453 4454 4455 4456 4457 4458 4459 4460" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="776"/>
+      <LineNumber c_linenos="4428 4429 4430 4431 4432 4433 4434 4435 4436 4437 4438 4439 4440 4441" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="777"/>
+      <LineNumber c_linenos="4461 4462 4463 4464 4465 4466 4467 4468 4469 4470 4471 4472 4473 4474 4475 4476 4477 4492 4493 4494 4495 4496 4497 4498 4499 4500 4501 4502 4503 4504 4505 4506 4507 4508 4509 4510" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="779"/>
+      <LineNumber c_linenos="4478 4479 4480 4481 4482 4483 4484 4485 4486 4487 4488 4489 4490 4491" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="780"/>
+      <LineNumber c_linenos="4511 4512 4513 4514 4515 4516 4517 4518 4519 4520 4521 4522 4523 4524 4525 4526 4527 4542 4543 4544 4545 4546 4547 4548 4549 4550 4551 4552 4553 4554 4555 4556 4557 4558 4559 4560" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="782"/>
+      <LineNumber c_linenos="4528 4529 4530 4531 4532 4533 4534 4535 4536 4537 4538 4539 4540 4541" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="783"/>
+      <LineNumber c_linenos="4561 4562 4563 4564 4565 4566 4567 4568 4569 4570 4571 4572 4573 4574 4575 4576 4577 4592 4593 4594 4595 4596 4597 4598 4599 4600 4601 4602 4603 4604 4605 4606 4607 4608 4609 4610" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="785"/>
+      <LineNumber c_linenos="4578 4579 4580 4581 4582 4583 4584 4585 4586 4587 4588 4589 4590 4591" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="786"/>
+      <LineNumber c_linenos="4611 4612 4613 4614 4615 4616 4617 4618 4619 4620 4621 4622 4623 4624 4625 4626 4627 4642 4643 4644 4645 4646 4647 4648 4649 4650 4651 4652 4653 4654 4655 4656 4657 4658 4659 4660" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="788"/>
+      <LineNumber c_linenos="4628 4629 4630 4631 4632 4633 4634 4635 4636 4637 4638 4639 4640 4641" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="789"/>
+      <LineNumber c_linenos="4661 4662 4663 4664 4665 4666 4667 4668 4669 4670 4671 4672 4673 4674 4720 4721 4722 4723 4724 4725 4726 4727 4728 4729 4730 4731 4732 4733 4734" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="791"/>
+      <LineNumber c_linenos="4675 4676 4677 4678 4679 4680 4681 4682 4683 4684 4697 4698 4699 4700 4701 4702 4703 4704 4705" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="792"/>
+      <LineNumber c_linenos="4685 4686 4687 4688 4689 4690 4691 4692 4693 4694 4695 4696" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="793"/>
+      <LineNumber c_linenos="4706 4707 4708 4709 4710 4711 4712 4713 4714 4715 4716 4717 4718 4719" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="795"/>
+      <LineNumber c_linenos="4735 4736 4737 4738 4739 4740 4741 4742 4743 4744 4763 4764 4765 4766 4767 4768 4769 4770 4771 4772 4773" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="970"/>
+      <LineNumber c_linenos="4745 4746 4747 4748 4749 4750 4751 4752 4753" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="971"/>
+      <LineNumber c_linenos="4754 4755 4756 4757 4758 4759 4760 4761 4762" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="972"/>
+      <LineNumber c_linenos="4774 4775 4776 4777 4778 4779 4780 4781 4782 4783 4784 4785 4786 4787 4788 4840 4841 4842 4843 4844 4845 4846 4847 4848 4849 4850 4851 4852 4853 4854" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="974"/>
+      <LineNumber c_linenos="4789 4790 4791 4792 4793 4794 4795 4796 4797" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="975"/>
+      <LineNumber c_linenos="4798 4799 4800 4801 4802 4803 4804 4805 4806 4807 4819 4820 4821 4822 4823 4824 4825 4826 4827" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="976"/>
+      <LineNumber c_linenos="4808 4809 4810 4811 4812 4813 4814 4815 4816 4817 4818" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="977"/>
+      <LineNumber c_linenos="4828 4829 4830 4831 4832 4833 4834 4835 4836 4837 4838 4839" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="978"/>
+      <LineNumber c_linenos="4855 4856 4857 4858 4859 4860 4861 4862 4863 4864 4865 4866 4867 4868 4869 4870 4871 4872 4873 4874 4875 4876 4877 4878 4964 4965 4966 4967 4968 4969 4970 4971 4972 4973 4974 4975 4976 4977 4978 4979 4980 4981 4982 4983 4984 4985 4986" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="982"/>
+      <LineNumber c_linenos="4879 4880 4881 4882 4883 4884 4885 4886 4887 4888 4889 4890 4891 4892 4893 4894 4904 4905 4906 4907 4908 4909 4910 4911 4912 4913 4914 4915 4916 4917 4948 4949 4950 4951 4952 4953 4954 4955 4956 4957 4958 4959 4960 4961 4962 4963" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="983"/>
+      <LineNumber c_linenos="4895 4896 4897 4898 4899 4900 4901 4902 4903" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="984"/>
+      <LineNumber c_linenos="4918 4919 4920 4921 4922 4923 4924 4925 4926 4927 4928 4929 4930 4931 4932" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="985"/>
+      <LineNumber c_linenos="4933 4934 4935 4936 4937 4938 4939 4940 4941 4942 4943 4944 4945 4946 4947 5909 5910 5911 5912 5913 5914 5915 5916 5917 5918 5919" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="986"/>
+      <LineNumber c_linenos="4987 4988 4989 4990 4991 4992 4993 4994 4995 4996 4997 4998 4999 5000 5001 5002 5003 5004 5005 5006 5007 5008 5009 5010 5096 5097 5098 5099 5100 5101 5102 5103 5104 5105 5106 5107 5108 5109 5110 5111 5112 5113 5114 5115 5116 5117 5118" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="988"/>
+      <LineNumber c_linenos="5011 5012 5013 5014 5015 5016 5017 5018 5019 5020 5021 5022 5023 5024 5025 5026 5036 5037 5038 5039 5040 5041 5042 5043 5044 5045 5046 5047 5048 5049 5080 5081 5082 5083 5084 5085 5086 5087 5088 5089 5090 5091 5092 5093 5094 5095" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="989"/>
+      <LineNumber c_linenos="5027 5028 5029 5030 5031 5032 5033 5034 5035" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="990"/>
+      <LineNumber c_linenos="5050 5051 5052 5053 5054 5055 5056 5057 5058 5059 5060 5061 5062 5063 5064" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="991"/>
+      <LineNumber c_linenos="5065 5066 5067 5068 5069 5070 5071 5072 5073 5074 5075 5076 5077 5078 5079 5920 5921 5922 5923 5924 5925 5926 5927 5928 5929 5930" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="992"/>
+      <LineNumber c_linenos="5119 5120 5121 5122 5123 5124 5125 5126 5127 5128 5129 5130 5131 5132 5133 5134 5135 5136 5137 5138 5139 5140 5141 5142 5228 5229 5230 5231 5232 5233 5234 5235 5236 5237 5238 5239 5240 5241 5242 5243 5244 5245 5246 5247 5248 5249 5250" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="994"/>
+      <LineNumber c_linenos="5143 5144 5145 5146 5147 5148 5149 5150 5151 5152 5153 5154 5155 5156 5157 5158 5168 5169 5170 5171 5172 5173 5174 5175 5176 5177 5178 5179 5180 5181 5212 5213 5214 5215 5216 5217 5218 5219 5220 5221 5222 5223 5224 5225 5226 5227" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="995"/>
+      <LineNumber c_linenos="5159 5160 5161 5162 5163 5164 5165 5166 5167" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="996"/>
+      <LineNumber c_linenos="5182 5183 5184 5185 5186 5187 5188 5189 5190 5191 5192 5193 5194 5195 5196" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="997"/>
+      <LineNumber c_linenos="5197 5198 5199 5200 5201 5202 5203 5204 5205 5206 5207 5208 5209 5210 5211" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="998"/>
+      <LineNumber c_linenos="5251 5252 5253 5254 5255 5256 5257 5258 5259 5260 5261 5272 5273 5274 5275 5276 5277 5278 5279 5280 5281 5282 5283 5284" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1001"/>
+      <LineNumber c_linenos="5262 5263 5264 5265 5266 5267 5268 5269 5270 5271" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1013"/>
+      <LineNumber c_linenos="5285 5286 5287 5288 5289 5290 5291 5292 5293 5294 5295 5306 5307 5308 5309 5310 5311 5312 5313 5314 5315 5316 5317 5318" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1016"/>
+      <LineNumber c_linenos="5296 5297 5298 5299 5300 5301 5302 5303 5304 5305" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1028"/>
+      <LineNumber c_linenos="5319 5320 5321 5322 5323 5324 5325 5326 5327 5328 5329 5340 5341 5342 5343 5344 5345 5346 5347 5348 5349 5350 5351 5352" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1031"/>
+      <LineNumber c_linenos="5330 5331 5332 5333 5334 5335 5336 5337 5338 5339" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1038"/>
+      <LineNumber c_linenos="5353 5354 5355 5356 5357 5358 5359 5360 5361 5362 5363 5374 5375 5376 5377 5378 5379 5380 5381 5382 5383 5384 5385 5386" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1041"/>
+      <LineNumber c_linenos="5364 5365 5366 5367 5368 5369 5370 5371 5372 5373" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1045"/>
+      <LineNumber c_linenos="5387 5388 5389 5390 5391 5392 5393 5394 5395 5396 5397 5406 5407 5408 5409 5410 5411 5412 5413 5414 5415 5416 5417 5418" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1048"/>
+      <LineNumber c_linenos="5398 5399 5400 5401 5402 5403 5404 5405" src_path="/home/ysy/.local/lib/python3.10/site-packages/numpy/__init__.cython-30.pxd" src_lineno="1052"/>
+      <LineNumber c_linenos="6412 6413 6414 6415 6416 6417 6418 6419 6420 6421 6422 6665 6666 6667 6668 6669 6670 6671 6672 6673 6674 6675 6676 6677 6678 6679 6680 6681 6682 6683 6684 6685 6686 6687 6688 6689 6690 6691 6692 6693 6694 6695 6696 6697 6698 6699 6700 6701 6702 6703 6704 6705 6706 6707 6708 6709" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="2"/>
+      <LineNumber c_linenos="1771 1772 1773 1774 1775 1776 1777 1778 1779 1780 1781 1782 1783 1784" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="22"/>
+      <LineNumber c_linenos="1785 1786 1787 1788 1789 1790 1791 1792 1793 1794 1795 1796 1797 1798" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="29"/>
+      <LineNumber c_linenos="6579 6580 6581 6582 6583 6584 6585 6586 6587 6588 6589" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="37"/>
+      <LineNumber c_linenos="6488 6489 6490 6491 6492 6493 6494 6495 6496 6497 6498 6499 6500" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="38"/>
+      <LineNumber c_linenos="6423 6424 6425 6426 6427 6428 6429 6430 6431 6432 6433 6434 6435" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="39"/>
+      <LineNumber c_linenos="6436 6437 6438 6439 6440 6441 6442 6443 6444 6445 6446 6447 6448" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="40"/>
+      <LineNumber c_linenos="6449 6450 6451 6452 6453 6454 6455 6456 6457 6458 6459 6460 6461" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="41"/>
+      <LineNumber c_linenos="6462 6463 6464 6465 6466 6467 6468 6469 6470 6471 6472 6473 6474" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="42"/>
+      <LineNumber c_linenos="6475 6476 6477 6478 6479 6480 6481 6482 6483 6484 6485 6486 6487" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="43"/>
+      <LineNumber c_linenos="6566 6567 6568 6569 6570 6571 6572 6573 6574 6575 6576 6577 6578" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="45"/>
+      <LineNumber c_linenos="6501 6502 6503 6504 6505 6506 6507 6508 6509 6510 6511 6512 6513" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="46"/>
+      <LineNumber c_linenos="6514 6515 6516 6517 6518 6519 6520 6521 6522 6523 6524 6525 6526" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="47"/>
+      <LineNumber c_linenos="6527 6528 6529 6530 6531 6532 6533 6534 6535 6536 6537 6538 6539" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="48"/>
+      <LineNumber c_linenos="6540 6541 6542 6543 6544 6545 6546 6547 6548 6549 6550 6551 6552" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="49"/>
+      <LineNumber c_linenos="6553 6554 6555 6556 6557 6558 6559 6560 6561 6562 6563 6564 6565" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="50"/>
+      <LineNumber c_linenos="6590 6591 6592 6593 6594 6595 6596 6597 6598 6599 6600 6601 6602 6629 6630 6631 6632 6633 6634 6635 6636 6637 6638 6639 6640" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="55"/>
+      <LineNumber c_linenos="6603 6604 6605 6606 6607 6608 6609 6610 6611 6612 6613 6614 6615" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="56"/>
+      <LineNumber c_linenos="6616 6617 6618 6619 6620 6621 6622 6623 6624 6625 6626 6627 6628" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="57"/>
+      <LineNumber c_linenos="5419 5420 5421 5422 5423 5424 5425 5426 5427 5428 5429 5430 5431 5432 5433 5434 5435 5436 5437 5438 5439 5440 5441 5442 5443 5444 5445 5446 5447 5448 5449 5450 5451 5452 5453 5454 5455 5456 5457 5458 5545 5546 5547 5548 5549 5550 5551 5552 5553 5554 5555 5556 5557 5558 5559 5560 5561 5562 5563 5564 5565 5566 5567 5942 5943 5944 5945 5946 5947 5948 5949 5950 5951 5952 5953 6641 6642 6643 6644 6645 6646 6647 6648 6649 6650 6651 6652" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="61"/>
+      <LineNumber c_linenos="5459 5460 5461 5462 5463 5464 5465 5466 5467 5468 5469 5470 5471 5472 5473 5474 5475 5476 5477 5478 5479 5480 5481 5482 5483 5484 5485 5486 5931 5932 5933 5934 5935 5936 5937 5938 5939 5940 5941" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="64"/>
+      <LineNumber c_linenos="5487 5488 5489 5490 5491 5492 5493 5494 5495" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="65"/>
+      <LineNumber c_linenos="5496 5497 5498 5499 5500 5501 5502 5503 5504 5505" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="66"/>
+      <LineNumber c_linenos="5506 5507 5508 5509 5510 5511 5512 5513 5514 5515 5516 5517" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="67"/>
+      <LineNumber c_linenos="5518 5519 5520 5521 5522 5523 5524 5525 5526 5527 5528 5529 5530 5531 5532" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="68"/>
+      <LineNumber c_linenos="5533 5534 5535 5536 5537 5538 5539 5540 5541 5542 5543 5544" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="69"/>
+      <LineNumber c_linenos="5568 5569 5570 5571 5572 5573 5574 5575 5576 5577 5578 5579 5580 5581 5582 5583 5584 5585 5586 5587 5588 5589 5590 5591 5592 5593 5594 5595 5596 5597 5598 5599 5600 5601 5602 5603 5604 5605 5606 5607 5608 5609 5610 5611 5612 5613 5614 5615 5616 5617 5618 5619 5620 5621 5622 5623 5624 5625 5626 5627 5628 5629 5630 5631 5632 5633 5634 5635 5636 5637 5638 5639 5640 5641 5642 5643 5644 5645 5646 5647 5648 5649 5650 5651 5652 5653 5654 5655 5656 5657 5658 5659 5660 5661 5662 5663 5664 5665 5666 5667 5668 5669 5670 5671 5672 5673 5674 5675 5676 5677 5678 5679 5680 5681 5682 5683 5684 5685 5758 5759 5760 5761 5762 5763 5764 5765 5766 5767 5768 5769 5770 5771 5772 5773 5774 5775 5776 5777 5778 5779 5780 5781 5782 5783 5784 5785 5786 5787 5788 5789 5790 5791 5792 5793 5954 5955 5956 5957 5958 5959 5960 5961 5962 5963 5964 5965 5966 5967 5968 5969 5970 5971 6653 6654 6655 6656 6657 6658 6659 6660 6661 6662 6663 6664" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="74"/>
+      <LineNumber c_linenos="5686 5687 5688 5689 5690 5691 5692 5693 5694 5695 5696 5697 5698 5699 5700 5701 5702 5703 5704 5705 5706 5707 5708 5709 5710 5711 5712 5713" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="77"/>
+      <LineNumber c_linenos="5714 5715 5716 5717 5718 5719 5720 5721 5722" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="78"/>
+      <LineNumber c_linenos="5723 5724 5725 5726 5727 5728 5729 5730 5731 5732 5733 5734" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="80"/>
+      <LineNumber c_linenos="5735 5736 5737 5738 5739 5740 5741 5742 5743 5744 5745" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="81"/>
+      <LineNumber c_linenos="5746 5747 5748 5749 5750 5751 5752 5753 5754 5755 5756 5757" src_path="/mnt/d/ysy/SimProfile/src/cython/reaction_parallel_cython.pyx" src_lineno="82"/>
+    </LineNumberMapping>
+  </Module>
+</cython_debug>

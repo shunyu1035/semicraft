@@ -7,8 +7,9 @@ ext_modules = [
         "test_cython",
         ["test_cython.pyx"],
         include_dirs=[np.get_include()],
-        extra_compile_args=["/openmp"],
-        extra_link_args=["/openmp"],
+        language="c++",  # 使用 C++ 编译
+        extra_compile_args=['-fopenmp'],
+        extra_link_args=['-fopenmp'],
     )
 ]
 
