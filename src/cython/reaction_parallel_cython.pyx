@@ -10,8 +10,8 @@ from libc.stdlib cimport malloc, free
 from libc.stdio cimport printf
 from libcpp.random cimport mt19937, uniform_real_distribution, normal_distribution
 
-cimport sputter_yield
-cimport reflection
+# cimport sputter_yield
+# cimport reflection
 
 
 # 创建随机数生成器和分布器
@@ -19,19 +19,19 @@ cdef mt19937 rng = mt19937(42)  # 使用种子值 42 初始化随机数生成器
 cdef uniform_real_distribution[double] dist = uniform_real_distribution[double](0.0, 1.0)
 
 
-cdef extern from "particle.h":
-    ctypedef struct Particle:
-        double[3] pos
-        double[3] vel
-        double E
-        int id
+# cdef extern from "particle.h":
+cdef struct Particle:
+    double[3] pos
+    double[3] vel
+    double E
+    int id
 
-cdef extern from "film.h":
-    ctypedef struct Cell:
-        int id
-        int[3] index
-        int[5] film
-        double[3] normal
+# cdef extern from "film.h":
+cdef struct Cell:
+    int id
+    int[3] index
+    int[5] film
+    double[3] normal
 
 
 
@@ -56,6 +56,47 @@ cdef int[2][5][5] react_table_equation = [
 cdef int[3][5] react_type_table = [[1, 1, 1, 4, 0], # 1: chlorination  # 0: no reaction  # 4: Themal etch
                                    [2, 2, 2, 2, 2], # 2 for physics and chemical sputtering
                                    [3, 3, 3, 3, 3]]
+
+
+
+def react_add_test():
+    cdef int[5] test
+    cdef int i
+    testpy = np.zeros(5, dtype=np.int32)  # 确保类型匹配
+    test = react_table_equation[1][4]  # 确保 react_table_equation 是 cdef 定义的二维数组
+    for i in range(5):
+        testpy[i] = test[i]  # 将 C 数组的值赋给 NumPy 数组
+        print(testpy[i])  # 打印每个值
+    return testpy  # 返回 NumPy 数组
+
+
+
+
+def react_add_test2(Particle particle):
+    cdef int[5] test
+
+    testpy = np.zeros(5, dtype=np.int32)  # 确保类型匹配
+    test = react_table_equation[particle.id][1]  # 确保 react_table_equation 是 cdef 定义的二维数组
+
+    testpy = test  # 将 C 数组的值赋给 NumPy 数组
+    print(testpy)  # 打印每个值
+    return testpy  # 返回 NumPy 数组
+
+
+'''
+def react_add_test3(Particle[:] particle):
+    cdef int[5] test
+    cdef int i, j
+    testpy = np.zeros((particle.shape[0], 5), dtype=np.int32)  # 确保类型匹配
+    cdef int[:,:] testpy_view = testpy
+
+    for i in prange(particle.shape[0], nogil=True):
+        test = react_table_equation[particle[i].id][1]  # 确保 react_table_equation 是 cdef 定义的二维数组
+        for j in range(5):
+            testpy_view[i, j] = test[j]
+        # testpy_view[i] = test  # 将 C 数组的值赋给 NumPy 数组
+    # print(testpy)  # 打印每个值
+    return testpy  # 返回 NumPy 数组
 
 cdef double[5] react_prob_chemical = [0.50, 0.50, 0.50, 0.9, 0.0]
 
@@ -301,10 +342,18 @@ def particle_parallel(Particle[:] particles, Cell[:,:,:] cell):
     cdef double dot_product
     cdef double[5] react_choice_random
     cdef int react_choice
-    cdef int[5] react_add
+    cdef int react_add
     cdef int react_type
+
     # react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
     # cdef int[:] react_choice_indices_view = react_choice_indices
+
+    # react_type_indices = np.zeros(particles.shape[0], dtype=np.int32)
+    # cdef int[:] react_type_indices_view = react_type_indices
+
+    react_add_indices = np.zeros((particles.shape[0]), dtype=np.int32)
+    cdef int[:] react_add_indices_view = react_add_indices
+
     # dot_product = np.zeros(particles.shape[0], dtype=np.double)
     # cdef double[:] dot_product_view = dot_product
 
@@ -326,12 +375,20 @@ def particle_parallel(Particle[:] particles, Cell[:,:,:] cell):
                 else:
                     react_choice_random[j] = 0
                 react_choice = find_max_position(react_choice_random)
+    #             react_choice_indices_view[i] = react_choice
+    # return react_choice_indices
                 react_type = react_type_table[particles[i].id][react_choice]
+    #             react_type_indices_view[i] = react_type
+    # return react_type_indices
 
-                # Update film based on reaction type
-                if particles[i].id <= 1:  # Gas Cl Ion
-                    react_add = react_table_equation[particles[i].id][react_choice]
+                # # Update film based on reaction type
+                # if particles[i].id <= 1:  # Gas Cl Ion
+                react_add = react_table_equation[0][0][0]
+                # react_add = react_table_equation[particles[i].id, react_choice]
+                react_add_indices_view[i] = react_add
+    return react_add_indices
 
+'''
                 # print(react_add)
                 # else:  # Redeposited solid
                 #     react_add = np.zeros(elements, dtype=np.int32)
