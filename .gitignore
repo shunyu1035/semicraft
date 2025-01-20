@@ -42,6 +42,7 @@ testNote.ipynb
 *.csv
 *.png
 *.xlsx
+*.html
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
