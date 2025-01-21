@@ -43,6 +43,7 @@ testNote.ipynb
 *.png
 *.xlsx
 *.html
+*.so
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/

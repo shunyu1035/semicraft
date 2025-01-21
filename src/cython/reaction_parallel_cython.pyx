@@ -3,16 +3,16 @@
 
 import numpy as np
 cimport cython
-from cython.parallel import prange
+from cython.parallel cimport prange, parallel
 cimport numpy as cnp
 from libc.math cimport fabs, acos
 from libc.stdlib cimport rand, RAND_MAX
 from libc.stdlib cimport malloc, free
 from libc.stdio cimport printf
 from libcpp.random cimport mt19937, uniform_real_distribution, normal_distribution
-
-# cimport sputter_yield
-# cimport reflection
+from libcpp.vector cimport vector
+from libc.math cimport ceil
+from cython.operator cimport dereference as deref
 
 
 # 创建随机数生成器和分布器
@@ -20,14 +20,15 @@ cdef mt19937 rng = mt19937(42)  # 使用种子值 42 初始化随机数生成器
 cdef uniform_real_distribution[double] dist = uniform_real_distribution[double](0.0, 1.0)
 
 
-# cdef extern from "particle.h":
+cdef int FILMSIZE = 5
+
 cdef struct Particle:
     double[3] pos
     double[3] vel
     double E
     int id
 
-# cdef extern from "film.h":
+
 cdef struct Cell:
     int id
     int[3] index
@@ -63,9 +64,9 @@ cdef int[3][5] react_type_table = [[1, 1, 1, 4, 0], # 1: chlorination  # 0: no r
 def react_add_test():
     cdef int[5] test
     cdef int i
-    testpy = np.zeros(5, dtype=np.int32)  # 确保类型匹配
+    testpy = np.zeros(FILMSIZE, dtype=np.int32)  # 确保类型匹配
     test = react_table_equation[1][4]  # 确保 react_table_equation 是 cdef 定义的二维数组
-    for i in range(5):
+    for i in range(FILMSIZE):
         testpy[i] = test[i]  # 将 C 数组的值赋给 NumPy 数组
         print(testpy[i])  # 打印每个值
     return testpy  # 返回 NumPy 数组
@@ -104,8 +105,8 @@ def react_add_test3(Particle[:] particle):
 
 
 
-
-cdef double[5] react_prob_chemical = [0.50, 0.50, 0.50, 0.9, 0.0]
+# cdef double[5] react_prob_chemical = [0.50, 0.50, 0.50, 0.9, 0.0]
+cdef double[5] react_prob_chemical = [1.0, 0.0, 0.0, 0.0, 0.0]
 
 cdef double[5] react_yield_p0 = [0.30, 0.30, 0.30, 0.30, 0.30]
 
@@ -259,7 +260,7 @@ cdef int* sticking_probability_structed(Particle particle, Cell cell, double ang
     cdef double[5] choice
     cdef int* sticking_acceptList = <int*>malloc(5 * sizeof(int))  # 动态分配内存
 
-    for i in range(5):
+    for i in range(FILMSIZE):
         choice[i] = dist(rng)  # 用 C 库的随机数填充数组
     # cdef bint[5] sticking_acceptList
 
@@ -269,15 +270,15 @@ cdef int* sticking_probability_structed(Particle particle, Cell cell, double ang
     if particle.id >= 2:
         particle.id = 2
 
-    for i in range(5):
+    for i in range(FILMSIZE):
         sticking_acceptList[i] = 0
         if cell.film[i] <= 0:
             choice[i] = 1.0
 
-    for j in range(5):
+    for j in range(FILMSIZE):
         if particle.id == 1:  
             energy_range = 0
-            for e in range(5):
+            for e in range(FILMSIZE):
                 if particle.E < rn_energy[e]:
                     energy_range = e
                     break
@@ -293,7 +294,6 @@ cdef int* sticking_probability_structed(Particle particle, Cell cell, double ang
     return sticking_acceptList
 
 
-
 cdef double dot3(double[3] a, double[3] b) noexcept nogil:
     cdef double result = 0
     cdef int i
@@ -303,30 +303,35 @@ cdef double dot3(double[3] a, double[3] b) noexcept nogil:
 
 
 
+
+
+
 @cython.boundscheck(False)  # 禁用边界检查以提升性能
 @cython.wraparound(False)   # 禁用负索引支持以提升性能
-cdef int find_max_position(double[5] arr) noexcept nogil:
+cdef int* find_max_position(vector[double]* arr) noexcept nogil:
     """
     找出 C 数组 double[5] 中最大值的位置
     """
-    cdef int i, max_pos = 0  # 初始化最大值位置为 0
-    cdef double max_val = arr[0]  # 初始化最大值为数组的第一个元素
+    cdef int i
+    cdef int* max_pos = <int*>malloc(sizeof(int))
+    cdef double max_val = 0  # 初始化最大值为数组的第一个元素
 
     # 遍历数组
-    for i in range(1, 5):  # 从第二个元素开始遍历
-        if arr[i] > max_val:
-            max_val = arr[i]
-            max_pos = i
+    max_pos[0] = -1
+    for i in range(FILMSIZE):  # 从第二个元素开始遍历
+        if deref(arr)[i] > max_val:
+            max_val = deref(arr)[i]
+            max_pos[0] = i
 
     return max_pos
 
-
-
-# cdef int* int5_add(int[5] a, int[5] b) noexcept nogil:
-#     cdef int i = 0
-#     for i in range(5):
-#         a[i] += b[i]
-#     return a
+cdef int* film_add(int[5] a, int[5] b) noexcept nogil:
+    cdef int i = 0
+    cdef int *film
+    film = <int*>malloc(FILMSIZE * sizeof(int))
+    for i in range(5):
+        film[i] = a[i] + b[i]
+    return film
 
 
 # cdef double* double5_add(double[5] a, double[5] b) noexcept nogil:
@@ -336,85 +341,215 @@ cdef int find_max_position(double[5] arr) noexcept nogil:
 #     return a
 
 
+def vector_to_numpy_2d():
+    cdef vector[vector[int]] cpp_2d_array
+    cdef int rows = 10, cols = 4
+    cdef int i, j, k, d
+    # cdef vector[int] ptr
+
+    # ptr.resize(cols)
+    # 创建一个 3x4 的 C++ 二维 vector 并赋值
+    cpp_2d_array.resize(rows)
+    # for i in range(rows):
+    #     cpp_2d_array[i].resize(cols)
+
+    # for i in range(rows):
+    for i in prange(rows, nogil=True):
+        cpp_2d_array[i].resize(cols)
+        # cdef vector[int] ptr
+        # ptr.resize(cols)
+        for j in range(cols):
+            cpp_2d_array[i][j] = i * cols + j  # 示例赋值：每个元素 = 行号 * 列数 + 列号
+            # ptr[j] = i * cols + j
+        # cpp_2d_array[i] = ptr  # 示例赋值：每个元素 = 行号 * 列数 + 列号
+        # ptr.resize(cols)
+        # for j in range(cols):
+        #     ptr[j] = 0
+
+    # 创建一个与 C++ 二维数组形状相同的 NumPy 数组
+    cdef cnp.ndarray[cnp.int32_t, ndim=2] np_2d_array = np.zeros((rows, cols), dtype=np.int32)
+
+    # 将 C++ vector 中的值复制到 NumPy 数组
+    for k in range(rows):
+        for d in range(cols):
+            np_2d_array[k, d] = cpp_2d_array[k][d]
+
+    return np_2d_array
 
 
-
-cdef int* pointer_to_numpy_c():
-    cdef int size = 5
-    cdef int* ptr = <int*>malloc(size * sizeof(int))  # 动态分配内存
+cdef int* react_add_func(int id, int choice) noexcept nogil:
+    cdef int *react_add
     cdef int i
+    react_add = <int*>malloc(FILMSIZE * sizeof(int))
+    for i in range(FILMSIZE):
+        # if id <= 1: # gas Cl Ion
+        react_add[i] = react_table_equation[id][choice][i]
+        # else:
 
-    # 给指针赋值
-    for i in range(size):
-        ptr[i] = i + 1  # 指针赋值为 [1, 2, 3, 4, 5]
-
-    # 释放指针
-    # result = ptr
-    # free(ptr)
-
-    return ptr
-
-def pointer_np():
-    cdef int i
-    cdef cnp.ndarray[cnp.int32_t, ndim=1] testpy = np.zeros(5, dtype=np.int32)
-    result = pointer_to_numpy_c()
-    for i in range(5):
-        testpy[i] = result[i]
-    free(result)
-    return testpy
-
-
-
+    return react_add
 
 
 
 @cython.boundscheck(False)  # 禁用边界检查以提升性能
 @cython.wraparound(False)   # 禁用负索引支持以提升性能
-def particle_parallel(Particle[:] particles, Cell[:,:,:] cell):
+def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell):
 
-    cdef int celli
-    cdef int cellj
-    cdef int cellk
-    cdef int i, j, k
-    cdef double angle_rad
-    # cdef int react_choice_indices
-    cdef double dot_product
-    cdef double[5] react_choice_random
-    cdef int react_choice
-    cdef int[5] react_add
-    cdef int react_type
+    cdef Py_ssize_t i, j, k
+    cdef mt19937 local_rng
+    cdef int *celli
+    cdef int *cellj
+    cdef int *cellk
+    cdef double *angle_rad
+    cdef double *dot_product
+    cdef vector[double] *react_choice_random
+    cdef int *react_choice
+    cdef int *react_add
+    cdef int *sticking_acceptList
+    cdef int *react_type
+    # cdef int react_type
+    cdef int particleCount = particles.shape[0]
 
-    # cdef int[5] sticking_acceptList
-    react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
-    cdef int[:] react_choice_indices_view = react_choice_indices
-
+    # particleCount = particles.shape[0]
     sticking_acceptList_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
-    # react_type_indices = np.zeros(particles.shape[0], dtype=np.int32)
-    # cdef int[:] react_type_indices_view = react_type_indices
+    cdef int[:, :] sticking_acceptList_indices_view = sticking_acceptList_indices
 
-    # react_add_indices = np.zeros((particles.shape[0]), dtype=np.int32)
-    # cdef int[:] react_add_indices_view = react_add_indices
+    react_choice_random_indices = np.zeros((particles.shape[0], 5), dtype=np.double)
+    cdef double[:, :] react_choice_random_indices_view = react_choice_random_indices
 
     dot_product_all = np.zeros(particles.shape[0], dtype=np.double)
     cdef double[:] dot_product_view = dot_product_all
 
-    for i in range(particles.shape[0]):
-    # for i in prange(particles.shape[0], nogil=True):
-        celli = <int> particles[i].pos[0]
-        cellj = <int> particles[i].pos[1]
-        cellk = <int> particles[i].pos[2]  
+    react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
+    cdef int[:] react_choice_indices_view = react_choice_indices
 
-        if cell[celli, cellj, cellk].id == 1:
-            dot_product = dot3(particles[i].vel, cell[celli, cellj, cellk].normal)
-            dot_product = fabs(dot_product)
-            angle_rad = acos(dot_product)
-            # dot_product_view[i] = angle_rad
-            # Calculate sticking probability
-            sticking_acceptList = sticking_probability_structed(particles[i], cell[celli, cellj, cellk], angle_rad)
-            for j in range(5):
-                sticking_acceptList_indices[i][j] = sticking_acceptList[j]
-            free(sticking_acceptList)
-            # for j in range(5):
+    react_type_indices = np.zeros(particles.shape[0], dtype=np.int32)
+    cdef int[:] react_type_indices_view = react_type_indices
+
+    react_add_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
+    cdef int[:, :] react_add_indices_view = react_add_indices
+
+    # 遍历所有粒子
+    with nogil, parallel():
+        celli = <int*>malloc(sizeof(int))
+        cellj = <int*>malloc(sizeof(int))
+        cellk = <int*>malloc(sizeof(int))
+        angle_rad = <double*>malloc(sizeof(double))
+        dot_product = <double*>malloc(sizeof(double))
+        react_type = <int*>malloc(sizeof(int))
+        # react_choice = <int*>malloc(sizeof(int))
+        react_choice_random = new vector[double](FILMSIZE)
+
+        try:
+            for i in prange(particleCount):
+                local_rng = mt19937(42 + i)  # 通过线程ID i生成唯一的种子
+            # for i in range(particleCount):
+                celli[0] = <int> particles[i].pos[0]
+                cellj[0] = <int> particles[i].pos[1]
+                cellk[0] = <int> particles[i].pos[2]
+
+                if cell[celli[0], cellj[0], cellk[0]].id == 1:
+                    dot_product[0] = dot3(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal)
+                    dot_product[0] = fabs(dot_product[0])
+                    angle_rad[0] = acos(dot_product[0])
+
+                    sticking_acceptList = sticking_probability_structed(particles[i], cell[celli[0], cellj[0], cellk[0]], angle_rad[0])
+
+                    for j in range(FILMSIZE):
+                        sticking_acceptList_indices_view[i, j] = sticking_acceptList[j]
+                        if sticking_acceptList[j] == 1:
+                            deref(react_choice_random)[j] = dist(local_rng)
+                        else:
+                            deref(react_choice_random)[j] = 0
+                        react_choice_random_indices_view[i, j] = deref(react_choice_random)[j]
+                    react_choice = find_max_position(react_choice_random)
+                    react_choice_indices_view[i] = react_choice[0]
+
+                    react_type[0] = react_type_table[particles[i].id][react_choice[0]]
+                    react_type_indices_view[i] = react_type[0]
+
+                    react_add = react_add_func(particles[i].id, react_choice[0])
+                    for k in range(FILMSIZE):
+                        react_add_indices_view[i, k] = react_add[k]
+
+                    
+                    free(sticking_acceptList)
+                    free(react_choice)
+                    free(react_add)
+
+
+                dot_product_view[i] = angle_rad[0]
+
+
+
+
+
+
+
+
+
+
+
+        finally:
+            del react_choice_random
+            # del react_add
+            free(celli)
+            free(cellj)
+            free(cellk)
+            free(angle_rad)
+            free(dot_product)
+            free(react_type)
+
+    # return dot_product_all
+    # return sticking_acceptList_indices
+    return react_choice_indices, sticking_acceptList_indices, react_choice_random_indices, react_type_indices, react_add_indices
+
+
+
+
+# @cython.boundscheck(False)  # 禁用边界检查以提升性能
+# @cython.wraparound(False)   # 禁用负索引支持以提升性能
+# def particle_parallel(Particle[:] particles, Cell[:,:,:] cell):
+
+#     cdef int celli, cellj, cellk
+#     cdef int i, j
+#     cdef double angle_rad
+#     cdef double dot_product
+#     cdef double[5] react_choice_random
+#     cdef int react_choice
+#     cdef int[5] react_add
+#     cdef int react_type
+
+#     react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
+#     cdef int[:] react_choice_indices_view = react_choice_indices
+
+#     sticking_acceptList_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
+#     cdef int[:, :] sticking_acceptList_indices_view = sticking_acceptList_indices
+
+#     dot_product_all = np.zeros(particles.shape[0], dtype=np.double)
+#     cdef double[:] dot_product_view = dot_product_all
+
+#     # 遍历所有粒子
+#     for i in prange(particles.shape[0], nogil=True):
+#         celli = <int> particles[i].pos[0]
+#         cellj = <int> particles[i].pos[1]
+#         cellk = <int> particles[i].pos[2]
+
+#         if cell[celli, cellj, cellk].id == 1:
+#             dot_product = dot3(particles[i].vel, cell[celli, cellj, cellk].normal)
+#             dot_product = fabs(dot_product)
+#             angle_rad = acos(dot_product)
+
+#             # 调用 `sticking_probability_structed`，返回 std::vector
+#             sticking_acceptList = sticking_probability_structed(particles[i], cell[celli, cellj, cellk], angle_rad)
+
+#             # 将 `sticking_acceptList` 转换为 numpy 数组
+#             for j in range(FILMSIZE):
+#                 sticking_acceptList_indices_view[i, j] = sticking_acceptList[j]
+
+#     return sticking_acceptList_indices
+
+
+            # for j in range(FILMSIZE):
             #     if sticking_acceptList[j] == 1:
             #         react_choice_random[j] = dist(rng)
             #     else:
@@ -446,7 +581,7 @@ def particle_parallel(Particle[:] particles, Cell[:,:,:] cell):
 
 
 
-    return sticking_acceptList_indices
+    # return sticking_acceptList_indices
 
 
                 # print(react_add)
