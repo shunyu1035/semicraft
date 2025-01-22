@@ -18,7 +18,7 @@ ext_modules = [
 ]
 
 setup(
-    ext_modules=cythonize(ext_modules, gdb_debug=True),
+    ext_modules=cythonize(ext_modules, annotate=True),
 )
 
 

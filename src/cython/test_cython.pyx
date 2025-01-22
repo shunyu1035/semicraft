@@ -14,46 +14,42 @@ import numpy as np
 from libcpp.random cimport mt19937, uniform_real_distribution
 cimport numpy as cnp
 
-# 定义一个线程独立的随机数生成器
-cdef class ThreadLocalRNG:
-    cdef mt19937 rng
-    cdef uniform_real_distribution[double] dist
 
-    def __cinit__(self):
-        # 使用随机设备初始化
-        from libcpp.random cimport random_device
-        cdef random_device rd
-        self.rng = mt19937(rd())
-        self.dist = uniform_real_distribution[double](0.0, 1.0)
+def vector_to_numpy_2d():
+    cdef vector[vector[int]] cpp_2d_array
+    cdef int rows = 10, cols = 4
+    cdef int i, j, k, d
+    # cdef vector[int] ptr
 
-    cdef double random(self) noexcept nogil:
-        # 返回一个均匀分布的随机数
-        return self.dist(self.rng)
+    # ptr.resize(cols)
+    # 创建一个 3x4 的 C++ 二维 vector 并赋值
+    cpp_2d_array.resize(rows)
+    # for i in range(rows):
+    #     cpp_2d_array[i].resize(cols)
 
-# 使用多线程生成随机数
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def generate_random_numbers(size, threads=4):
-    cdef int i, j
-    cdef int chunk_size = size // threads
-    cdef cnp.ndarray[cnp.double_t, ndim=1] results = np.zeros(size, dtype=np.double)
-    cdef vector[ThreadLocalRNG] rngs
+    # for i in range(rows):
+    for i in prange(rows, nogil=True):
+        cpp_2d_array[i].resize(cols)
+        # cdef vector[int] ptr
+        # ptr.resize(cols)
+        for j in range(cols):
+            cpp_2d_array[i][j] = i * cols + j  # 示例赋值：每个元素 = 行号 * 列数 + 列号
+            # ptr[j] = i * cols + j
+        # cpp_2d_array[i] = ptr  # 示例赋值：每个元素 = 行号 * 列数 + 列号
+        # ptr.resize(cols)
+        # for j in range(cols):
+        #     ptr[j] = 0
 
-    # 每个线程初始化自己的随机数生成器
-    rngs.resize(threads)
-    with nogil, parallel():
-        for i in prange(threads, nogil=True):
-            rngs[i] = ThreadLocalRNG()
+    # 创建一个与 C++ 二维数组形状相同的 NumPy 数组
+    cdef cnp.ndarray[cnp.int32_t, ndim=2] np_2d_array = np.zeros((rows, cols), dtype=np.int32)
 
-        for i in prange(size, nogil=True):
-            # 获取当前线程 ID
-            thread_id = i // chunk_size
-            if thread_id >= threads:
-                thread_id = threads - 1
-            # 使用当前线程的随机数生成器
-            results[i] = rngs[thread_id].random()
+    # 将 C++ vector 中的值复制到 NumPy 数组
+    for k in range(rows):
+        for d in range(cols):
+            np_2d_array[k, d] = cpp_2d_array[k][d]
 
-    return results
+    return np_2d_array
+
 
 
 
@@ -210,6 +206,44 @@ def max_value_in_vector():
     max_it = max_element(my_vector.begin(), my_vector.end())
     return dereference(max_it)  # 返回最大值
 
+
+
+def vector_to_numpy():
+    cdef vector[vector[int]] my_vector
+    cdef vector[int] temp_vector
+    cdef int rows, cols, i, j
+
+    # 构造临时 vector 数据
+    temp_vector = vector[int]()
+    temp_vector.push_back(1)
+    temp_vector.push_back(2)
+    temp_vector.push_back(3)
+    my_vector.push_back(temp_vector)
+
+    temp_vector.clear()
+    temp_vector.push_back(4)
+    temp_vector.push_back(5)
+    temp_vector.push_back(6)
+    my_vector.push_back(temp_vector)
+
+    temp_vector.clear()
+    temp_vector.push_back(7)
+    temp_vector.push_back(8)
+    temp_vector.push_back(9)
+    my_vector.push_back(temp_vector)
+
+    # 转换为 NumPy 数组
+    rows = my_vector.size()  # 获取行数
+    cols = my_vector[0].size() if rows > 0 else 0  # 获取列数
+    cdef cnp.ndarray[cnp.int32_t, ndim=2] np_array = np.zeros((rows, cols), dtype=np.int32)
+
+    for i in range(rows):
+        for j in range(cols):
+            np_array[i, j] = my_vector[i][j]
+
+    return np_array
+
+
 def remove_from_vector(int target):
     cdef vector[int] my_vector
 
@@ -225,3 +259,67 @@ def remove_from_vector(int target):
     # 打印移除后的结果
     for value in my_vector:
         print(value)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def vector_to_numpy_parallel():
+    cdef int rows = 100, cols = 3
+    cdef int i, j
+    cdef vector[int] *temp_vector  # 每个线程独立的临时 vector
+    # 创建用于存储结果的主线程 vector
+    cdef vector[vector[int]] my_vector
+    my_vector.resize(rows)  # 提前分配空间
+
+    # 多线程填充数据
+    with nogil, parallel():
+        temp_vector = new vector[int](3)
+        try:
+            for i in prange(rows):
+                
+                dereference(temp_vector)[0] = i
+                dereference(temp_vector)[1] = i+1 
+                dereference(temp_vector)[2] = i+2
+                my_vector[i] = dereference(temp_vector)  # 将临时 vector 存储到主 vector 中
+        finally:
+            del temp_vector
+
+    # 转换为 NumPy 数组
+    cdef cnp.ndarray[cnp.int32_t, ndim=2] np_array = np.zeros((rows, cols), dtype=np.int32)
+    for i in range(rows):
+        for j in range(cols):
+            np_array[i, j] = my_vector[i][j]
+
+    return np_array
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def vector_to_numpy_parallel_safe():
+    cdef int rows = 100, cols = 3
+    cdef int i, j
+    cdef vector[vector[int]] my_vector
+    cdef vector[int] *temp_vector  # 每个线程独立的临时 vector
+    # 多线程填充数据
+    with nogil, parallel():
+        temp_vector = new vector[int](3)
+        try:
+            for i in prange(rows):
+
+                dereference(temp_vector)[0] = i
+                dereference(temp_vector)[1] = i+1 
+                dereference(temp_vector)[2] = i+2
+
+                # 使用 GIL 将临时数据添加到主线程 vector
+                with gil:
+                    my_vector.push_back(dereference(temp_vector))
+        finally:
+            del temp_vector
+    # 转换为 NumPy 数组
+    cdef cnp.ndarray[cnp.int32_t, ndim=2] np_array = np.zeros((len(my_vector), cols), dtype=np.int32)
+    for i in range(len(my_vector)):
+        for j in range(len(my_vector[i])):
+            np_array[i, j] = my_vector[i][j]
+
+    return np_array
+
+

@@ -20,4 +20,3 @@ def DiffusionReflect(vel, normal):
     UN = U / np.linalg.norm(U)
         # UN[i] = U
     return UN
-
