@@ -9,16 +9,16 @@ from libc.math cimport fabs, acos
 from libc.stdlib cimport rand, RAND_MAX
 from libc.stdlib cimport malloc, free
 from libc.stdio cimport printf
-from libcpp.random cimport mt19937, uniform_real_distribution, normal_distribution
+from libcpp.random cimport random_device, mt19937, uniform_real_distribution, normal_distribution
 from libcpp.vector cimport vector
-from libc.math cimport ceil, log, exp, cos, pi
+from libc.math cimport ceil, log, exp, cos, pi, sqrt
 from cython.operator cimport dereference as deref
 
 
 # 创建随机数生成器和分布器
 cdef mt19937 rng = mt19937(42)  # 使用种子值 42 初始化随机数生成器
 cdef uniform_real_distribution[double] dist = uniform_real_distribution[double](0.0, 1.0)
-
+cdef normal_distribution[double] distn =  normal_distribution[double](0, 1)
 
 cdef int FILMSIZE = 5
 
@@ -291,7 +291,7 @@ cdef int* react_add_func(int id, int choice) noexcept nogil:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def sputter_yield_angle(double gamma0, double gammaMax, double thetaMax):
+cdef void sputter_yield_angle(double gamma0, double gammaMax, double thetaMax, double[2][180] sputterYield_ion):
     """
     Calculate sputter yield as a function of angle.
     """
@@ -299,46 +299,74 @@ def sputter_yield_angle(double gamma0, double gammaMax, double thetaMax):
     cdef double s = f * cos(thetaMax)
     cdef int n = 180
     cdef cnp.ndarray[cnp.double_t, ndim=1] theta = np.linspace(0, pi / 2, n, dtype=np.float64)
-    cdef cnp.ndarray[cnp.double_t, ndim=1] sputterYield = np.zeros(n, dtype=np.float64)
-    cdef double[2][180] yield_hist 
+    cdef double[:] theta_view = theta
+    # cdef cnp.ndarray[cnp.double_t, ndim=1] sputterYield = np.zeros(n, dtype=np.float64)
+    cdef double[180] sputterYield
+    # cdef double[2][180] yield_hist 
 
     cdef int i
     for i in range(n):
         if i == n-1:
             sputterYield[i] = 0
         else:
-            sputterYield[i] = gamma0 * cos(theta[i])**(-f) * exp(-s * (1 / cos(theta[i]) - 1))
+            sputterYield[i] = gamma0 * cos(theta_view[i])**(-f) * exp(-s * (1 / cos(theta_view[i]) - 1))
     
-        yield_hist[0][i] = sputterYield[i]
-        yield_hist[1][i] = theta[i]
+        sputterYield_ion[0][i] = sputterYield[i]
+        sputterYield_ion[1][i] = theta[i]
 
-    return yield_hist
+    # return yield_hist
 
 cdef double[2][180] sputterYield_ion
 
-sputterYield_ion = sputter_yield_angle(0.3, 0.001, pi/4)
+sputter_yield_angle(0.3, 0.001, pi/4, sputterYield_ion)
 
 
+
+# @cython.boundscheck(False)
+# @cython.wraparound(False)
+# cdef double sputter_yield(double p0, double theta, double energy, double Eth) noexcept nogil:
+#     """
+#     Combined sputter yield calculation.
+#     """
+#     cdef double interp_value
+#     cdef int i
+#     cdef double react_yield
+#     # Interpolate sputter yield at a given angle
+#     interp_value = 0  # Handle out-of-bounds cases
+#     for i in range(179):
+#         if sputterYield_ion[1][i] <= theta < sputterYield_ion[1][i + 1]:
+#             interp_value = sputterYield_ion[0][i] + (sputterYield_ion[0][i + 1] - sputterYield_ion[0][i]) * \
+#                            (theta - sputterYield_ion[1][i]) / (sputterYield_ion[1][i + 1] - sputterYield_ion[1][i])
+#             break
+
+#     react_yield = p0 * interp_value * (energy**0.5 - Eth**0.5)
+#     return react_yield
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 cdef double sputter_yield(double p0, double theta, double energy, double Eth) noexcept nogil:
     """
     Combined sputter yield calculation.
     """
-    cdef double interp_value
+    cdef double interp_value = 0.0
     cdef int i
-    cdef double react_yield
+    cdef double sqrt_energy, sqrt_Eth, diff, product
+
     # Interpolate sputter yield at a given angle
-    interp_value = 0  # Handle out-of-bounds cases
     for i in range(179):
         if sputterYield_ion[1][i] <= theta < sputterYield_ion[1][i + 1]:
             interp_value = sputterYield_ion[0][i] + (sputterYield_ion[0][i + 1] - sputterYield_ion[0][i]) * \
                            (theta - sputterYield_ion[1][i]) / (sputterYield_ion[1][i + 1] - sputterYield_ion[1][i])
             break
 
-    react_yield = p0 * interp_value * (energy**0.5 - Eth**0.5)
-    return react_yield
+    # Calculate react_yield
+    sqrt_energy = energy**0.5
+    sqrt_Eth = Eth**0.5
+    diff = sqrt_energy - sqrt_Eth
+    product = p0 * interp_value * diff
+
+    return product
 
 # @cython.boundscheck(False)
 # @cython.wraparound(False)
@@ -371,6 +399,69 @@ cdef void SpecularReflect(double[3] vel, double[3] normal) noexcept nogil:
     for i in range(3):
         vel[i] -= dot_product_2 * normal[i]
 
+cdef double normalizer(double[3] a) noexcept nogil:
+    cdef double result
+    cdef double temp = 0
+    cdef int i
+    for i in range(3):
+        temp += a[i]**2
+    result = sqrt(temp)
+    return result
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cdef void DiffusionReflect(double[3] vel, double[3] normal, double randn1, double randn2, double rand3,) noexcept nogil:
+    """
+    Compute the diffusion reflection of a particle velocity vector off a surface.
+    :param vel: Particle velocity vector
+    :param normal: Surface normal vector
+    :param UN: Output normalized reflected velocity vector
+    """
+    cdef double dot_product, norm_Ut, pm, norm_U
+    cdef double[3] Ut, tw1, tw2, U
+    
+    # Calculate the tangential component Ut
+    dot_product = dot3(vel, normal)
+    for i in range(3):
+        Ut[i] = vel[i] - dot_product * normal[i]
+    
+    # Normalize Ut to get tw1
+    # norm_Ut = sqrt(Ut[0]**2 + Ut[1]**2 + Ut[2]**2)
+    norm_Ut = normalizer(Ut)
+    for i in range(3):
+        tw1[i] = Ut[i] / norm_Ut
+
+    # Calculate tw2 as the cross product of tw1 and normal
+    tw2[0] = tw1[1] * normal[2] - tw1[2] * normal[1]
+    tw2[1] = tw1[2] * normal[0] - tw1[0] * normal[2]
+    tw2[2] = tw1[0] * normal[1] - tw1[1] * normal[0]
+
+    # Determine the sign based on the dot product
+    if dot_product > 0:
+        pm = -1.0
+    else:
+        pm = 1.0
+
+    # Generate random values for the new velocity
+    # rand1 = normal_distribution[double](0, 1)(mt19937(random_device()()))
+    # rand2 = normal_distribution[double](0, 1)(mt19937(random_device()()))
+    # rand3 = -2.0 * log(1.0 - normal_distribution[double](0, 1)(mt19937(random_device()())))
+
+    for i in range(3):
+        U[i] = randn1 * tw1[i] + randn2 * tw2[i] + pm * sqrt(-2.0 * log(1.0 -rand3)) * normal[i]
+
+    # Normalize U to get UN
+    # norm_U = sqrt(U[0]**2 + U[1]**2 + U[2]**2)
+    norm_U = normalizer(U)
+    for i in range(3):
+        vel[i] = U[i] / norm_U
+
+
+
+
+
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.nonecheck(False)
@@ -379,12 +470,20 @@ cdef void MoveParticle(double[3] vel, double[3] pos) noexcept nogil:
     for i in range(3):
         pos[i] += vel[i]
 
+
+
+
+
+
+
+# 粒子-网格反应主函数
 @cython.boundscheck(False)  # 禁用边界检查以提升性能
 @cython.wraparound(False)   # 禁用负索引支持以提升性能
 def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] cellSizeXYZ):
 
     cdef Py_ssize_t i, j, k
     cdef mt19937 local_rng
+    cdef random_device rd
     cdef int *celli
     cdef int *cellj
     cdef int *cellk
@@ -396,6 +495,9 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
     cdef int *sticking_acceptList
     cdef int *react_type
     cdef double *react_yield
+    cdef double *randn1
+    cdef double *randn2
+    cdef double *rand3
     # cdef int react_type
     # cdef vector[int] update_film_etch
     cdef int particleCount = particles.shape[0]
@@ -436,9 +538,13 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
         # react_choice = <int*>malloc(sizeof(int))
         react_choice_random = new vector[double](FILMSIZE)
         react_yield = <double*>malloc(sizeof(double))
+
+        randn1 = <double*>malloc(sizeof(double))
+        randn2 = <double*>malloc(sizeof(double))
+        rand3 = <double*>malloc(sizeof(double))
         try:
             for i in prange(particleCount):
-                local_rng = mt19937(42 + i)  # 通过线程ID i生成唯一的种子
+                local_rng = mt19937(rd() + i)  # 通过线程ID i生成唯一的种子
             # for i in range(particleCount):
                 celli[0] = <int> particles[i].pos[0]
                 cellj[0] = <int> particles[i].pos[1]
@@ -485,7 +591,11 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
                                 update_film_etch_view[i,1] = cellj[0]  # view
                                 update_film_etch_view[i,2] = cellk[0]  # view
                     if react_choice[0] == -1: # reflection
-                        SpecularReflect(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal)
+                        # SpecularReflect(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal)
+                        randn1[0] = distn(local_rng)
+                        randn2[0] = distn(local_rng)
+                        rand3[0] = dist(local_rng)
+                        DiffusionReflect(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal, randn1[0], randn2[0], rand3[0])
 
                     free(sticking_acceptList)
                     free(react_choice)
@@ -517,7 +627,9 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
             free(dot_product)
             free(react_type)
             free(react_yield)
-
+            free(randn1)
+            free(randn2)
+            free(rand3)
     # return dot_product_all
     # return sticking_acceptList_indices
     return react_choice_indices, \
