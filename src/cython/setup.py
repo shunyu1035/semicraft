@@ -22,8 +22,10 @@ ext_modules = [
             "-mfma",              # 启用 FMA（浮点融合乘加）
             "-funroll-loops",     # 循环展开
             "-fopenmp",           # 启用 OpenMP（多线程并行）
+            "-DNDEBUG",
         ],
         # extra_compile_args=['-fopenmp'],
+        # extra_compile_args=["-O3", "-march=native", "-funroll-loops", "-fopenmp", "-DNDEBUG"],  # 激进优化
         extra_link_args=['-fopenmp']
     )
 ]

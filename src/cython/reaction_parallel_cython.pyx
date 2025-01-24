@@ -483,7 +483,7 @@ cdef void MoveParticle(double[3] vel, double[3] pos) noexcept nogil:
 def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] cellSizeXYZ):
 
     cdef Py_ssize_t i, j, k
-    cdef mt19937 local_rng
+    # cdef mt19937 local_rng
     cdef random_device rd
     cdef int *celli
     cdef int *cellj
@@ -542,10 +542,10 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
 
         randn1 = <double*>malloc(sizeof(double))
         randn2 = <double*>malloc(sizeof(double))
-        rand3 = <double*>malloc(sizeof(double))
+        # rand3 = <double*>malloc(sizeof(double))
         try:
             for i in prange(particleCount):
-                local_rng = mt19937(rd() + i)  # 通过线程ID i生成唯一的种子
+                # local_rng = mt19937(rd() + i)  # 通过线程ID i生成唯一的种子
             # for i in range(particleCount):
                 celli[0] = <int> particles[i].pos[0]
                 cellj[0] = <int> particles[i].pos[1]
@@ -561,7 +561,8 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
                     for j in range(FILMSIZE):
                         # sticking_acceptList_indices_view[i, j] = sticking_acceptList[j]  # view
                         if sticking_acceptList[j] == 1:
-                            deref(react_choice_random)[j] = dist(local_rng)
+                            # deref(react_choice_random)[j] = dist(local_rng) 
+                            deref(react_choice_random)[j] = 0.5 # timeit
                         else:
                             deref(react_choice_random)[j] = 0
                         # react_choice_random_indices_view[i, j] = deref(react_choice_random)[j]  # view
@@ -585,7 +586,8 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
                             update_film_etch_view[i,2] = cellk[0]  # view
                     elif react_type[0] == 2: # physics sputter
                         react_yield[0] = sputter_yield(react_yield_p0[0], angle_rad[0], particles[i].E, 5)
-                        if react_yield[0] > dist(local_rng):
+                        # if react_yield[0] > dist(local_rng):
+                        if react_yield[0] > 0.5: #timeit
                             film_add(cell[celli[0], cellj[0], cellk[0]].film, react_add)
                             if film_sum(cell[celli[0], cellj[0], cellk[0]].film) == 0:
                                 update_film_etch_view[i,0] = celli[0]  # view
@@ -593,10 +595,13 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
                                 update_film_etch_view[i,2] = cellk[0]  # view
                     if react_choice[0] == -1: # reflection
                         # SpecularReflect(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal)
-                        randn1[0] = distn(local_rng)
-                        randn2[0] = distn(local_rng)
-                        rand3[0] = dist(local_rng)
-                        DiffusionReflect(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal, randn1[0], randn2[0], rand3[0])
+                        # randn1[0] = distn(local_rng)
+                        # randn2[0] = distn(local_rng)
+                        # rand3[0] = dist(local_rng)
+                        randn1[0] = 0.5 # timeit
+                        randn2[0] = 0.5 # timeit
+                        # rand3[0] = 0.5 # timeit
+                        DiffusionReflect(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal, randn1[0], randn2[0], 0.5)
 
                     free(sticking_acceptList)
                     free(react_choice)
@@ -604,19 +609,19 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
 
                 # MoveParticle(particles[i].vel, particles[i].pos) # comment the moveparticle for timeit
 
-                if bool_mask_view[i] == 1: # boundary
-                    if particles[i].pos[0] >= cellSizeXYZ[0]:
-                        particles[i].pos[0] -= cellSizeXYZ[0]
-                    elif particles[i].pos[0] < 0:
-                        particles[i].pos[0] += cellSizeXYZ[0]
-                    if particles[i].pos[1] >= cellSizeXYZ[1]:
-                        particles[i].pos[1] -= cellSizeXYZ[1]
-                    elif particles[i].pos[1] < 0:
-                        particles[i].pos[1] += cellSizeXYZ[1]
-                    if (particles[i].pos[0] > cellSizeXYZ[0] or particles[i].pos[0] < 0 or
-                        particles[i].pos[1] > cellSizeXYZ[1] or particles[i].pos[1] < 0 or
-                        particles[i].pos[2] > cellSizeXYZ[2] or particles[i].pos[2] < 0):
-                        bool_mask_view[i] = 0
+                # if bool_mask_view[i] == 1: # boundary
+                #     if particles[i].pos[0] >= cellSizeXYZ[0]:
+                #         particles[i].pos[0] -= cellSizeXYZ[0]
+                #     elif particles[i].pos[0] < 0:
+                #         particles[i].pos[0] += cellSizeXYZ[0]
+                #     if particles[i].pos[1] >= cellSizeXYZ[1]:
+                #         particles[i].pos[1] -= cellSizeXYZ[1]
+                #     elif particles[i].pos[1] < 0:
+                #         particles[i].pos[1] += cellSizeXYZ[1]
+                #     if (particles[i].pos[0] > cellSizeXYZ[0] or particles[i].pos[0] < 0 or
+                #         particles[i].pos[1] > cellSizeXYZ[1] or particles[i].pos[1] < 0 or
+                #         particles[i].pos[2] > cellSizeXYZ[2] or particles[i].pos[2] < 0):
+                #         bool_mask_view[i] = 0
 
         finally:
             del react_choice_random
@@ -630,7 +635,7 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
             free(react_yield)
             free(randn1)
             free(randn2)
-            free(rand3)
+            # free(rand3)
     # return dot_product_all
     # return sticking_acceptList_indices
     # return react_choice_indices, \
@@ -638,12 +643,177 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
     #         react_choice_random_indices, \
     #         react_type_indices, \
     #         react_add_indices,\
-    return  update_film_etch,\
-            bool_mask
+    # return  update_film_etch,\
+    #         bool_mask
+    return 0
+
+
+# 粒子-网格反应主函数
+@cython.boundscheck(False)  # 禁用边界检查以提升性能
+@cython.wraparound(False)   # 禁用负索引支持以提升性能
+def particle_parallel_vector_opt(Particle[:] particles, Cell[:,:,:] cell, double[:] cellSizeXYZ):
+
+    cdef Py_ssize_t i, j, k
+    # cdef mt19937 local_rng
+    cdef random_device rd
+    cdef int *cellijk
+    # cdef double *angle_rad
+    cdef double *dot_product
+    cdef vector[double] *react_choice_random
+    cdef int *react_choice
+    cdef int *react_add
+    cdef int *sticking_acceptList
+    cdef int *react_type
+    cdef double *react_yield
+    # cdef double *randn1
+    # cdef double *randn2
+    # cdef double *rand3
+    # cdef int react_type
+    # cdef vector[int] update_film_etch
+    cdef int particleCount = particles.shape[0]
+
+    # # particleCount = particles.shape[0]
+    # sticking_acceptList_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
+    # cdef int[:, :] sticking_acceptList_indices_view = sticking_acceptList_indices
+
+    # react_choice_random_indices = np.zeros((particles.shape[0], 5), dtype=np.double)
+    # cdef double[:, :] react_choice_random_indices_view = react_choice_random_indices
+
+    # dot_product_all = np.zeros(particles.shape[0], dtype=np.double)
+    # cdef double[:] dot_product_view = dot_product_all
+
+    # react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
+    # cdef int[:] react_choice_indices_view = react_choice_indices
+
+    bool_mask = np.ones(particles.shape[0], dtype=np.int32)
+    cdef int[:] bool_mask_view = bool_mask
+
+    # react_type_indices = np.zeros(particles.shape[0], dtype=np.int32)
+    # cdef int[:] react_type_indices_view = react_type_indices
+
+    # react_add_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
+    # cdef int[:, :] react_add_indices_view = react_add_indices
+
+    update_film_etch = np.ones((particles.shape[0], 3), dtype=np.int32)*-1
+    cdef int[:, :] update_film_etch_view = update_film_etch
+
+    # 遍历所有粒子
+    with nogil, parallel():
+        cellijk = <int*>malloc(3 * sizeof(int))
+
+        dot_product = <double*>malloc(sizeof(double))
+        react_type = <int*>malloc(sizeof(int))
+        # react_choice = <int*>malloc(sizeof(int))
+        react_choice_random = new vector[double](FILMSIZE)
+        react_yield = <double*>malloc(sizeof(double))
+
+        # randn1 = <double*>malloc(sizeof(double))
+        # randn2 = <double*>malloc(sizeof(double))
+        # rand3 = <double*>malloc(sizeof(double))
+        try:
+            for i in prange(particleCount):
+                # local_rng = mt19937(rd() + i)  # 通过线程ID i生成唯一的种子
+            # for i in range(particleCount):
+                cellijk[0] = <int> particles[i].pos[0]
+                cellijk[1] = <int> particles[i].pos[1]
+                cellijk[2] = <int> particles[i].pos[2]
+
+                if cell[cellijk[0], cellijk[1], cellijk[2]].id == 1:
+                    dot_product[0] = dot3(particles[i].vel, cell[cellijk[0], cellijk[1], cellijk[2]].normal)
+                    dot_product[0] = fabs(dot_product[0])
+                    dot_product[0] = acos(dot_product[0])
+                    # dot_product_view[i] = angle_rad[0] # view
+                    sticking_acceptList = sticking_probability_structed(particles[i], cell[cellijk[0], cellijk[1], cellijk[2]], dot_product[0])
+
+                    for j in range(FILMSIZE):
+                        # sticking_acceptList_indices_view[i, j] = sticking_acceptList[j]  # view
+                        if sticking_acceptList[j] == 1:
+                            # deref(react_choice_random)[j] = dist(local_rng) 
+                            deref(react_choice_random)[j] = 0.5 # timeit
+                        else:
+                            deref(react_choice_random)[j] = 0
+                        # react_choice_random_indices_view[i, j] = deref(react_choice_random)[j]  # view
+                    react_choice = find_max_position(react_choice_random)
+                    # react_choice_indices_view[i] = react_choice[0]  # view
+                    if react_choice[0] != -1:
+                        bool_mask_view[i] = 0
+                    react_type[0] = react_type_table[particles[i].id][react_choice[0]]
+                    # react_type_indices_view[i] = react_type[0]  # view
+
+                    react_add = react_add_func(particles[i].id, react_choice[0])
+                    # for k in range(FILMSIZE):
+                        # react_add_indices_view[i, k] = react_add[k]
+                    if react_type[0] == 1: # chemical transfer
+                        film_add(cell[cellijk[0], cellijk[1], cellijk[2]].film, react_add)
+                    elif react_type[0] == 4: # chemical remove
+                        film_add(cell[cellijk[0], cellijk[1], cellijk[2]].film, react_add)
+                        if film_sum(cell[cellijk[0], cellijk[1], cellijk[2]].film) == 0:
+                            update_film_etch_view[i,0] = cellijk[0]  # view
+                            update_film_etch_view[i,1] = cellijk[1] # view
+                            update_film_etch_view[i,2] = cellijk[2]  # view
+                    elif react_type[0] == 2: # physics sputter
+                        react_yield[0] = sputter_yield(react_yield_p0[0], dot_product[0], particles[i].E, 5)
+                        # if react_yield[0] > dist(local_rng):
+                        if react_yield[0] > 0.5: #timeit
+                            film_add(cell[cellijk[0], cellijk[1], cellijk[2]].film, react_add)
+                            if film_sum(cell[cellijk[0], cellijk[1], cellijk[2]].film) == 0:
+                                update_film_etch_view[i,0] = cellijk[0]  # view
+                                update_film_etch_view[i,1] = cellijk[1]  # view
+                                update_film_etch_view[i,2] = cellijk[2]  # view
+                    if react_choice[0] == -1: # reflection
+                        # SpecularReflect(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal)
+                        # randn1[0] = distn(local_rng)
+                        # randn2[0] = distn(local_rng)
+                        # rand3[0] = dist(local_rng)
+                        # randn1[0] = 0.5 # timeit
+                        # randn2[0] = 0.5 # timeit
+                        # rand3[0] = 0.5 # timeit
+                        DiffusionReflect(particles[i].vel, cell[cellijk[0], cellijk[1], cellijk[2]].normal, 0.5, 0.5, 0.5)
+
+                    free(sticking_acceptList)
+                    free(react_choice)
+                    free(react_add)
+
+                # MoveParticle(particles[i].vel, particles[i].pos) # comment the moveparticle for timeit
+
+                # if bool_mask_view[i] == 1: # boundary
+                #     if particles[i].pos[0] >= cellSizeXYZ[0]:
+                #         particles[i].pos[0] -= cellSizeXYZ[0]
+                #     elif particles[i].pos[0] < 0:
+                #         particles[i].pos[0] += cellSizeXYZ[0]
+                #     if particles[i].pos[1] >= cellSizeXYZ[1]:
+                #         particles[i].pos[1] -= cellSizeXYZ[1]
+                #     elif particles[i].pos[1] < 0:
+                #         particles[i].pos[1] += cellSizeXYZ[1]
+                #     if (particles[i].pos[0] > cellSizeXYZ[0] or particles[i].pos[0] < 0 or
+                #         particles[i].pos[1] > cellSizeXYZ[1] or particles[i].pos[1] < 0 or
+                #         particles[i].pos[2] > cellSizeXYZ[2] or particles[i].pos[2] < 0):
+                #         bool_mask_view[i] = 0
+
+        finally:
+            del react_choice_random
+            # del react_add
+            free(cellijk)
+            # free(angle_rad)
+            free(dot_product)
+            free(react_type)
+            free(react_yield)
+            # free(randn1)
+            # free(randn2)
+            # free(rand3)
+    # return dot_product_all
+    # return sticking_acceptList_indices
+    # return react_choice_indices, \
+    #         sticking_acceptList_indices, \
+    #         react_choice_random_indices, \
+    #         react_type_indices, \
+    #         react_add_indices,\
+    # return  update_film_etch,\
+    #         bool_mask
+    return 0
 
 
 
-def build_cell_from_film(int[:,:,:,:] film, cellx, celly, cellz):
-    cdef Cell[10][10][10] cell
-    return cell
+# def build_cell_from_film(int[:,:,:,:] film, cellx, celly, cellz):
+
 
