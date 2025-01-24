@@ -251,7 +251,8 @@ def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal, cell
             film = filmMatrix[ijk[0], ijk[1], ijk[2]]
             get_theta = film_label_index_normal[ijk[0], ijk[1], ijk[2], -3:]
             # film_vaccum = filmMatrix[get_plane_vaccum[i,0], get_plane_vaccum[i,1], get_plane_vaccum[i,2]]
-            dot_product = np.dot(parcel[i, 3:6], get_theta)
+            # dot_product = np.dot(parcel[i, 3:6], get_theta)
+            dot_product = np.dot(np.ascontiguousarray(parcel[i, 3:6]), np.ascontiguousarray(get_theta))
             dot_product = np.abs(dot_product)
             angle_rad = np.arccos(dot_product)
 
@@ -310,7 +311,8 @@ def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal, cell
             # filmMatrix[get_plane_vaccum[i,0], get_plane_vaccum[i,1], get_plane_vaccum[i,2]] = film_vaccum
             if reactList[i] == -1:
                 # parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], get_theta[i])
-                parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], get_theta)
+                # parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], get_theta)
+                parcel[i, 3:6] = reflect.DiffusionReflect(np.ascontiguousarray(parcel[i, 3:6]), np.ascontiguousarray(get_theta))
 
         parcel[i, :3] += parcel[i, 3:6] #comment for timeit
         if indice_1[i] == True:

@@ -7,7 +7,7 @@ import src.operations.mirror as mirror
 from numba import jit, prange
 
 # from src.cython.plane_index_fast_cython import plane_index_fast_cython
-import src.cython.get_plane_vaccum as get_plane_vaccum_cython
+# import src.cython.get_plane_vaccum as get_plane_vaccum_cython
 # from src.cython.get_plane_vaccum import get_plane_vaccum
 
 @jit(nopython=True, parallel=True)
