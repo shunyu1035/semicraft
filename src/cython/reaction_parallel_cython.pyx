@@ -813,7 +813,83 @@ def particle_parallel_vector_opt(Particle[:] particles, Cell[:,:,:] cell, double
     return 0
 
 
+cdef int[6][3] grid_cross = [[1, 0, 0],
+                            [-1, 0, 0],
+                            [0, 1, 0],
+                            [0, -1,0],
+                            [0,0,  1],
+                            [0, 0,-1]]
 
-# def build_cell_from_film(int[:,:,:,:] film, cellx, celly, cellz):
+@cython.boundscheck(False)  # 禁用边界检查以提升性能
+@cython.wraparound(False)   # 禁用负索引支持以提升性能
+def update_film_label_index_normal_etch(Cell[:,:,:] cell, int[:,:] point_etch, int[:] cellSizeXYZ):
+# def update_film_label_index_normal_etch(int[:,:] point_etch):
+    cdef int i, j, k,l,n,m,u
+    cdef vector[vector[int]] local_point_nn
+    cdef int[:,:,:] point_nn_np_view
+    cdef vector[int] cellijk
+    cdef vector[vector[int]] local_point_nn_vaccum
+    cdef vector[vector[int]] local_point_nn_under
+    point_nn_np = np.ones((point_etch.shape[0], 6, 3), dtype=np.int32) * -1
+    point_nn_np_view = point_nn_np
+
+    # 遍历所有点
+    with nogil, parallel():
+        for i in prange(point_etch.shape[0]):
+            local_point_nn.resize(6)  # 为当前线程分配空间
+            cellijk.resize(3)
+            cell[point_etch[i,0],point_etch[i,1],point_etch[i,2]].id = -1
+            for j in range(6):
+                local_point_nn[j].resize(3)
+                for k in range(3):
+                    local_point_nn[j][k] = point_etch[i, k] + grid_cross[j][k]
+                    point_nn_np_view[i, j, k] = local_point_nn[j][k]
+
+                if cell[local_point_nn[j][0], local_point_nn[j][1],local_point_nn[j][2]].id == 2:
+                    cell[local_point_nn[j][0], local_point_nn[j][1],local_point_nn[j][2]].id = 1
+                    local_point_nn_under.resize(6)
+                    for m in range(6):
+                        local_point_nn_under[m].resize(3)
+                        for u in range(3):
+                            local_point_nn_under[m][u] = local_point_nn[j][u] + grid_cross[m][u]
+                        if cell[local_point_nn_under[m][0], local_point_nn_under[m][1], local_point_nn_under[m][2]].id == 3:
+                            cell[local_point_nn_under[m][0], local_point_nn_under[m][1], local_point_nn_under[m][2]].id = 2
+
+                elif cell[local_point_nn[j][0], local_point_nn[j][1],local_point_nn[j][2]].id == -1:
+                    local_point_nn_vaccum.resize(6)
+                    for l in range(6):
+                        local_point_nn_vaccum[l].resize(3)
+                        for n in range(3):
+                            local_point_nn_vaccum[l][n] = local_point_nn[j][n] + grid_cross[l][n]
+                        if cell[local_point_nn_vaccum[l][0], local_point_nn_vaccum[l][1],local_point_nn_vaccum[l][2]].id == 1:
+                            cell[local_point_nn[j][0], local_point_nn[j][1], local_point_nn[j][2]].id = 0
+
+    return point_nn_np
 
 
+
+@cython.boundscheck(False)  # 禁用边界检查以提升性能
+@cython.wraparound(False)   # 禁用负索引支持以提升性能
+def update_film_label_index_normal_etch_pt(int[:,:] point_etch):
+    cdef Py_ssize_t i, j, k
+    cdef vector[vector[int]] *point_nn
+    cdef int[:,:,:] point_nn_np_view
+
+    point_nn_np = np.ones((point_etch.shape[0], 6, 3), dtype=np.int32) * -1
+    point_nn_np_view = point_nn_np
+
+    # 遍历所有点
+    with nogil, parallel():
+        for i in prange(point_etch.shape[0]):
+            point_nn = new vector[vector[int]](6)  # 每个线程独立分配
+            # point_nn.resize(6)
+            try:
+                for j in range(6):
+                    deref(point_nn)[j].resize(3)
+                    for k in range(3):
+                        deref(point_nn)[j][k] = point_etch[i, k] + grid_cross[j][k]
+                        point_nn_np_view[i, j, k] = deref(point_nn)[j][k]
+            finally:
+                del point_nn  # 清理动态分配的内存
+
+    return point_nn_np
