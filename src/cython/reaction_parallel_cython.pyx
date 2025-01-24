@@ -144,6 +144,7 @@ cdef double[5] react_redepo_sticking = [1.0, 1.0, 1.0, 1.0, 1.0]
 
 @cython.boundscheck(False)  # 禁用边界检查以提升性能
 @cython.wraparound(False)   # 禁用负索引支持以提升性能
+@cython.cdivision(True)
 cdef double linear_interp(double x, double* xp, double* fp) noexcept nogil:
     """
     C 实现的线性插值函数
@@ -502,27 +503,27 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
     # cdef vector[int] update_film_etch
     cdef int particleCount = particles.shape[0]
 
-    # particleCount = particles.shape[0]
-    sticking_acceptList_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
-    cdef int[:, :] sticking_acceptList_indices_view = sticking_acceptList_indices
+    # # particleCount = particles.shape[0]
+    # sticking_acceptList_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
+    # cdef int[:, :] sticking_acceptList_indices_view = sticking_acceptList_indices
 
-    react_choice_random_indices = np.zeros((particles.shape[0], 5), dtype=np.double)
-    cdef double[:, :] react_choice_random_indices_view = react_choice_random_indices
+    # react_choice_random_indices = np.zeros((particles.shape[0], 5), dtype=np.double)
+    # cdef double[:, :] react_choice_random_indices_view = react_choice_random_indices
 
-    dot_product_all = np.zeros(particles.shape[0], dtype=np.double)
-    cdef double[:] dot_product_view = dot_product_all
+    # dot_product_all = np.zeros(particles.shape[0], dtype=np.double)
+    # cdef double[:] dot_product_view = dot_product_all
 
-    react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
-    cdef int[:] react_choice_indices_view = react_choice_indices
+    # react_choice_indices = np.zeros(particles.shape[0], dtype=np.int32)
+    # cdef int[:] react_choice_indices_view = react_choice_indices
 
     bool_mask = np.ones(particles.shape[0], dtype=np.int32)
     cdef int[:] bool_mask_view = bool_mask
 
-    react_type_indices = np.zeros(particles.shape[0], dtype=np.int32)
-    cdef int[:] react_type_indices_view = react_type_indices
+    # react_type_indices = np.zeros(particles.shape[0], dtype=np.int32)
+    # cdef int[:] react_type_indices_view = react_type_indices
 
-    react_add_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
-    cdef int[:, :] react_add_indices_view = react_add_indices
+    # react_add_indices = np.zeros((particles.shape[0], 5), dtype=np.int32)
+    # cdef int[:, :] react_add_indices_view = react_add_indices
 
     update_film_etch = np.ones((particles.shape[0], 3), dtype=np.int32)*-1
     cdef int[:, :] update_film_etch_view = update_film_etch
@@ -554,26 +555,26 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
                     dot_product[0] = dot3(particles[i].vel, cell[celli[0], cellj[0], cellk[0]].normal)
                     dot_product[0] = fabs(dot_product[0])
                     angle_rad[0] = acos(dot_product[0])
-                    dot_product_view[i] = angle_rad[0] # view
+                    # dot_product_view[i] = angle_rad[0] # view
                     sticking_acceptList = sticking_probability_structed(particles[i], cell[celli[0], cellj[0], cellk[0]], angle_rad[0])
 
                     for j in range(FILMSIZE):
-                        sticking_acceptList_indices_view[i, j] = sticking_acceptList[j]  # view
+                        # sticking_acceptList_indices_view[i, j] = sticking_acceptList[j]  # view
                         if sticking_acceptList[j] == 1:
                             deref(react_choice_random)[j] = dist(local_rng)
                         else:
                             deref(react_choice_random)[j] = 0
-                        react_choice_random_indices_view[i, j] = deref(react_choice_random)[j]  # view
+                        # react_choice_random_indices_view[i, j] = deref(react_choice_random)[j]  # view
                     react_choice = find_max_position(react_choice_random)
-                    react_choice_indices_view[i] = react_choice[0]  # view
+                    # react_choice_indices_view[i] = react_choice[0]  # view
                     if react_choice[0] != -1:
                         bool_mask_view[i] = 0
                     react_type[0] = react_type_table[particles[i].id][react_choice[0]]
-                    react_type_indices_view[i] = react_type[0]  # view
+                    # react_type_indices_view[i] = react_type[0]  # view
 
                     react_add = react_add_func(particles[i].id, react_choice[0])
-                    for k in range(FILMSIZE):
-                        react_add_indices_view[i, k] = react_add[k]
+                    # for k in range(FILMSIZE):
+                        # react_add_indices_view[i, k] = react_add[k]
                     if react_type[0] == 1: # chemical transfer
                         film_add(cell[celli[0], cellj[0], cellk[0]].film, react_add)
                     elif react_type[0] == 4: # chemical remove
@@ -601,7 +602,7 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
                     free(react_choice)
                     free(react_add)
 
-                MoveParticle(particles[i].vel, particles[i].pos)
+                # MoveParticle(particles[i].vel, particles[i].pos) # comment the moveparticle for timeit
 
                 if bool_mask_view[i] == 1: # boundary
                     if particles[i].pos[0] >= cellSizeXYZ[0]:
@@ -632,13 +633,17 @@ def particle_parallel_vector(Particle[:] particles, Cell[:,:,:] cell, double[:] 
             free(rand3)
     # return dot_product_all
     # return sticking_acceptList_indices
-    return react_choice_indices, \
-            sticking_acceptList_indices, \
-            react_choice_random_indices, \
-            react_type_indices, \
-            react_add_indices,\
-            update_film_etch,\
+    # return react_choice_indices, \
+    #         sticking_acceptList_indices, \
+    #         react_choice_random_indices, \
+    #         react_type_indices, \
+    #         react_add_indices,\
+    return  update_film_etch,\
             bool_mask
 
 
+
+def build_cell_from_film(int[:,:,:,:] film, cellx, celly, cellz):
+    cdef Cell[10][10][10] cell
+    return cell
 

@@ -312,7 +312,7 @@ def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal, cell
                 # parcel[i, 3:6] = reflect.SpecularReflect(parcel[i, 3:6], get_theta[i])
                 parcel[i, 3:6] = reflect.DiffusionReflect(parcel[i, 3:6], get_theta)
 
-        parcel[i, :3] += parcel[i, 3:6]
+        parcel[i, :3] += parcel[i, 3:6] #comment for timeit
         if indice_1[i] == True:
             if parcel[i, 0] >= cellSizeXYZ[0]:
                 parcel[i, 0] -= cellSizeXYZ[0]
@@ -328,7 +328,7 @@ def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal, cell
                 indice_1[i] = False
         # parcel[i], indice_1[i] = boundary(parcel[i], indice_1[i], cellSizeXYZ)
 
-    parcel = parcel[indice_1]
+    parcel = parcel[indice_1] #comment for timeit
 
     return filmMatrix, parcel, update_film_etch, update_film_depo, depo_parcel
 
