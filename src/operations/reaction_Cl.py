@@ -330,9 +330,9 @@ def reaction_rate_parallel_all(filmMatrix, parcel, film_label_index_normal, cell
                 indice_1[i] = False
         # parcel[i], indice_1[i] = boundary(parcel[i], indice_1[i], cellSizeXYZ)
 
-    parcel = parcel[indice_1] #comment for timeit
-
-    return filmMatrix, parcel, update_film_etch, update_film_depo, depo_parcel
+    # parcel = parcel[indice_1] #comment for timeit
+    # return filmMatrix, parcel, update_film_etch, update_film_depo, depo_parcel
+    return update_film_etch, update_film_depo, depo_parcel, indice_1
 
 @jit(nopython=True)
 def boundary(parcel, indice_1, cellSizeXYZ):

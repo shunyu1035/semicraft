@@ -27,6 +27,10 @@ def plane_index_numba(film_label_index_normal):
     vacuum_data_array = np.array(vacuum_data)
     return plane_data_array, vacuum_data_array
 
+# @jit(nopython=True)
+def reaction_numba(film, parcel, film_label_index_normal, cellSizeXYZ):
+    return reaction.reaction_rate_parallel_all(film, parcel, film_label_index_normal, cellSizeXYZ)
+    
 
 class etching(configuration, surface_normal):
     def __init__(self, etchingPoint,depoPoint,density, 
@@ -71,7 +75,7 @@ class etching(configuration, surface_normal):
         vacuum_data = self.film_label_index_normal[vacuum_indices[:, 0], vacuum_indices[:, 1], vacuum_indices[:, 2]]
         return plane_data, vacuum_data
 
-    def reaction_numba(film, parcel, film_label_index_normal, cellSizeXYZ):
+    def reaction_numba(self, film, parcel, film_label_index_normal, cellSizeXYZ):
         return reaction.reaction_rate_parallel_all(film, parcel, film_label_index_normal, cellSizeXYZ)
 
     def remove_noReact(self, reactListAll, reactList, indice_1):
@@ -80,28 +84,28 @@ class etching(configuration, surface_normal):
             indice_1[np.where(reactListAll == -1)] = False
             self.parcel = self.parcel[~indice_1]
 
-    def etching_film(self, film, parcel, film_label_index_normal):
-
-        film, parcel, update_film_etch, update_film_depo, depo_parcel = \
-        self.reaction_numba(film, parcel, film_label_index_normal)
-
-        point_etch = self.film_label_index_normal[update_film_etch, 1:4].astype(np.int64)
-        point_depo = self.film_label_index_normal[update_film_depo, 1:4].astype(np.int64)
+    def etching_film(self, film, parcel, film_label_index_normal,film_label_index_normal_mirror):
+        cellSizeXYZ = self.cellSizeXYZ
+        update_film_etch, update_film_depo, depo_parcel, indice_1 = \
+        reaction_numba(film, parcel, film_label_index_normal, cellSizeXYZ)
+        parcel = parcel[indice_1] #comment for timeit
+        point_etch = film_label_index_normal[update_film_etch, 1:4].astype(np.int64)
+        point_depo = film_label_index_normal[update_film_depo, 1:4].astype(np.int64)
         point_etch_add_depo = np.zeros((point_etch.shape[0] + point_depo.shape[0], 3), dtype=np.int64)
         if update_film_etch.any():
             point_etch_add_depo[:point_etch.shape[0], :] = point_etch
-            self.film_label_index_normal, self.film_label_index_normal_mirror = \
-                self.update_film_label_index_normal_etch(self.film_label_index_normal_mirror, self.mirrorGap, point_etch)
+            film_label_index_normal, film_label_index_normal_mirror = \
+                self.update_film_label_index_normal_etch(film_label_index_normal_mirror, self.mirrorGap, point_etch)
         if update_film_depo.any():
             point_etch_add_depo[point_etch.shape[0]:, :] = point_depo
-            self.film_label_index_normal, self.film_label_index_normal_mirror = \
-                self.update_film_label_index_normal_depo(self.film_label_index_normal_mirror, self.mirrorGap, point_depo)
+            film_label_index_normal, film_label_index_normal_mirror = \
+                self.update_film_label_index_normal_depo(film_label_index_normal_mirror, self.mirrorGap, point_depo)
         if update_film_etch.any() or update_film_depo.any():
-            self.film_label_index_normal_mirror = mirror.update_surface_mirror(self.film_label_index_normal, self.film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
-            self.film_label_index_normal = self.update_normal_in_matrix(self.film_label_index_normal_mirror, self.film_label_index_normal, self.mirrorGap, point_etch_add_depo)
+            film_label_index_normal_mirror = mirror.update_surface_mirror(film_label_index_normal, film_label_index_normal_mirror, self.mirrorGap, self.cellSizeX, self.cellSizeY)
+            film_label_index_normal = self.update_normal_in_matrix(film_label_index_normal_mirror, film_label_index_normal, self.mirrorGap, point_etch_add_depo)
             # self.film_label_index_normal = update_normal_in_matrix_numba(self.film_label_index_normal_mirror, self.film_label_index_normal, self.mirrorGap, point_etch_add_depo)
             # self.log.info('refreshFilm')
             # self.sumFilm = np.sum(self.film, axis=-1)
-            self.sumFilm[point_etch_add_depo[:, 0], point_etch_add_depo[:, 1], point_etch_add_depo[:, 2]] = np.sum(self.film[point_etch_add_depo[:, 0], point_etch_add_depo[:, 1], point_etch_add_depo[:, 2]], axis=-1)
+            self.sumFilm[point_etch_add_depo[:, 0], point_etch_add_depo[:, 1], point_etch_add_depo[:, 2]] = np.sum(film[point_etch_add_depo[:, 0], point_etch_add_depo[:, 1], point_etch_add_depo[:, 2]], axis=-1)
 
-        return np.sum(depo_parcel == self.depo_count_type), 0, 0, 0, 0
+        return film, parcel, film_label_index_normal,film_label_index_normal_mirror, np.sum(depo_parcel == self.depo_count_type), 0, 0, 0, 0
