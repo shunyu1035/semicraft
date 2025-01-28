@@ -44,6 +44,8 @@ testNote.ipynb
 *.xlsx
 *.html
 *.so
+*.gz
+*-ubyte
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
