@@ -1,0 +1,9 @@
+bind.cpp
+pyproject.toml
+setup.py
+film_optimized.egg-info/PKG-INFO
+film_optimized.egg-info/SOURCES.txt
+film_optimized.egg-info/dependency_links.txt
+film_optimized.egg-info/not-zip-safe
+film_optimized.egg-info/requires.txt
+film_optimized.egg-info/top_level.txt
