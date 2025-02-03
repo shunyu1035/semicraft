@@ -130,15 +130,107 @@ py::array_t<double> get_normal_from_grid(
     return normal_matrix;
 }
 
-PYBIND11_MODULE(grid_processing, m) {
-    using namespace py::literals;
-    m.def("get_normal_from_grid", &get_normal_from_grid,
-          "film"_a,
-          "normal_matrix"_a,
-          "mirrorGap"_a,
-          "point"_a);
-}
 
+void get_normal_from_grid_Cell(
+    py::array_t<Cell, py::array::c_style> cell_array,
+    // py::array_t<int> film,
+    // py::array_t<double> normal_matrix,
+    // int mirrorGap,
+    py::array_t<int> point
+) {
+    // 获取原始指针和维度信息
+    auto cell_buf = cell_array.request();
+    auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
+
+    // auto film_buf = film.request();
+    // int* film_ptr = static_cast<int*>(film_buf.ptr);
+    const int dim_x = cell_array.shape(0);
+    const int dim_y = cell_array.shape(0);
+    const int dim_z = cell_array.shape(0);
+
+    // auto normal_buf = normal_matrix.request();
+    // double* normal_ptr = static_cast<double*>(normal_buf.ptr);
+
+    auto point_buf = point.request();
+    int* point_ptr = static_cast<int*>(point_buf.ptr);
+    int x = point_ptr[0];
+    int y = point_ptr[1];
+    int z = point_ptr[2];
+
+    // 三维索引计算函数
+    auto film_index = [dim_y, dim_z](int x, int y, int z) {
+        return x * dim_y * dim_z + y * dim_z + z;
+    };
+
+    auto normal_index = [dim_y, dim_z](int x, int y, int z) {
+        return x * dim_y * dim_z + y * dim_z + z;
+    };
+
+    // 步骤1: 收集7x7x7立方体内值为1的坐标
+    std::vector<Eigen::Vector3d> positions;
+    for (int dx = -3; dx <= 3; ++dx) {
+        for (int dy = -3; dy <= 3; ++dy) {
+            for (int dz = -3; dz <= 3; ++dz) {
+                int xi = x + dx;
+                int yi = y + dy;
+                int zi = z + dz;
+                
+                if (xi >= 0 && xi < dim_x && 
+                    yi >= 0 && yi < dim_y && 
+                    zi >= 0 && zi < dim_z) 
+                {
+                    // 直接通过内存指针访问
+                    if (cell_ptr[film_index(xi, yi, zi)].id == 1) {
+                        positions.emplace_back(dx, dy, dz);
+                    }
+                }
+            }
+        }
+    }
+
+    // ... [保持原有计算逻辑不变]
+    // 如果没有有效点，返回原矩阵
+    if (positions.empty()) {
+        std::cout << "svd矩阵为空" << std::endl;
+    }
+
+    // 步骤2: 计算均值
+    Eigen::Vector3d mean(0, 0, 0);
+    for (const auto& pos : positions) {
+        mean += pos;
+    }
+    mean /= positions.size();
+
+    // 步骤3: 计算协方差矩阵
+    Eigen::Matrix3d cov = Eigen::Matrix3d::Zero();
+    for (const auto& pos : positions) {
+        Eigen::Vector3d centered = pos - mean;
+        cov += centered * centered.transpose();
+    }
+
+    // 步骤4: SVD分解
+    Eigen::JacobiSVD<Eigen::Matrix3d> svd(cov, Eigen::ComputeFullU);
+    Eigen::Vector3d normal = svd.matrixU().col(2); // 最小特征值对应的特征向量
+
+    // 步骤5: 写入法线数据
+    if (x >= 0 && x < dim_x && 
+        y >= 0 && y < dim_y && 
+        z >= 0 && z < dim_z) 
+    {
+        const size_t base_idx = normal_index(x, y, z);
+        if (z + 2 < dim_z) {
+            cell_ptr[base_idx].normal[0] = normal[0];
+            cell_ptr[base_idx].normal[1] = normal[1];
+            cell_ptr[base_idx].normal[2] = normal[2];
+        } else {
+            // 处理边界情况
+            const int available = dim_z - z;
+            for (int i = 0; i < available; ++i) {
+                cell_ptr[base_idx].normal[i] = normal[i];
+            }
+        }
+    }
+}
 
 
 
@@ -171,11 +263,10 @@ PYBIND11_MODULE(film_optimized, m) {
 
     m.def("svd", &svd_eigen, "Compute SVD using Eigen");
 
-    // m.def("get_normal_from_grid", &get_normal_from_grid,
-    //       py::arg("film"),
-    //       py::arg("normal_matrix"),
-    //       py::arg("mirrorGap"),
-    //       py::arg("point"));
+    m.def("get_normal_from_grid_Cell", &get_normal_from_grid_Cell,
+          py::arg("cells"), 
+          py::arg("point"));
+
     m.def("get_normal_from_grid", &get_normal_from_grid,
           "film"_a,
           "normal_matrix"_a,
