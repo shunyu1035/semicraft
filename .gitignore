@@ -29,7 +29,7 @@ cppTest/*
 __pycache__/
 testNote.ipynb
 *.c
-*.cpp
+*_cython.cpp
 *.pyd
 *.pyc
 *.cpython-*.pyc
