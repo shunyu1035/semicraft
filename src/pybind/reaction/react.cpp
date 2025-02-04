@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <pybind11/stl.h>
 #include <pybind11/operators.h>
+#include <omp.h>
+#include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
@@ -89,6 +91,26 @@ public:
         particles.emplace_back(pos, vel, E, id);
     }
 
+
+
+    // move
+    void moveParticle(int id) {
+        particles[id].pos += particles[id].vel;
+    }
+
+    // print
+    void printParticle(int id) {
+        std::cout << "particles["<< id <<"].pos: " << particles[id].pos << std::endl;    // 输出: particles[id].pos
+        std::cout << "particles["<< id <<"].vel: " << particles[id].vel << std::endl;    // 输出: particles[id].pos
+    }
+
+    // cross test
+    void crossTest(int i, int j) {
+        double3 cross_test = cross(particles[i].vel, particles[j].vel);
+        std::cout << "cross: " << cross_test << std::endl;    // 输出: particles[id].pos
+    }
+
+
     // 删除粒子（通过 ID）
     bool removeParticle(int id) {
         auto it = std::find_if(particles.begin(), particles.end(),
@@ -105,6 +127,32 @@ public:
     const std::vector<Particle>& getParticles() const {
         return particles;
     }
+
+
+
+    // void particle_react_parallel(){
+    //     py::gil_scoped_release release;  // 释放 GIL
+
+    //     int steps = 100000;
+    //     for(int step=0; step<steps; ++step){
+    //         #pragma omp parallel for
+    //         for(Particle &part: particles){
+    //             part.pos += part.vel;
+    //         }
+    //     }
+    // }
+
+    void particle_react_parallel(){
+        py::gil_scoped_release release;  // 释放 Python GIL
+        int steps = 100000;
+        // 假设 particles 是 std::vector<Particle>
+        for (int step = 0; step < steps; ++step) {
+            #pragma omp parallel for
+            for (size_t i = 0; i < particles.size(); ++i) {
+                particles[i].pos += particles[i].vel;
+            }
+        }
+    }
 };
 
 
@@ -112,6 +160,32 @@ public:
 
 
 
+void compute_squares(int n) {
+    // 设置数据规模
+    // const size_t n = 1000000;
+    std::vector<double> data(n);
+    
+    // 填充数据
+    for (size_t i = 0; i < n; ++i) {
+        data[i] = static_cast<double>(i);
+    }
+    
+    {
+        // 释放 GIL 以便 C++ 层并行计算不受 Python 的 GIL 限制
+        py::gil_scoped_release release;
+        #pragma omp parallel for
+        for (size_t i = 0; i < n; ++i) {
+            data[i] = data[i] * data[i];
+        }
+    }
+    
+    // 打印前10个计算结果，验证运算正确性
+    std::cout << "前10个结果：" << std::endl;
+    for (size_t i = 0; i < 10; ++i) {
+        std::cout << data[i] << " ";
+    }
+    std::cout << std::endl;
+}
 
 
 
@@ -168,5 +242,11 @@ PYBIND11_MODULE(react, m) {
              py::arg("pos"), py::arg("vel"), py::arg("E"), py::arg("id"))
         .def("remove_particle", &ParticleSystem::removeParticle,
              py::arg("id"))
-        .def("get_particles", &ParticleSystem::getParticles);
+        .def("get_particles", &ParticleSystem::getParticles)
+        .def("printParticle", &ParticleSystem::printParticle)
+        .def("moveParticle", &ParticleSystem::moveParticle)
+        .def("crossTest", &ParticleSystem::crossTest)
+        .def("particle_react_parallel", &ParticleSystem::particle_react_parallel);
+
+    m.def("compute_squares", &compute_squares, "在 C++ 中创建数据并并行计算每个元素的平方，结果直接打印");
 }
