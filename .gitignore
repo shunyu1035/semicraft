@@ -18,6 +18,7 @@ mono_crash.*
 
 # Build results
 build/
+*.egg-info/
 results/npzData/
 results/
 vcpkg/
