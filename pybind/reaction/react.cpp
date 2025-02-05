@@ -217,6 +217,51 @@ std::vector<Particle> initial(int N) {
 
 
 
+class MyClass {
+public:
+    // 将数据存储在 std::vector<std::vector<double>> 中
+    std::vector<std::vector<double>> data;
+
+    // 从 NumPy 数组设置数据
+    void set_data(py::array_t<double> array) {
+        // 获取数组的缓冲区信息
+        py::buffer_info buf = array.request();
+
+        // 检查数组是否为二维
+        if (buf.ndim != 2) {
+            throw std::runtime_error("输入数组必须是二维的");
+        }
+
+        // 获取数组的形状
+        size_t rows = buf.shape[0];
+        size_t cols = buf.shape[1];
+
+        // 获取指向数据的指针
+        double* ptr = static_cast<double*>(buf.ptr);
+
+        // 将数据复制到 std::vector<std::vector<double>>
+        data.resize(rows);
+        for (size_t i = 0; i < rows; ++i) {
+            data[i].assign(ptr + i * cols, ptr + (i + 1) * cols);
+        }
+    }
+
+    // 打印存储的数据
+    void print_data() const {
+        for (const auto& row : data) {
+            for (const auto& val : row) {
+                std::cout << val << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+};
+
+
+
+
+
+
 PYBIND11_MODULE(react, m) {
     // 绑定基础类型
     bind_vec3<double>(m, "double3");
@@ -249,4 +294,9 @@ PYBIND11_MODULE(react, m) {
         .def("particle_react_parallel", &ParticleSystem::particle_react_parallel);
 
     m.def("compute_squares", &compute_squares, "在 C++ 中创建数据并并行计算每个元素的平方，结果直接打印");
+
+    py::class_<MyClass>(m, "MyClass")
+    .def(py::init<>())
+    .def("set_data", &MyClass::set_data, "从 NumPy 数组设置数据")
+    .def("print_data", &MyClass::print_data, "打印存储的数据");
 }
