@@ -11,6 +11,7 @@
 #include <pybind11/operators.h>
 #include <omp.h>
 #include <pybind11/pybind11.h>
+#include "Cell.h"
 
 namespace py = pybind11;
 
@@ -258,12 +259,24 @@ public:
 };
 
 
+void inputCell(
+    py::array_t<Cell, py::array::c_style> cell
+) {
+    // 获取输入数组信息
+    auto cell_buf = cell.request();
+    auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
 
-
+    const int dim_x = cell.shape(0);
+    const int dim_y = cell.shape(1);
+    const int dim_z = cell.shape(2);
+    std::cout << "inputCell:" << dim_x << '_' << dim_y  << '_' << dim_z << std::endl;
+}
 
 
 PYBIND11_MODULE(react, m) {
     // 绑定基础类型
+    PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
+
     bind_vec3<double>(m, "double3");
     bind_vec3<int>(m, "int3");
     
@@ -299,4 +312,7 @@ PYBIND11_MODULE(react, m) {
     .def(py::init<>())
     .def("set_data", &MyClass::set_data, "从 NumPy 数组设置数据")
     .def("print_data", &MyClass::print_data, "打印存储的数据");
+
+    m.def("inputCell", &inputCell,
+        py::arg("cell"));
 }

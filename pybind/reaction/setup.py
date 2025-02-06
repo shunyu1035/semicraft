@@ -7,6 +7,7 @@ ext_modules = [
     Pybind11Extension(
         "react",
         ["react.cpp"],
+        # ["Cell.cpp"],
         include_dirs=['/usr/include/eigen3'],  # Eigen路径
         extra_compile_args=["-fopenmp"],
         extra_link_args=["-fopenmp"],

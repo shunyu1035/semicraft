@@ -425,9 +425,21 @@ void update_normal_in_matrix(
 }
 
 
+void inputCell(
+    py::array_t<Cell, py::array::c_style> cell,
+) {
+    // 获取输入数组信息
+    auto cell_buf = cell.request();
+    auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
+
+    const int dim_x = cell.shape(0);
+    const int dim_y = cell.shape(0);
+    const int dim_z = cell.shape(0);
+    std::cout << "inputCell:" << dim_x << '_' << dim_y  << '_' << dim_z << std::endl;
+}
 
 
-PYBIND11_MODULE(film_optimized, m) {
+PYBIND11_MODULE(Cell, m) {
     using namespace py::literals;
 
     PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
@@ -466,4 +478,8 @@ PYBIND11_MODULE(film_optimized, m) {
     m.def("update_normal_in_matrix", &update_normal_in_matrix,
           py::arg("cells"), 
           py::arg("point_to_change"));
+
+    m.def("inputCell", &inputCell,
+          py::arg("cells"));
+    
 }
