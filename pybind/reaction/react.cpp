@@ -55,16 +55,27 @@ void bind_particle(py::module &m) {
         });
 }
 
+// Cell结构体绑定
+void bind_Cell(py::module &m) {
+    py::class_<Cell>(m, "Cell")
+        .def(py::init<int, std::array<int, 3>, std::array<int, 5>, std::array<double, 3>>())
+        .def_readwrite("id", &Cell::id)
+        .def_readwrite("index", &Cell::index)
+        .def_readwrite("film", &Cell::film)
+        .def_readwrite("normal", &Cell::normal)
+        .def("__repr__", [](const Cell &p) {
+            return "Cell(id=" + std::to_string(p.id) + ")";
+        });
+}
 
 
 
-
-
-class ParticleSystem {
+class Simulation {
 private:
     std::vector<Particle> particles;
     std::mt19937 rng;  // 随机数引擎
 
+    std::vector<std::vector<std::vector<Cell>>> Cells;
     // 生成麦克斯韦分布速度
     double3 maxwell_velocity(double T) {
         std::normal_distribution<double> dist(0.0, sqrt(T));
@@ -73,7 +84,38 @@ private:
 
 public:
     // 构造函数：初始化随机数引擎
-    ParticleSystem(int seed = 42) : rng(seed) {}
+    Simulation(int seed = 42) : rng(seed) {}
+
+
+
+    void inputCell(
+        py::array_t<Cell, py::array::c_style> cell
+    ) {
+        // 获取输入数组信息
+        auto cell_buf = cell.request();
+        auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
+
+        size_t dim_x = cell.shape(0);
+        size_t dim_y = cell.shape(1);
+        size_t dim_z = cell.shape(2);
+        std::cout << "inputCell:" << dim_x << '_' << dim_y  << '_' << dim_z << std::endl;
+
+        Cells.resize(dim_x);
+        for (size_t i = 0; i < dim_x; ++i) {
+            Cells[i].resize(dim_y);
+            for (size_t j = 0; j < dim_y; ++j) {
+                size_t offset = (i * dim_y + j) * dim_z;
+                Cells[i][j].assign(cell_ptr + offset, cell_ptr + offset + dim_z);
+                // Cells[i][j].assign(cell_ptr + i * j * dim_z, cell_ptr + i * (j + 1) * dim_z);
+            }
+        }
+    }
+
+    // 获取所有粒子 (Python 访问接口)
+    const std::vector<std::vector<std::vector<Cell>>>& getCells() const {
+        return Cells;
+    }
+
 
     // 初始化粒子群
     void initialize(int num_particles, double T, double E, int id , double box_size = 100.0) {
@@ -129,7 +171,39 @@ public:
         return particles;
     }
 
+    // 将内部的三维 vector 转换为一个 NumPy 数组返回
+    py::array_t<double> normal_to_numpy() const {
+        if (Cells.empty() || Cells[0].empty() || Cells[0][0].empty()) {
+            throw std::runtime_error("数据为空");
+        }
+        int dim0 = Cells.size();
+        int dim1 = Cells[0].size();
+        int dim2 = Cells[0][0].size();
 
+        // 创建一个新的 NumPy 数组，形状为 (dim0, dim1, dim2)
+        auto result = py::array_t<double>({dim0, dim1, dim2, 3});
+        py::buffer_info buf = result.request();
+        double* ptr = static_cast<double*>(buf.ptr);
+
+        // 将三维 vector 中的数据逐层复制到连续内存中
+        for (int i = 0; i < dim0; i++) {
+            if (Cells[i].size() != static_cast<size_t>(dim1)) {
+                throw std::runtime_error("第 i 层的行数不一致");
+            }
+            for (int j = 0; j < dim1; j++) {
+                if (Cells[i][j].size() != static_cast<size_t>(dim2)) {
+                    throw std::runtime_error("列数不一致");
+                }
+                for (int k = 0; k < dim2; k++) {
+                    // 计算连续内存中的索引位置
+                    ptr[i * (dim1 * dim2) + j * dim2 + k] = Cells[i][j][k].normal[0];
+                    ptr[i * (dim1 * dim2) + j * dim2 + k + 1] = Cells[i][j][k].normal[1];
+                    ptr[i * (dim1 * dim2) + j * dim2 + k + 2] = Cells[i][j][k].normal[2];
+                }
+            }
+        }
+        return result;
+    }
 
     // void particle_react_parallel(){
     //     py::gil_scoped_release release;  // 释放 GIL
@@ -282,29 +356,33 @@ PYBIND11_MODULE(react, m) {
     
     // 绑定粒子类型
     bind_particle(m);
+    bind_Cell(m);
     
     // 暴露初始化函数
     m.def("initial", &initial, py::arg("N"), 
           "Initialize N particles with random positions and velocities");
 
-        // 绑定 ParticleSystem 类
-    py::class_<ParticleSystem>(m, "ParticleSystem")
+        // 绑定 Simulation 类
+    py::class_<Simulation>(m, "Simulation")
         .def(py::init<int>(), py::arg("seed") = 42)
-        .def("initialize", &ParticleSystem::initialize, 
+        .def("initialize", &Simulation::initialize, 
              py::arg("num_particles"), 
              py::arg("temperature"),
              py::arg("E"),
              py::arg("id"),
              py::arg("box_size") = 100.0)
-        .def("add_particle", &ParticleSystem::addParticle,
+        .def("add_particle", &Simulation::addParticle,
              py::arg("pos"), py::arg("vel"), py::arg("E"), py::arg("id"))
-        .def("remove_particle", &ParticleSystem::removeParticle,
+        .def("remove_particle", &Simulation::removeParticle,
              py::arg("id"))
-        .def("get_particles", &ParticleSystem::getParticles)
-        .def("printParticle", &ParticleSystem::printParticle)
-        .def("moveParticle", &ParticleSystem::moveParticle)
-        .def("crossTest", &ParticleSystem::crossTest)
-        .def("particle_react_parallel", &ParticleSystem::particle_react_parallel);
+        .def("get_particles", &Simulation::getParticles)
+        .def("printParticle", &Simulation::printParticle)
+        .def("moveParticle", &Simulation::moveParticle)
+        .def("crossTest", &Simulation::crossTest)
+        .def("particle_react_parallel", &Simulation::particle_react_parallel)
+        .def("getCells", &Simulation::getCells)
+        .def("inputCell", &Simulation::inputCell, py::arg("cell"))
+        .def("normal_to_numpy", &Simulation::normal_to_numpy);
 
     m.def("compute_squares", &compute_squares, "在 C++ 中创建数据并并行计算每个元素的平方，结果直接打印");
 
