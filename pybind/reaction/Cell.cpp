@@ -4,6 +4,17 @@
 #include <pybind11/eigen.h>  // 支持 Eigen 与 NumPy 互操作
 #include <Eigen/Dense>
 
+
+
+
+
+
+
+
+
+
+
+
 // 基础打印函数
 void print_values(int a, double b) {
     std::cout << "C++ 打印的值: a = " << a << ", b = " << b << std::endl;
@@ -439,47 +450,47 @@ void inputCell(
 }
 
 
-PYBIND11_MODULE(Cell, m) {
-    using namespace py::literals;
+// PYBIND11_MODULE(Cell, m) {
+//     using namespace py::literals;
 
-    PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
-    // 绑定 Cell 结构体
-    // py::class_<Cell>(m, "Cell")
-    //     .def(py::init<>())
-    //     .def_readwrite("id", &Cell::id)
-    //     .def_readwrite("index", &Cell::index)
-    //     .def_readwrite("film", &Cell::film)
-    //     .def_readwrite("normal", &Cell::normal);
+//     PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
+//     // 绑定 Cell 结构体
+//     // py::class_<Cell>(m, "Cell")
+//     //     .def(py::init<>())
+//     //     .def_readwrite("id", &Cell::id)
+//     //     .def_readwrite("index", &Cell::index)
+//     //     .def_readwrite("film", &Cell::film)
+//     //     .def_readwrite("normal", &Cell::normal);
 
-    // 绑定核心函数
-    m.def("update_film_label_index_normal_etch", 
-        &update_film_label_index_normal_etch,
-        "Optimized film update function",
-        py::arg("cells"), 
-        py::arg("point_etch"), 
-        py::arg("cell_size_xyz"));
+//     // 绑定核心函数
+//     m.def("update_film_label_index_normal_etch", 
+//         &update_film_label_index_normal_etch,
+//         "Optimized film update function",
+//         py::arg("cells"), 
+//         py::arg("point_etch"), 
+//         py::arg("cell_size_xyz"));
 
-    m.def("print_values", &print_values, "打印整数和浮点数");
+//     m.def("print_values", &print_values, "打印整数和浮点数");
 
-    m.def("redirect_output", &redirect_output, "重定向输出示例");
+//     m.def("redirect_output", &redirect_output, "重定向输出示例");
 
-    m.def("svd", &svd_eigen, "Compute SVD using Eigen");
+//     m.def("svd", &svd_eigen, "Compute SVD using Eigen");
 
-    m.def("get_normal_from_grid_Cell", &get_normal_from_grid_Cell,
-          py::arg("cells"), 
-          py::arg("point"));
+//     m.def("get_normal_from_grid_Cell", &get_normal_from_grid_Cell,
+//           py::arg("cells"), 
+//           py::arg("point"));
 
-    m.def("get_normal_from_grid", &get_normal_from_grid,
-          "film"_a,
-          "normal_matrix"_a,
-          "mirrorGap"_a,
-          "point"_a);
+//     m.def("get_normal_from_grid", &get_normal_from_grid,
+//           "film"_a,
+//           "normal_matrix"_a,
+//           "mirrorGap"_a,
+//           "point"_a);
 
-    m.def("update_normal_in_matrix", &update_normal_in_matrix,
-          py::arg("cells"), 
-          py::arg("point_to_change"));
+//     m.def("update_normal_in_matrix", &update_normal_in_matrix,
+//           py::arg("cells"), 
+//           py::arg("point_to_change"));
 
-    m.def("inputCell", &inputCell,
-          py::arg("cells"));
+//     m.def("inputCell", &inputCell,
+//           py::arg("cells"));
     
-}
+// }

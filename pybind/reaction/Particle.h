@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Field.h"
+#include "Cell.h"
 #include <random>
 
 /** Data structures for particle storage **/
@@ -33,3 +34,32 @@ protected:
 };
 
 extern Rnd rnd;		//tell the compiler that an object of type Rnd called rnd is defined somewhere
+
+
+// /*species container*/
+// class Species 
+// {
+// public:
+// 	Species(std::string name, int id, World &world) :
+// 		name(name), id(id), world(world) { 	}
+
+// 	/*returns the number of simulation particles*/
+// 	size_t getNp()	{return particles.size();}
+
+
+// 	/*moves all particles using electric field ef[]*/
+// 	// void advance();
+
+// 	/*adds a new particle*/
+// 	void addParticle(double3 pos, double3 vel, double E, int id);
+
+// 	const std::string name;			/*species name*/
+	
+// 	std::vector<Particle> particles;	/*contiguous array for storing particles*/
+
+// protected:
+// 	World &world;
+// };
+
+
+// #endif

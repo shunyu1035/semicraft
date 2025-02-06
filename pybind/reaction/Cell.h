@@ -14,6 +14,57 @@ struct Cell {
     std::array<double, 3> normal;
 };
 
+
+
+
+/*defines the computational domain*/
+class World
+{
+public:	
+	/*constructor, allocates memory*/
+	World(int ni, int nj, int nk): 
+     ni(ni), nj(nj), nk(nk), xm({(double)ni,(double)nj,(double)nk}) {}
+
+	// /*functions to set mesh origin and spacing*/
+	// void setExtents() {xm[0] = <double>ni; xm[1] = <double>nj; xm[2] = <double>nk;}
+	
+	double3 getXm() const {return double3(xm);}
+
+	bool inBounds(double3 pos) {
+		for (int i=0;i<3;i++)
+			if (pos[i]< 0 || pos[i]>=xm[i]) return false;
+		return true;
+	}
+
+
+
+	/*another form that takes 3 ints as inputs*/
+	double3 pos(int i, int j, int k) {
+		double3 x{(double)i,(double)j,(double)k};
+		return x;
+	}
+
+	//mesh geometry
+	const int ni,nj,nk;	//number of nodes
+
+protected:
+
+	double3 xm;	//origin-diagonally opposite corner (max bound)
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 // 定义网格偏移常量
 constexpr std::array<std::array<int, 3>, 6> GRID_CROSS = {{
     {1, 0, 0}, {-1, 0, 0}, {0, 1, 0},

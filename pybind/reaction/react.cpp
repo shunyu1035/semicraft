@@ -11,7 +11,7 @@
 #include <pybind11/operators.h>
 #include <omp.h>
 #include <pybind11/pybind11.h>
-#include "Cell.h"
+// #include "Cell.h"
 
 namespace py = pybind11;
 
@@ -81,12 +81,22 @@ private:
         std::normal_distribution<double> dist(0.0, sqrt(T));
         return {dist(rng), dist(rng), dist(rng)};
     }
+    World world;  // 注意：World 必须有合适的构造函数
+    // std::unique_ptr<World> world_ptr;
 
 public:
     // 构造函数：初始化随机数引擎
-    Simulation(int seed = 42) : rng(seed) {}
+    // Simulation(int seed = 42) : rng(seed) {}
+    // Simulation(int seed, int ni, int nj, int nk) : rng(seed){}
+    Simulation(int seed, int ni, int nj, int nk) : rng(seed), world(ni, nj, nk) {}
+    // World world(10, 10, 10)
 
 
+    void testWorld(){
+        // std::cout << "World xm: "  << std::endl;
+        double3 xm = world.getXm();
+        std::cout << "World xm: " << xm << std::endl;
+    }
 
     void inputCell(
         py::array_t<Cell, py::array::c_style> cell
@@ -98,6 +108,9 @@ public:
         size_t dim_x = cell.shape(0);
         size_t dim_y = cell.shape(1);
         size_t dim_z = cell.shape(2);
+
+        // World world(dim_x, dim_x, dim_x);
+        // world_ptr = std::make_unique<World>(dim_x, dim_y, dim_z);
         std::cout << "inputCell:" << dim_x << '_' << dim_y  << '_' << dim_z << std::endl;
 
         Cells.resize(dim_x);
@@ -234,38 +247,6 @@ public:
 
 
 
-
-void compute_squares(int n) {
-    // 设置数据规模
-    // const size_t n = 1000000;
-    std::vector<double> data(n);
-    
-    // 填充数据
-    for (size_t i = 0; i < n; ++i) {
-        data[i] = static_cast<double>(i);
-    }
-    
-    {
-        // 释放 GIL 以便 C++ 层并行计算不受 Python 的 GIL 限制
-        py::gil_scoped_release release;
-        #pragma omp parallel for
-        for (size_t i = 0; i < n; ++i) {
-            data[i] = data[i] * data[i];
-        }
-    }
-    
-    // 打印前10个计算结果，验证运算正确性
-    std::cout << "前10个结果：" << std::endl;
-    for (size_t i = 0; i < 10; ++i) {
-        std::cout << data[i] << " ";
-    }
-    std::cout << std::endl;
-}
-
-
-
-
-
 // 粒子生成函数实现
 std::vector<Particle> initial(int N) {
     std::vector<Particle> particles;
@@ -338,7 +319,7 @@ void inputCell(
 ) {
     // 获取输入数组信息
     auto cell_buf = cell.request();
-    auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
+    // auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
 
     const int dim_x = cell.shape(0);
     const int dim_y = cell.shape(1);
@@ -362,9 +343,17 @@ PYBIND11_MODULE(react, m) {
     m.def("initial", &initial, py::arg("N"), 
           "Initialize N particles with random positions and velocities");
 
+
+    // // 绑定 World 类
+    // py::class_<World>(m, "World")
+    //     .def(py::init<int, int, int>(), py::arg("ni"), py::arg("nj"), py::arg("nk"))
+    //     .def("getXm", &World::getXm)
+    //     .def("inBounds", &World::inBounds)
+    //     .def("pos", &World::pos);
+
         // 绑定 Simulation 类
     py::class_<Simulation>(m, "Simulation")
-        .def(py::init<int>(), py::arg("seed") = 42)
+        .def(py::init<int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"))
         .def("initialize", &Simulation::initialize, 
              py::arg("num_particles"), 
              py::arg("temperature"),
@@ -382,14 +371,10 @@ PYBIND11_MODULE(react, m) {
         .def("particle_react_parallel", &Simulation::particle_react_parallel)
         .def("getCells", &Simulation::getCells)
         .def("inputCell", &Simulation::inputCell, py::arg("cell"))
+        .def("testWorld", &Simulation::testWorld)
         .def("normal_to_numpy", &Simulation::normal_to_numpy);
 
-    m.def("compute_squares", &compute_squares, "在 C++ 中创建数据并并行计算每个元素的平方，结果直接打印");
-
-    py::class_<MyClass>(m, "MyClass")
-    .def(py::init<>())
-    .def("set_data", &MyClass::set_data, "从 NumPy 数组设置数据")
-    .def("print_data", &MyClass::print_data, "打印存储的数据");
+    // m.def("compute_squares", &compute_squares, "在 C++ 中创建数据并并行计算每个元素的平方，结果直接打印");
 
     m.def("inputCell", &inputCell,
         py::arg("cell"));
