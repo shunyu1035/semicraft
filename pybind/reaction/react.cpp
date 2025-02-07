@@ -82,6 +82,13 @@ private:
         return {dist(rng), dist(rng), dist(rng)};
     }
     World world;  // 注意：World 必须有合适的构造函数
+
+    std::vector<std::vector<std::vector<int>>> react_table_equation;
+    std::vector<std::vector<int>> react_type_table;
+    std::vector<double> react_prob_chemical;
+    std::vector<double> react_yield_p0;
+    std::vector<std::vector<double>> rn_coeffcients;
+
     // std::unique_ptr<World> world_ptr;
 
 public:
@@ -91,6 +98,167 @@ public:
     Simulation(int seed, int ni, int nj, int nk) : rng(seed), world(ni, nj, nk) {}
     // World world(10, 10, 10)
 
+
+    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+    void set_react_table_equation(py::array_t<int> arr) {
+        py::buffer_info buf = arr.request();
+        if (buf.ndim != 3) {
+            throw std::runtime_error("输入数组必须是三维的");
+        }
+        // 获取每一维的大小
+        ssize_t dim0 = buf.shape[0];
+        ssize_t dim1 = buf.shape[1];
+        ssize_t dim2 = buf.shape[2];
+        int* ptr = static_cast<int*>(buf.ptr);
+
+        // 按三维结构分配 react_table_equation
+        react_table_equation.resize(dim0);
+        for (ssize_t i = 0; i < dim0; ++i) {
+            react_table_equation[i].resize(dim1);
+            for (ssize_t j = 0; j < dim1; ++j) {
+                react_table_equation[i][j].resize(dim2);
+                // 计算内存中对应的起始偏移：
+                // 对于形状为 (dim0, dim1, dim2) 的数组，元素索引 (i, j, k) 的偏移量为: i * (dim1*dim2) + j * dim2 + k
+                ssize_t offset = i * (dim1 * dim2) + j * dim2;
+                for (ssize_t k = 0; k < dim2; ++k) {
+                    react_table_equation[i][j][k] = ptr[offset + k];
+                }
+            }
+        }
+    }
+
+    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+    void set_react_type_table(py::array_t<int> arr) {
+        py::buffer_info buf = arr.request();
+        if (buf.ndim != 2) {
+            throw std::runtime_error("react_type_table 输入数组必须是2维的");
+        }
+        // 获取每一维的大小
+        ssize_t dim0 = buf.shape[0];
+        ssize_t dim1 = buf.shape[1];
+        int* ptr = static_cast<int*>(buf.ptr);
+
+        // 按三维结构分配 react_table_equation
+        react_type_table.resize(dim0);
+        for (ssize_t i = 0; i < dim0; ++i) {
+            react_type_table[i].resize(dim1);
+            for (ssize_t j = 0; j < dim1; ++j) {
+                // 计算内存中对应的起始偏移：
+                ssize_t offset = i * dim1 + j;
+                react_type_table[i][j] = ptr[offset];
+
+            }
+        }
+    }
+
+
+    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+    void set_rn_coeffcients(py::array_t<double> arr) {
+        py::buffer_info buf = arr.request();
+        if (buf.ndim != 2) {
+            throw std::runtime_error("rn_coeffcients 输入数组必须是2维的");
+        }
+        // 获取每一维的大小
+        ssize_t dim0 = buf.shape[0];
+        ssize_t dim1 = buf.shape[1];
+        double* ptr = static_cast<double*>(buf.ptr);
+
+        // 按三维结构分配 react_table_equation
+        rn_coeffcients.resize(dim0);
+        for (ssize_t i = 0; i < dim0; ++i) {
+            rn_coeffcients[i].resize(dim1);
+            for (ssize_t j = 0; j < dim1; ++j) {
+                // 计算内存中对应的起始偏移：
+                ssize_t offset = i * dim1 + j;
+                rn_coeffcients[i][j] = ptr[offset];
+
+            }
+        }
+    }
+
+
+    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+    void set_react_yield_p0(py::array_t<double> arr) {
+        py::buffer_info buf = arr.request();
+        if (buf.ndim != 1) {
+            throw std::runtime_error("react_yield_p0 输入数组必须是1维的");
+        }
+        // 获取每一维的大小
+        ssize_t dim0 = buf.shape[0];
+        double* ptr = static_cast<double*>(buf.ptr);
+
+        // 按三维结构分配 react_table_equation
+        react_yield_p0.resize(dim0);
+        for (ssize_t i = 0; i < dim0; ++i) {
+            // 计算内存中对应的起始偏移：
+            ssize_t offset = i;
+            react_yield_p0[i] = ptr[offset];
+        }
+    }
+
+
+    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+    void set_react_prob_chemical(py::array_t<double> arr) {
+        py::buffer_info buf = arr.request();
+        if (buf.ndim != 1) {
+            throw std::runtime_error("react_prob_chemical 输入数组必须是2维的");
+        }
+        // 获取每一维的大小
+        ssize_t dim0 = buf.shape[0];
+        double* ptr = static_cast<double*>(buf.ptr);
+
+        // 按三维结构分配 react_table_equation
+        react_prob_chemical.resize(dim0);
+        for (ssize_t i = 0; i < dim0; ++i) {
+            // 计算内存中对应的起始偏移：
+            ssize_t offset = i;
+            react_prob_chemical[i] = ptr[offset];
+        }
+    }
+
+
+
+    void set_all_parameters(py::array_t<int> react_table_equation, 
+                            py::array_t<int> react_type_table,
+                            py::array_t<double> react_prob_chemical,
+                            py::array_t<double> react_yield_p0,
+                            py::array_t<double> rn_coeffcients){
+
+        set_react_table_equation(react_table_equation);
+        set_react_type_table(react_type_table);
+        set_react_prob_chemical(react_prob_chemical);
+        set_react_yield_p0(react_yield_p0);
+        set_rn_coeffcients(rn_coeffcients);
+    }
+
+
+    // 打印内部数据
+    void print_react_table_equation() const {
+        if (react_table_equation.empty()) return;
+        ssize_t dim0 = react_table_equation.size();
+        ssize_t dim1 = react_table_equation[0].size();
+        ssize_t dim2 = react_table_equation[0][0].size();
+        for (ssize_t i = 0; i < dim0; ++i) {
+            std::cout << "react_table_equation " << i << ":" << std::endl;
+            for (ssize_t j = 0; j < dim1; ++j) {
+                for (ssize_t k = 0; k < dim2; ++k) {
+                    std::cout << react_table_equation[i][j][k] << " ";
+                }
+                std::cout << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    }
+
+
+
+    void runSimulation(){
+        double3 xm = world.getXm();
+        std::cout << "World xm: " << xm << std::endl; 
+
+        world.set_cell(Cells);
+        Species sp("test", 1, world);
+    }
 
     void testWorld(){
         // std::cout << "World xm: "  << std::endl;
@@ -122,6 +290,70 @@ public:
                 // Cells[i][j].assign(cell_ptr + i * j * dim_z, cell_ptr + i * (j + 1) * dim_z);
             }
         }
+    }
+
+//    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+//     void set_react_prob_chemical(py::array_t<double> arr) {
+//         py::buffer_info buf = arr.request();
+//         if (buf.ndim != 1) {
+//             throw std::runtime_error("react_prob_chemical 输入数组必须是2维的");
+//         }
+//         // 获取每一维的大小
+//         ssize_t dim0 = buf.shape[0];
+//         double* ptr = static_cast<double*>(buf.ptr);
+
+//         // 按三维结构分配 react_table_equation
+//         react_prob_chemical.resize(dim0);
+//         for (ssize_t i = 0; i < dim0; ++i) {
+//             // 计算内存中对应的起始偏移：
+//             ssize_t offset = i;
+//             react_prob_chemical[i] = ptr[offset];
+//         }
+//     }
+
+
+    void inputParticle(
+        py::array_t<double> pos_py,
+        py::array_t<double> vel_py,
+        py::array_t<double> E_py,
+        py::array_t<int> id_py
+    ) {
+        // 获取输入数组信息
+        py::buffer_info  pos_py_buf = pos_py.request();
+        py::buffer_info  vel_py_buf = vel_py.request();
+        py::buffer_info  E_py_buf = E_py.request();
+        py::buffer_info  id_py_buf = id_py.request();
+
+        if (pos_py_buf.ndim < 1) {
+            throw std::runtime_error("pos_py 数组至少应该是一维");
+        }
+
+        double* pos_ptr = static_cast<double*>(pos_py_buf.ptr);
+        double* vel_ptr = static_cast<double*>(vel_py_buf.ptr);
+        double* E_ptr = static_cast<double*>(E_py_buf.ptr);
+        int* id_ptr = static_cast<int*>(id_py_buf.ptr);
+
+        size_t posN = pos_py_buf.shape[0];
+        size_t velN = vel_py_buf.shape[0];
+        size_t EN = E_py_buf.shape[0];
+        size_t idN = id_py_buf.shape[0];
+        if (((posN != velN && posN != EN) && posN != idN)) {
+            throw std::runtime_error("particle 维度不一致");
+        }
+        std::cout << "inputParticle: " << posN << std::endl;
+
+        particles.reserve(posN);
+        for(size_t i=0; i<posN; ++i){
+            ssize_t offset3 = i * 3;
+            double3 pos = {pos_ptr[offset3], pos_ptr[offset3 + 1], pos_ptr[offset3 + 2]};
+            double3 vel = {vel_ptr[offset3], vel_ptr[offset3 + 1], vel_ptr[offset3 + 2]};
+            particles.emplace_back(pos, vel, E_ptr[i], id_ptr[i]);
+        }
+
+        std::cout << "ParticleSize: " << particles.size() << std::endl;
+        // for(size_t i=0; i<num; ++i){
+        //     particles[i] = particle_ptr[i];
+        // }
     }
 
     // 获取所有粒子 (Python 访问接口)
@@ -246,88 +478,6 @@ public:
 
 
 
-
-// 粒子生成函数实现
-std::vector<Particle> initial(int N) {
-    std::vector<Particle> particles;
-    particles.reserve(N);
-
-    // 随机数生成器
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> pos_dist(0.0, 100.0);  // 位置范围0-100
-    std::uniform_real_distribution<double> vel_dist(-1.0, 1.0);   // 速度范围-1~1
-
-    for (int i = 0; i < N; ++i) {
-        // 生成随机位置和速度
-        double3 pos{pos_dist(gen), pos_dist(gen), pos_dist(gen)};
-        double3 vel{vel_dist(gen), vel_dist(gen), vel_dist(gen)};
-        
-        // 创建粒子，初始能量设为0
-        particles.emplace_back(pos, vel, 0.0, i);
-    }
-    return particles;
-}
-
-
-
-
-
-class MyClass {
-public:
-    // 将数据存储在 std::vector<std::vector<double>> 中
-    std::vector<std::vector<double>> data;
-
-    // 从 NumPy 数组设置数据
-    void set_data(py::array_t<double> array) {
-        // 获取数组的缓冲区信息
-        py::buffer_info buf = array.request();
-
-        // 检查数组是否为二维
-        if (buf.ndim != 2) {
-            throw std::runtime_error("输入数组必须是二维的");
-        }
-
-        // 获取数组的形状
-        size_t rows = buf.shape[0];
-        size_t cols = buf.shape[1];
-
-        // 获取指向数据的指针
-        double* ptr = static_cast<double*>(buf.ptr);
-
-        // 将数据复制到 std::vector<std::vector<double>>
-        data.resize(rows);
-        for (size_t i = 0; i < rows; ++i) {
-            data[i].assign(ptr + i * cols, ptr + (i + 1) * cols);
-        }
-    }
-
-    // 打印存储的数据
-    void print_data() const {
-        for (const auto& row : data) {
-            for (const auto& val : row) {
-                std::cout << val << " ";
-            }
-            std::cout << std::endl;
-        }
-    }
-};
-
-
-void inputCell(
-    py::array_t<Cell, py::array::c_style> cell
-) {
-    // 获取输入数组信息
-    auto cell_buf = cell.request();
-    // auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
-
-    const int dim_x = cell.shape(0);
-    const int dim_y = cell.shape(1);
-    const int dim_z = cell.shape(2);
-    std::cout << "inputCell:" << dim_x << '_' << dim_y  << '_' << dim_z << std::endl;
-}
-
-
 PYBIND11_MODULE(react, m) {
     // 绑定基础类型
     PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
@@ -339,18 +489,6 @@ PYBIND11_MODULE(react, m) {
     bind_particle(m);
     bind_Cell(m);
     
-    // 暴露初始化函数
-    m.def("initial", &initial, py::arg("N"), 
-          "Initialize N particles with random positions and velocities");
-
-
-    // // 绑定 World 类
-    // py::class_<World>(m, "World")
-    //     .def(py::init<int, int, int>(), py::arg("ni"), py::arg("nj"), py::arg("nk"))
-    //     .def("getXm", &World::getXm)
-    //     .def("inBounds", &World::inBounds)
-    //     .def("pos", &World::pos);
-
         // 绑定 Simulation 类
     py::class_<Simulation>(m, "Simulation")
         .def(py::init<int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"))
@@ -372,10 +510,19 @@ PYBIND11_MODULE(react, m) {
         .def("getCells", &Simulation::getCells)
         .def("inputCell", &Simulation::inputCell, py::arg("cell"))
         .def("testWorld", &Simulation::testWorld)
-        .def("normal_to_numpy", &Simulation::normal_to_numpy);
+        .def("runSimulation", &Simulation::runSimulation)
+        .def("normal_to_numpy", &Simulation::normal_to_numpy)
+        .def("print_react_table_equation", &Simulation::print_react_table_equation)
+        .def("set_all_parameters", &Simulation::set_all_parameters,
+            py::arg("react_table_equation"),
+            py::arg("react_type_table"),
+            py::arg("react_prob_chemical"),
+            py::arg("react_yield_p0"),
+            py::arg("rn_coeffcients"), "react_table_equation, react_type_table, react_prob_chemical")
+        .def("inputParticle", &Simulation::inputParticle, 
+            py::arg("pos"),
+            py::arg("vel"),
+            py::arg("E"),
+            py::arg("id"), "pos, vel, E, id");
 
-    // m.def("compute_squares", &compute_squares, "在 C++ 中创建数据并并行计算每个元素的平方，结果直接打印");
-
-    m.def("inputCell", &inputCell,
-        py::arg("cell"));
 }

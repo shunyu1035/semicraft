@@ -36,30 +36,32 @@ protected:
 extern Rnd rnd;		//tell the compiler that an object of type Rnd called rnd is defined somewhere
 
 
-// /*species container*/
-// class Species 
-// {
-// public:
-// 	Species(std::string name, int id, World &world) :
-// 		name(name), id(id), world(world) { 	}
+/*species container*/
+class Species 
+{
+public:
+	Species(std::string name, int id, World &world) :
+		name(name), id(id), world(world) { 	}
 
-// 	/*returns the number of simulation particles*/
-// 	size_t getNp()	{return particles.size();}
-
-
-// 	/*moves all particles using electric field ef[]*/
-// 	// void advance();
-
-// 	/*adds a new particle*/
-// 	void addParticle(double3 pos, double3 vel, double E, int id);
-
-// 	const std::string name;			/*species name*/
-	
-// 	std::vector<Particle> particles;	/*contiguous array for storing particles*/
-
-// protected:
-// 	World &world;
-// };
+	/*returns the number of simulation particles*/
+	size_t getNp()	{return particles.size();}
 
 
-// #endif
+	/*moves all particles using electric field ef[]*/
+	// void advance();
+
+	/*adds a new particle*/
+	void addParticle(double3 pos, double3 vel, double E, int id);
+
+    // 初始化粒子群
+	void initialize(int num_particles, double E, int id , double box_size = 100.0);
+
+	const std::string name;			/*species name*/
+	const int id;
+	std::vector<Particle> particles;	/*contiguous array for storing particles*/
+
+protected:
+	World &world;
+};
+
+

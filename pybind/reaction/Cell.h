@@ -1,5 +1,6 @@
 #include <vector>
 #include <array>
+#include <iostream>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <omp.h>
@@ -36,7 +37,16 @@ public:
 		return true;
 	}
 
-
+    void print_cell(){
+        int dim_0 = Cells.size();
+        int dim_1 = Cells[0].size();
+        int dim_2 = Cells[0][0].size();
+        std::cout << "World Cell: " << dim_0 << " " << dim_1 << " " << dim_2 <<  std::endl;
+    }
+    void set_cell(std::vector<std::vector<std::vector<Cell>>> Cell){
+        Cells = Cell;
+        print_cell();
+    }
 
 	/*another form that takes 3 ints as inputs*/
 	double3 pos(int i, int j, int k) {
@@ -48,7 +58,7 @@ public:
 	const int ni,nj,nk;	//number of nodes
 
 protected:
-
+    std::vector<std::vector<std::vector<Cell>>> Cells;
 	double3 xm;	//origin-diagonally opposite corner (max bound)
 
 };
