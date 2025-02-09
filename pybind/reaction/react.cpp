@@ -55,20 +55,31 @@ void bind_particle(py::module &m) {
         });
 }
 
+// // Cell结构体绑定
+// void bind_Cell(py::module &m) {
+//     py::class_<Cell>(m, "Cell")
+//         .def(py::init<int, std::array<int, 3>, std::array<int, 5>, std::array<double, 3>>())
+//         .def_readwrite("id", &Cell::id)
+//         .def_readwrite("index", &Cell::index)
+//         .def_readwrite("film", &Cell::film)
+//         .def_readwrite("normal", &Cell::normal)
+//         .def("__repr__", [](const Cell &p) {
+//             return "Cell(id=" + std::to_string(p.id) + ")";
+//         });
+// }
+
 // Cell结构体绑定
-void bind_Cell(py::module &m) {
-    py::class_<Cell>(m, "Cell")
-        .def(py::init<int, std::array<int, 3>, std::array<int, 5>, std::array<double, 3>>())
-        .def_readwrite("id", &Cell::id)
-        .def_readwrite("index", &Cell::index)
-        .def_readwrite("film", &Cell::film)
-        .def_readwrite("normal", &Cell::normal)
-        .def("__repr__", [](const Cell &p) {
-            return "Cell(id=" + std::to_string(p.id) + ")";
-        });
-}
-
-
+// void bind_Cell(py::module &m) {
+//     py::class_<Cell>(m, "Cell")
+//         .def(py::init<int, std::array<int, 3>, std::array<int, 5>, std::array<double, 3>>())
+//         .def_readwrite("id", &Cell::id)
+//         .def_readwrite("index", &Cell::index)
+//         .def_readwrite("film", &Cell::film)
+//         .def_readwrite("normal", &Cell::normal)
+//         .def("__repr__", [](const Cell &p) {
+//             return "Cell(id=" + std::to_string(p.id) + ")";
+//         });
+// }
 
 class Simulation {
 private:
@@ -266,50 +277,88 @@ public:
         std::cout << "World xm: " << xm << std::endl;
     }
 
+    // void inputCell(
+    //     py::array_t<Cell, py::array::c_style> cell
+    // ) {
+    //     // 获取输入数组信息
+    //     auto cell_buf = cell.request();
+    //     auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
+
+    //     size_t dim_x = cell.shape(0);
+    //     size_t dim_y = cell.shape(1);
+    //     size_t dim_z = cell.shape(2);
+
+    //     // World world(dim_x, dim_x, dim_x);
+    //     // world_ptr = std::make_unique<World>(dim_x, dim_y, dim_z);
+    //     std::cout << "inputCell:" << dim_x << '_' << dim_y  << '_' << dim_z << std::endl;
+
+    //     Cells.resize(dim_x);
+    //     for (size_t i = 0; i < dim_x; ++i) {
+    //         Cells[i].resize(dim_y);
+    //         for (size_t j = 0; j < dim_y; ++j) {
+    //             size_t offset = (i * dim_y + j) * dim_z;
+    //             Cells[i][j].assign(cell_ptr + offset, cell_ptr + offset + dim_z);
+    //             // Cells[i][j].assign(cell_ptr + i * j * dim_z, cell_ptr + i * (j + 1) * dim_z);
+    //         }
+    //     }
+    // }
+
+
     void inputCell(
-        py::array_t<Cell, py::array::c_style> cell
+        py::array_t<int> typeID_py,
+        py::array_t<int> index_py,
+        py::array_t<double> normal_py,
+        py::array_t<int> film_py
     ) {
         // 获取输入数组信息
-        auto cell_buf = cell.request();
-        auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
+        py::buffer_info  typeID_py_buf = typeID_py.request();
+        py::buffer_info  index_py_buf = index_py.request();
+        py::buffer_info  normal_py_buf = normal_py.request();
+        py::buffer_info  film_py_buf = film_py.request();
 
-        size_t dim_x = cell.shape(0);
-        size_t dim_y = cell.shape(1);
-        size_t dim_z = cell.shape(2);
+        if (typeID_py_buf.ndim < 1) {
+            throw std::runtime_error("typeID_py 数组至少应该是一维");
+        }
 
-        // World world(dim_x, dim_x, dim_x);
-        // world_ptr = std::make_unique<World>(dim_x, dim_y, dim_z);
-        std::cout << "inputCell:" << dim_x << '_' << dim_y  << '_' << dim_z << std::endl;
+        int* typeID_ptr = static_cast<int*>(typeID_py_buf.ptr);
+        int* index_ptr = static_cast<int*>(index_py_buf.ptr);
+        double* normal_ptr = static_cast<double*>(normal_py_buf.ptr);
+        int* film_ptr = static_cast<int*>(film_py_buf.ptr);
 
-        Cells.resize(dim_x);
-        for (size_t i = 0; i < dim_x; ++i) {
-            Cells[i].resize(dim_y);
+        size_t dim_x = typeID_py.shape(0);
+        size_t dim_y = typeID_py.shape(1);
+        size_t dim_z = typeID_py.shape(2);
+        size_t typeIDN = typeID_py_buf.shape[0];
+        size_t indexN = index_py_buf.shape[0];
+        size_t normalN = normal_py_buf.shape[0];
+        size_t filmN = film_py_buf.shape[3];
+        if ((typeIDN != indexN && typeIDN != normalN)) {
+            throw std::runtime_error("Cell 维度不一致");
+        }
+        // std::cout << "inputCell: " << typeIDN << std::endl;
+
+        Cells.reserve(dim_x);
+        for(size_t i=0; i<dim_x; ++i){
+            Cells[i].reserve(dim_y);
             for (size_t j = 0; j < dim_y; ++j) {
+                size_t offset3 = (i * dim_y + j) * dim_z * 3;
                 size_t offset = (i * dim_y + j) * dim_z;
-                Cells[i][j].assign(cell_ptr + offset, cell_ptr + offset + dim_z);
-                // Cells[i][j].assign(cell_ptr + i * j * dim_z, cell_ptr + i * (j + 1) * dim_z);
+                size_t offset_film = (i * dim_y + j) * dim_z * filmN;
+                double3 normal = {normal_ptr[offset3], normal_ptr[offset3 + 1], normal_ptr[offset3 + 2]};
+                int3 index = {index_ptr[offset3], index_ptr[offset3 + 1], index_ptr[offset3 + 2]};
+                std::vector<int> film;
+                for (size_t k = 0; k < filmN; ++k) {
+                    film.emplace_back(film_ptr[offset_film + k]);
+                }
+                Cells[i][j].emplace_back(typeID_ptr[offset], index, normal, film);
             }
         }
+
+        std::cout << "CellSize: " << Cells.size() << " " <<  Cells[0].size() << " " << Cells[0][0].size() << std::endl;
+        // for(size_t i=0; i<num; ++i){
+        //     particles[i] = particle_ptr[i];
+        // }
     }
-
-//    // 从 NumPy 数组设置数据，要求输入必须为三维数组
-//     void set_react_prob_chemical(py::array_t<double> arr) {
-//         py::buffer_info buf = arr.request();
-//         if (buf.ndim != 1) {
-//             throw std::runtime_error("react_prob_chemical 输入数组必须是2维的");
-//         }
-//         // 获取每一维的大小
-//         ssize_t dim0 = buf.shape[0];
-//         double* ptr = static_cast<double*>(buf.ptr);
-
-//         // 按三维结构分配 react_table_equation
-//         react_prob_chemical.resize(dim0);
-//         for (ssize_t i = 0; i < dim0; ++i) {
-//             // 计算内存中对应的起始偏移：
-//             ssize_t offset = i;
-//             react_prob_chemical[i] = ptr[offset];
-//         }
-//     }
 
 
     void inputParticle(
@@ -441,9 +490,9 @@ public:
                 }
                 for (int k = 0; k < dim2; k++) {
                     // 计算连续内存中的索引位置
-                    ptr[i * (dim1 * dim2) + j * dim2 + k] = Cells[i][j][k].normal[0];
-                    ptr[i * (dim1 * dim2) + j * dim2 + k + 1] = Cells[i][j][k].normal[1];
-                    ptr[i * (dim1 * dim2) + j * dim2 + k + 2] = Cells[i][j][k].normal[2];
+                    ptr[i * (dim1 * dim2) + j * dim2 + k] = Cells[i][j][k].normal(0);
+                    ptr[i * (dim1 * dim2) + j * dim2 + k + 1] = Cells[i][j][k].normal(1);
+                    ptr[i * (dim1 * dim2) + j * dim2 + k + 2] = Cells[i][j][k].normal(2);
                 }
             }
         }
@@ -480,14 +529,14 @@ public:
 
 PYBIND11_MODULE(react, m) {
     // 绑定基础类型
-    PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
+    // PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
 
     bind_vec3<double>(m, "double3");
     bind_vec3<int>(m, "int3");
     
     // 绑定粒子类型
     bind_particle(m);
-    bind_Cell(m);
+    // bind_Cell(m);
     
         // 绑定 Simulation 类
     py::class_<Simulation>(m, "Simulation")
@@ -508,7 +557,11 @@ PYBIND11_MODULE(react, m) {
         .def("crossTest", &Simulation::crossTest)
         .def("particle_react_parallel", &Simulation::particle_react_parallel)
         .def("getCells", &Simulation::getCells)
-        .def("inputCell", &Simulation::inputCell, py::arg("cell"))
+        // .def("inputCell", &Simulation::inputCell, 
+        //     py::arg("typeid"),
+        //     py::arg("index"),
+        //     py::arg("normal"),
+        //     py::arg("film"), "typeid, index, normal, film")
         .def("testWorld", &Simulation::testWorld)
         .def("runSimulation", &Simulation::runSimulation)
         .def("normal_to_numpy", &Simulation::normal_to_numpy)

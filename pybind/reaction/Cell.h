@@ -8,14 +8,21 @@
 namespace py = pybind11;
 
 // 定义 Cell 结构体 (与 Cython 对齐)
+// struct Cell {
+//     int id;
+//     std::array<int, 3> index;
+//     std::array<int, 5> film;
+//     std::array<double, 3> normal;
+// };
+
 struct Cell {
-    int id;
-    std::array<int, 3> index;
-    std::array<int, 5> film;
-    std::array<double, 3> normal;
+    int typeID;
+    int3 index;
+    double3 normal;
+    std::vector<int> film;
+	Cell(int typeID, int3 index, double3 normal, std::vector<int> film):
+	typeID{typeID}, index{index}, normal{normal}, film{film} { }
 };
-
-
 
 
 /*defines the computational domain*/
@@ -111,7 +118,7 @@ py::array_t<int> update_film_label_index_normal_etch(
         const int z = point_ptr[i * 3 + 2];
 
         // 标记当前 Cell
-        cell_ptr[x * grid_y * grid_z + y * grid_z + z].id = -1;
+        cell_ptr[x * grid_y * grid_z + y * grid_z + z].typeID = -1;
 
         // 处理 6 个相邻方向
         for (int j = 0; j < 6; ++j) {
@@ -132,8 +139,8 @@ py::array_t<int> update_film_label_index_normal_etch(
                 Cell& neighbor = cell_ptr[nx * grid_y * grid_z + ny * grid_z + nz];
                 
                 // 状态更新逻辑
-                if (neighbor.id == 2) {
-                    neighbor.id = 1;
+                if (neighbor.typeID == 2) {
+                    neighbor.typeID = 1;
                     // 处理下层邻接点
                     for (int m = 0; m < 6; ++m) {
                         const int mx = nx + GRID_CROSS[m][0];
@@ -143,10 +150,10 @@ py::array_t<int> update_film_label_index_normal_etch(
                             my >= 0 && my < grid_y && 
                             mz >= 0 && mz < grid_z) {
                             Cell& sub_neighbor = cell_ptr[mx * grid_y * grid_z + my * grid_z + mz];
-                            if (sub_neighbor.id == 3) sub_neighbor.id = 2;
+                            if (sub_neighbor.typeID == 3) sub_neighbor.typeID = 2;
                         }
                     }
-                } else if (neighbor.id == -1) {
+                } else if (neighbor.typeID == -1) {
                     // 处理真空邻接点
                     for (int l = 0; l < 6; ++l) {
                         const int lx = nx + GRID_CROSS[l][0];
@@ -156,7 +163,7 @@ py::array_t<int> update_film_label_index_normal_etch(
                             ly >= 0 && ly < grid_y && 
                             lz >= 0 && lz < grid_z) {
                             Cell& vacuum_neighbor = cell_ptr[lx * grid_y * grid_z + ly * grid_z + lz];
-                            if (vacuum_neighbor.id == 1) neighbor.id = 0;
+                            if (vacuum_neighbor.typeID == 1) neighbor.typeID = 0;
                         }
                     }
                 }
