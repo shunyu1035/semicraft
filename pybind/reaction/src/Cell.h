@@ -38,6 +38,14 @@ public:
 		return true;
 	}
 
+    int getNumThreads() const {return num_threads;}
+
+    	/*multithreading support*/
+	void setNumThreads(int num_threads) {this->num_threads = num_threads;
+		buffers = std::vector<Field>();
+		for (int i=0;i<num_threads;i++) buffers.emplace_back(ni,nj,nk);
+	}
+
     void print_cell(){
         int dim_0 = Cells.size();
         int dim_1 = Cells[0].size();
@@ -65,12 +73,14 @@ public:
 
 	//mesh geometry
 	const int ni,nj,nk;	//number of nodes
-
+    
+    std::vector<Field> buffers;	//temporary buffers for density calculation
     std::vector<std::vector<std::vector<Cell>>> Cells;
 
 protected:
 
 	double3 xm;	//origin-diagonally opposite corner (max bound)
+    int num_threads;  //number of threads;
 
 };
 
