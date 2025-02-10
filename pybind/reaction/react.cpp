@@ -332,25 +332,29 @@ public:
         size_t indexN = index_py_buf.shape[0];
         size_t normalN = normal_py_buf.shape[0];
         size_t filmN = film_py_buf.shape[3];
-        if ((typeIDN != indexN && typeIDN != normalN)) {
+        if ((typeIDN != indexN || typeIDN != normalN)) {
             throw std::runtime_error("Cell 维度不一致");
         }
-        // std::cout << "inputCell: " << typeIDN << std::endl;
+        std::cout << "inputCell: " << dim_x << " " <<  dim_y << " " << dim_z<< std::endl;
 
-        Cells.reserve(dim_x);
+        std::vector<int> film;
+        Cells.resize(dim_x);
         for(size_t i=0; i<dim_x; ++i){
-            Cells[i].reserve(dim_y);
+            Cells[i].resize(dim_y);
             for (size_t j = 0; j < dim_y; ++j) {
-                size_t offset3 = (i * dim_y + j) * dim_z * 3;
-                size_t offset = (i * dim_y + j) * dim_z;
-                size_t offset_film = (i * dim_y + j) * dim_z * filmN;
-                double3 normal = {normal_ptr[offset3], normal_ptr[offset3 + 1], normal_ptr[offset3 + 2]};
-                int3 index = {index_ptr[offset3], index_ptr[offset3 + 1], index_ptr[offset3 + 2]};
-                std::vector<int> film;
-                for (size_t k = 0; k < filmN; ++k) {
-                    film.emplace_back(film_ptr[offset_film + k]);
+                for (size_t k = 0; k < dim_z; ++k) {
+                    size_t offset3 = ((i * dim_y + j) * dim_z + k) * 3;
+                    size_t offset = (i * dim_y + j) * dim_z + k;
+                    size_t offset_film = ((i * dim_y + j) * dim_z + k) * filmN;
+                    double3 normal = {normal_ptr[offset3], normal_ptr[offset3 + 1], normal_ptr[offset3 + 2]};
+                    int3 index = {index_ptr[offset3], index_ptr[offset3 + 1], index_ptr[offset3 + 2]};
+                    // std::vector<int> film;
+                    film.resize(filmN);
+                    for (size_t n = 0; n < filmN; ++n) {
+                        film[n] = film_ptr[offset_film + n];
+                    }
+                    Cells[i][j].emplace_back(typeID_ptr[offset], index, normal, film);
                 }
-                Cells[i][j].emplace_back(typeID_ptr[offset], index, normal, film);
             }
         }
 
@@ -440,6 +444,18 @@ public:
         std::cout << "particles["<< id <<"].pos: " << particles[id].pos << std::endl;    // 输出: particles[id].pos
         std::cout << "particles["<< id <<"].vel: " << particles[id].vel << std::endl;    // 输出: particles[id].pos
     }
+
+    void printCell(int idx, int idy, int idz) {
+        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].typeID: " << Cells[idx][idy][idz].typeID << std::endl;
+        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].index: " << Cells[idx][idy][idz].index << std::endl;    // 输出: particles[id].pos
+        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].normal: " << Cells[idx][idy][idz].normal << std::endl;    // 输出: particles[id].pos
+        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].film: " << std::endl;
+        for (size_t i = 0; i < Cells[idx][idy][idz].film.size(); ++i) {
+            std::cout << Cells[idx][idy][idz].film[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+    
 
     // cross test
     void crossTest(int i, int j) {
@@ -557,11 +573,12 @@ PYBIND11_MODULE(react, m) {
         .def("crossTest", &Simulation::crossTest)
         .def("particle_react_parallel", &Simulation::particle_react_parallel)
         .def("getCells", &Simulation::getCells)
-        // .def("inputCell", &Simulation::inputCell, 
-        //     py::arg("typeid"),
-        //     py::arg("index"),
-        //     py::arg("normal"),
-        //     py::arg("film"), "typeid, index, normal, film")
+        .def("inputCell", &Simulation::inputCell, 
+            py::arg("typeid"),
+            py::arg("index"),
+            py::arg("normal"),
+            py::arg("film"), "typeid, index, normal, film")
+            .def("printCell", &Simulation::printCell)
         .def("testWorld", &Simulation::testWorld)
         .def("runSimulation", &Simulation::runSimulation)
         .def("normal_to_numpy", &Simulation::normal_to_numpy)
