@@ -34,7 +34,7 @@ public:
 
 	bool inBounds(double3 pos) {
 		for (int i=0;i<3;i++)
-			if (pos[i]< 0 || pos[i]>=xm[i]) return false;
+			if (pos[i] < 0 || pos[i]>=xm[i]) return false;
 		return true;
 	}
 

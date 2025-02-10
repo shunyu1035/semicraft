@@ -60,7 +60,11 @@ public:
 		world.Cells[idx][idy][idz].normal += test;
 	}
 	
-
+   // print
+	void printParticle(int id) {
+		std::cout << "particles["<< id <<"].pos: " << particles[id].pos << std::endl;    // 输出: particles[id].pos
+		std::cout << "particles["<< id <<"].vel: " << particles[id].vel << std::endl;    // 输出: particles[id].pos
+	}
 	/*moves all particles */
 	void advance();
 

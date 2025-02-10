@@ -3,7 +3,7 @@
 
 
 
-void Simulation::runSimulation(){
+void Simulation::runSimulation(int id){
     World world(ni, nj, nk);
     double3 xm = world.getXm();
     std::cout << "World xm: " << xm << std::endl; 
@@ -18,8 +18,10 @@ void Simulation::runSimulation(){
 
     Species sp("test", 1, world);
     sp.inputParticle(particles);
+
+    sp.printParticle(id);
     sp.change_cell(5,5,5);
-    sp.advance();
+    // sp.advance();
     // world.change_cell(5,5,5);
     world.WprintCell(5,5,5);  
 

@@ -45,7 +45,7 @@ void Species::advance(){
 	/*perform a particle removal step, dead particles are replaced by the entry at the end*/
 	for (size_t p=0;p<np;p++)
 	{
-		if (particles[p].id>0) continue;	//ignore live particles
+		if (particles[p].id>=0) continue;	//ignore live particles
 		particles[p] = particles[np-1]; //fill the hole
 		np--;	//reduce count of valid elements
 		p--;	//decrement p so this position gets checked again

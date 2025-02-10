@@ -268,7 +268,7 @@ public:
     }
 
 
-    void runSimulation();
+    void runSimulation(int id);
 
 
     void inputCell(
