@@ -1,13 +1,13 @@
 # Available at setup time due to pyproject.toml
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
-
+from glob import glob
 
 ext_modules = [
     Pybind11Extension(
-        "react",
-        ["react.cpp"],
+        "SimProfile",
         # ["Cell.cpp"],
+        sorted(glob("src/*.cpp")),  # 所有的源文件
         include_dirs=['/usr/include/eigen3'],  # Eigen路径
         extra_compile_args=["-fopenmp"],
         extra_link_args=["-fopenmp"],
@@ -16,7 +16,7 @@ ext_modules = [
 ]
 
 setup(
-    name="react",
+    name="SimProfile",
     ext_modules=ext_modules,
     extras_require={"test": "pytest"},
     cmdclass={"build_ext": build_ext},

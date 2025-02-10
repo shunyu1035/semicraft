@@ -1,5 +1,5 @@
 /*Defines flying material data*/
-
+#include <iostream>
 #include <vector>
 #include "Field.h"
 #include "Cell.h"
@@ -47,20 +47,22 @@ public:
 	size_t getNp()	{return particles.size();}
 
 
-	/*moves all particles using electric field ef[]*/
-	// void advance();
-
 	/*adds a new particle*/
 	void addParticle(double3 pos, double3 vel, double E, int id);
 
-    // 初始化粒子群
-	void initialize(int num_particles, double E, int id , double box_size = 100.0);
 
-
+	void inputParticle(std::vector<Particle> particleAll){
+		particles = particleAll;
+		std::cout << "particle size: " << particles.size() <<  std::endl;
+	}
     void change_cell(int idx, int idy, int idz){
-        double3 test{1, 1, 1};
-        world.Cells[idx][idy][idz].normal += test;
-    }
+		double3 test{1, 1, 1};
+		world.Cells[idx][idy][idz].normal += test;
+	}
+	
+
+	/*moves all particles */
+	void advance();
 
 	const std::string name;			/*species name*/
 	const int id;

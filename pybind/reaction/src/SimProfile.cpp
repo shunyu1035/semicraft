@@ -84,15 +84,19 @@ void bind_particle(py::module &m) {
 class Simulation {
 private:
     std::vector<Particle> particles;
-    std::mt19937 rng;  // 随机数引擎
+    // std::mt19937 rng;  // 随机数引擎
 
     std::vector<std::vector<std::vector<Cell>>> Cells;
     // 生成麦克斯韦分布速度
-    double3 maxwell_velocity(double T) {
-        std::normal_distribution<double> dist(0.0, sqrt(T));
-        return {dist(rng), dist(rng), dist(rng)};
-    }
-    World world;  // 注意：World 必须有合适的构造函数
+    // double3 maxwell_velocity(double T) {
+    //     std::normal_distribution<double> dist(0.0, sqrt(T));
+    //     return {dist(rng), dist(rng), dist(rng)};
+    // }
+    // World world;  // 注意：World 必须有合适的构造函数
+	//mesh geometry
+    const int seed;
+	const int ni,nj,nk;	//number of nodes
+    // const int seed;
 
     std::vector<std::vector<std::vector<int>>> react_table_equation;
     std::vector<std::vector<int>> react_type_table;
@@ -106,7 +110,7 @@ public:
     // 构造函数：初始化随机数引擎
     // Simulation(int seed = 42) : rng(seed) {}
     // Simulation(int seed, int ni, int nj, int nk) : rng(seed){}
-    Simulation(int seed, int ni, int nj, int nk) : rng(seed), world(ni, nj, nk) {}
+    Simulation(int seed, int ni, int nj, int nk) : seed(seed), ni{ni}, nj{nj}, nk{nk} {}
     // World world(10, 10, 10)
 
 
@@ -264,21 +268,19 @@ public:
 
 
     void runSimulation(){
+        World world(ni, nj, nk);
         double3 xm = world.getXm();
         std::cout << "World xm: " << xm << std::endl; 
 
         world.set_cell(Cells);
         Species sp("test", 1, world);
+        sp.inputParticle(particles);
         sp.change_cell(5,5,5);
+        sp.advance();
         // world.change_cell(5,5,5);
         world.WprintCell(5,5,5);
     }
 
-    void testWorld(){
-        // std::cout << "World xm: "  << std::endl;
-        double3 xm = world.getXm();
-        std::cout << "World xm: " << xm << std::endl;
-    }
 
 
 
@@ -393,18 +395,6 @@ public:
     }
 
 
-    // 初始化粒子群
-    void initialize(int num_particles, double T, double E, int id , double box_size = 100.0) {
-        std::uniform_real_distribution<double> pos_dist(0.0, box_size);
-        particles.reserve(num_particles);
-
-        for(int i=0; i<num_particles; ++i){
-            double3 pos{pos_dist(rng), pos_dist(rng), pos_dist(rng)};
-            double3 vel = maxwell_velocity(T);
-            particles.emplace_back(pos, vel, E, id);
-        }
-    }
-
     // 添加粒子（Python 交互接口）
     void addParticle(double3 pos, double3 vel, double E, int id) {
         particles.emplace_back(pos, vel, E, id);
@@ -434,9 +424,6 @@ public:
         std::cout << std::endl;
     }
     
-    void printWorldCell(int idx, int idy, int idz) {
-        world.WprintCell(idx, idy, idz);
-    }
 
     // cross test
     void crossTest(int i, int j) {
@@ -524,7 +511,7 @@ public:
 
 
 
-PYBIND11_MODULE(react, m) {
+PYBIND11_MODULE(SimProfile, m) {
     // 绑定基础类型
     // PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
 
@@ -538,12 +525,6 @@ PYBIND11_MODULE(react, m) {
         // 绑定 Simulation 类
     py::class_<Simulation>(m, "Simulation")
         .def(py::init<int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"))
-        .def("initialize", &Simulation::initialize, 
-             py::arg("num_particles"), 
-             py::arg("temperature"),
-             py::arg("E"),
-             py::arg("id"),
-             py::arg("box_size") = 100.0)
         .def("add_particle", &Simulation::addParticle,
              py::arg("pos"), py::arg("vel"), py::arg("E"), py::arg("id"))
         .def("remove_particle", &Simulation::removeParticle,
@@ -560,8 +541,6 @@ PYBIND11_MODULE(react, m) {
             py::arg("normal"),
             py::arg("film"), "typeid, index, normal, film")
         .def("printCell", &Simulation::printCell)
-        .def("printWorldCell", &Simulation::printWorldCell)
-        .def("testWorld", &Simulation::testWorld)
         .def("runSimulation", &Simulation::runSimulation)
         .def("normal_to_numpy", &Simulation::normal_to_numpy)
         .def("print_react_table_equation", &Simulation::print_react_table_equation)

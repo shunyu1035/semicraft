@@ -1,7 +1,6 @@
 /*definitions for species functions*/
 #include <math.h>
 #include <thread>
-#include <vector>
 #include "Particle.h"
 #include "Field.h"
 
@@ -14,4 +13,14 @@ void Species::addParticle(double3 pos, double3 vel, double E, int id)
 
     //add to list
     particles.emplace_back(pos, vel, E, id);
+}
+
+
+// void Species::change_cell(int idx, int idy, int idz){
+//     double3 test{1, 1, 1};
+//     world.Cells[idx][idy][idz].normal += test;
+// }
+
+void Species::advance(){
+    std::cout << "advance: " <<  std::endl;
 }
