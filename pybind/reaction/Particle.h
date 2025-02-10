@@ -56,6 +56,12 @@ public:
     // 初始化粒子群
 	void initialize(int num_particles, double E, int id , double box_size = 100.0);
 
+
+    void change_cell(int idx, int idy, int idz){
+        double3 test{1, 1, 1};
+        world.Cells[idx][idy][idz].normal += test;
+    }
+
 	const std::string name;			/*species name*/
 	const int id;
 	std::vector<Particle> particles;	/*contiguous array for storing particles*/

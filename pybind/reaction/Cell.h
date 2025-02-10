@@ -7,13 +7,6 @@
 
 namespace py = pybind11;
 
-// 定义 Cell 结构体 (与 Cython 对齐)
-// struct Cell {
-//     int id;
-//     std::array<int, 3> index;
-//     std::array<int, 5> film;
-//     std::array<double, 3> normal;
-// };
 
 struct Cell {
     int typeID;
@@ -55,6 +48,22 @@ public:
         print_cell();
     }
 
+    void change_cell(int idx, int idy, int idz){
+        double3 test{1, 1, 1};
+        Cells[idx][idy][idz].normal += test;
+    }
+
+    void WprintCell(int idx, int idy, int idz) {
+        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].typeID: " << Cells[idx][idy][idz].typeID << std::endl;
+        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].index: " << Cells[idx][idy][idz].index << std::endl;    // 输出: particles[id].pos
+        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].normal: " << Cells[idx][idy][idz].normal << std::endl;    // 输出: particles[id].pos
+        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].film: " << std::endl;
+        for (size_t i = 0; i < Cells[idx][idy][idz].film.size(); ++i) {
+            std::cout << Cells[idx][idy][idz].film[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+
 	/*another form that takes 3 ints as inputs*/
 	double3 pos(int i, int j, int k) {
 		double3 x{(double)i,(double)j,(double)k};
@@ -64,8 +73,10 @@ public:
 	//mesh geometry
 	const int ni,nj,nk;	//number of nodes
 
-protected:
     std::vector<std::vector<std::vector<Cell>>> Cells;
+
+protected:
+
 	double3 xm;	//origin-diagonally opposite corner (max bound)
 
 };

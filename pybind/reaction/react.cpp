@@ -269,6 +269,9 @@ public:
 
         world.set_cell(Cells);
         Species sp("test", 1, world);
+        sp.change_cell(5,5,5);
+        // world.change_cell(5,5,5);
+        world.WprintCell(5,5,5);
     }
 
     void testWorld(){
@@ -277,31 +280,6 @@ public:
         std::cout << "World xm: " << xm << std::endl;
     }
 
-    // void inputCell(
-    //     py::array_t<Cell, py::array::c_style> cell
-    // ) {
-    //     // 获取输入数组信息
-    //     auto cell_buf = cell.request();
-    //     auto* cell_ptr = static_cast<Cell*>(cell_buf.ptr);
-
-    //     size_t dim_x = cell.shape(0);
-    //     size_t dim_y = cell.shape(1);
-    //     size_t dim_z = cell.shape(2);
-
-    //     // World world(dim_x, dim_x, dim_x);
-    //     // world_ptr = std::make_unique<World>(dim_x, dim_y, dim_z);
-    //     std::cout << "inputCell:" << dim_x << '_' << dim_y  << '_' << dim_z << std::endl;
-
-    //     Cells.resize(dim_x);
-    //     for (size_t i = 0; i < dim_x; ++i) {
-    //         Cells[i].resize(dim_y);
-    //         for (size_t j = 0; j < dim_y; ++j) {
-    //             size_t offset = (i * dim_y + j) * dim_z;
-    //             Cells[i][j].assign(cell_ptr + offset, cell_ptr + offset + dim_z);
-    //             // Cells[i][j].assign(cell_ptr + i * j * dim_z, cell_ptr + i * (j + 1) * dim_z);
-    //         }
-    //     }
-    // }
 
 
     void inputCell(
@@ -456,6 +434,9 @@ public:
         std::cout << std::endl;
     }
     
+    void printWorldCell(int idx, int idy, int idz) {
+        world.WprintCell(idx, idy, idz);
+    }
 
     // cross test
     void crossTest(int i, int j) {
@@ -578,7 +559,8 @@ PYBIND11_MODULE(react, m) {
             py::arg("index"),
             py::arg("normal"),
             py::arg("film"), "typeid, index, normal, film")
-            .def("printCell", &Simulation::printCell)
+        .def("printCell", &Simulation::printCell)
+        .def("printWorldCell", &Simulation::printWorldCell)
         .def("testWorld", &Simulation::testWorld)
         .def("runSimulation", &Simulation::runSimulation)
         .def("normal_to_numpy", &Simulation::normal_to_numpy)
