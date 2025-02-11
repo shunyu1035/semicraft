@@ -86,19 +86,11 @@ void bind_particle(py::module &m) {
 class Simulation {
 private:
     std::vector<Particle> particles;
-    // std::mt19937 rng;  // 随机数引擎
-
     std::vector<std::vector<std::vector<Cell>>> Cells;
-    // 生成麦克斯韦分布速度
-    // double3 maxwell_velocity(double T) {
-    //     std::normal_distribution<double> dist(0.0, sqrt(T));
-    //     return {dist(rng), dist(rng), dist(rng)};
-    // }
-    // World world;  // 注意：World 必须有合适的构造函数
+
 	//mesh geometry
     const int seed;
 	const int ni,nj,nk;	//number of nodes
-    // const int seed;
 
     std::vector<std::vector<std::vector<int>>> react_table_equation;
     std::vector<std::vector<int>> react_type_table;
@@ -106,15 +98,9 @@ private:
     std::vector<double> react_yield_p0;
     std::vector<std::vector<double>> rn_coeffcients;
 
-    // std::unique_ptr<World> world_ptr;
-
 public:
     // 构造函数：初始化随机数引擎
-    // Simulation(int seed = 42) : rng(seed) {}
-    // Simulation(int seed, int ni, int nj, int nk) : rng(seed){}
     Simulation(int seed, int ni, int nj, int nk) : seed(seed), ni{ni}, nj{nj}, nk{nk} {}
-    // World world(10, 10, 10)
-
 
     // 从 NumPy 数组设置数据，要求输入必须为三维数组
     void set_react_table_equation(py::array_t<int> arr) {
@@ -469,78 +455,4 @@ public:
         }
         return result;
     }
-
-    // void particle_react_parallel(){
-    //     py::gil_scoped_release release;  // 释放 GIL
-
-    //     int steps = 100000;
-    //     for(int step=0; step<steps; ++step){
-    //         #pragma omp parallel for
-    //         for(Particle &part: particles){
-    //             part.pos += part.vel;
-    //         }
-    //     }
-    // }
-
-    void particle_react_parallel(){
-        py::gil_scoped_release release;  // 释放 Python GIL
-        int steps = 100000;
-        // 假设 particles 是 std::vector<Particle>
-        for (int step = 0; step < steps; ++step) {
-            #pragma omp parallel for
-            for (size_t i = 0; i < particles.size(); ++i) {
-                particles[i].pos += particles[i].vel;
-            }
-        }
-    }
 };
-
-
-
-
-// PYBIND11_MODULE(SimProfile, m) {
-//     // 绑定基础类型
-//     // PYBIND11_NUMPY_DTYPE(Cell, id, index, film, normal);
-
-//     bind_vec3<double>(m, "double3");
-//     bind_vec3<int>(m, "int3");
-    
-//     // 绑定粒子类型
-//     bind_particle(m);
-//     // bind_Cell(m);
-    
-//         // 绑定 Simulation 类
-//     py::class_<Simulation>(m, "Simulation")
-//         .def(py::init<int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"))
-//         .def("add_particle", &Simulation::addParticle,
-//              py::arg("pos"), py::arg("vel"), py::arg("E"), py::arg("id"))
-//         .def("remove_particle", &Simulation::removeParticle,
-//              py::arg("id"))
-//         .def("get_particles", &Simulation::getParticles)
-//         .def("printParticle", &Simulation::printParticle)
-//         .def("moveParticle", &Simulation::moveParticle)
-//         .def("crossTest", &Simulation::crossTest)
-//         .def("particle_react_parallel", &Simulation::particle_react_parallel)
-//         .def("getCells", &Simulation::getCells)
-//         .def("inputCell", &Simulation::inputCell, 
-//             py::arg("typeid"),
-//             py::arg("index"),
-//             py::arg("normal"),
-//             py::arg("film"), "typeid, index, normal, film")
-//         .def("printCell", &Simulation::printCell)
-//         .def("runSimulation", &Simulation::runSimulation)
-//         .def("normal_to_numpy", &Simulation::normal_to_numpy)
-//         .def("print_react_table_equation", &Simulation::print_react_table_equation)
-//         .def("set_all_parameters", &Simulation::set_all_parameters,
-//             py::arg("react_table_equation"),
-//             py::arg("react_type_table"),
-//             py::arg("react_prob_chemical"),
-//             py::arg("react_yield_p0"),
-//             py::arg("rn_coeffcients"), "react_table_equation, react_type_table, react_prob_chemical")
-//         .def("inputParticle", &Simulation::inputParticle, 
-//             py::arg("pos"),
-//             py::arg("vel"),
-//             py::arg("E"),
-//             py::arg("id"), "pos, vel, E, id");
-
-// }

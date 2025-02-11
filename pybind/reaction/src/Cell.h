@@ -27,8 +27,8 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk): 
-     ni(ni), nj(nj), nk(nk), xm({(double)ni,(double)nj,(double)nk}), rn_angle(180) {
+	World(int ni, int nj, int nk, int FILMSIZE): 
+     ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,(double)nk}), rn_angle(180) {
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
@@ -122,6 +122,8 @@ public:
 		// 线性插值函数：根据给定的 x 值，在 xp 和 fp 数组中找到合适的区间，然后计算插值
 	double linear_interp(double x, const std::vector<double>& xp, const std::vector<double>& fp);
 
+	std::vector<int> sticking_probability_structed(const Particle& particle, const Cell& cell, double angle_rad, Rnd &rnd);
+	
 	// 打印 rn_angle 的函数
 	void print_rn_angle() const {
 		std::cout << "World rn_angle: " <<  std::endl;
@@ -204,14 +206,15 @@ public:
         }
 		std::cout << std::endl;
     }
+
+
 	//mesh geometry
 	const int ni,nj,nk;	//number of nodes
-    
+	const int FILMSIZE;
     std::vector<Field> buffers;	//temporary buffers for density calculation
     std::vector<std::vector<std::vector<Cell>>> Cells;
 
 protected:
-
 	double3 xm;	//origin-diagonally opposite corner (max bound)
     int num_threads;  //number of threads;
 	std::vector<std::vector<std::vector<int>>> react_table_equation;
@@ -221,6 +224,8 @@ protected:
 	std::vector<std::vector<double>> rn_coeffcients;
 	std::vector<double> rn_angle;
 	std::vector<std::vector<double>> rn_matrix;
+	std::array<double, 5> react_redepo_sticking = {1.0, 1.0, 1.0, 1.0, 1.0};
+	std::array<double, 4> rn_energy = {100, 1000, 1050, 10000};
 };
 
 

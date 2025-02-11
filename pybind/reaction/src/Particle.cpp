@@ -12,20 +12,18 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 	/*loop over particles in [p_start,p_end)*/
 	for (size_t p = p_start; p<p_end; p++)
 	{
+		thread_local Rnd rnd;
 		Particle &part = particles[p];
 		int3 posInt = {(int)part.pos[0], (int)part.pos[1], (int)part.pos[2]};
 		/*判断粒子是否进入cell表面*/
 		if (world.inFilm(posInt))
 		{
 			double angle_rad = acos(fabs(dot(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal)));
-			if(angle_rad > M_PI/2){
+			std::vector<int> sticking_acceptList = world.sticking_probability_structed(part, world.Cells[posInt[0]][posInt[1]][posInt[2]], angle_rad, rnd);
+			if(sticking_acceptList[0] == 1){
 				part.id = -1;	//mark the particle as dead by setting its weight to zero
 				continue;
 			}
-
-			// part.id = -1;	//mark the particle as dead by setting its weight to zero
-			// continue;
-			// std::cout << "dot_vel_normal : "<< dot_vel_normal << std::endl;
 		}
 
 		/*update position from v=dx/dt*/

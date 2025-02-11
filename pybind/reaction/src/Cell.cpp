@@ -46,7 +46,46 @@ double World::linear_interp(double x, const std::vector<double>& xp, const std::
 }
 
 
+std::vector<int> World::sticking_probability_structed(const Particle& particle, const Cell& cell, double angle_rad, Rnd &rnd) {
 
+    std::vector<int> sticking_acceptList(FILMSIZE, 0);
+    std::vector<double> choice(FILMSIZE);
+
+    // 使用外部传入的 rnd 生成 [0,1) 内的随机数
+    for (int i = 0; i < FILMSIZE; ++i) {
+        choice[i] = rnd();
+    }
+
+    int energy_range = 0;
+    double sticking_rate = 0.0;
+    int particle_id = (particle.id >= 2) ? 2 : particle.id;
+
+    for (int j = 0; j < FILMSIZE; ++j) {
+        if (cell.film[j] <= 0) {
+            choice[j] = 1.0;
+        }
+
+        if (particle_id == 1) {
+            energy_range = 0;
+            for (int e = 0; e < FILMSIZE; ++e) {
+                if (particle.E < rn_energy[e]) {
+                    energy_range = e;
+                    break;
+                }
+            }
+            sticking_rate = linear_interp(angle_rad, rn_angle, rn_matrix[energy_range]);
+        } else if (particle_id == 0) {
+            sticking_rate = react_prob_chemical[j];
+        } else if (particle_id >= 2) {
+            sticking_rate = react_redepo_sticking[particle_id - 2];
+        }
+
+        if (sticking_rate > choice[j]) {
+            sticking_acceptList[j] = 1;
+        }
+    }
+    return sticking_acceptList;
+}
 
 
 

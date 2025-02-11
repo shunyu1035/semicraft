@@ -4,7 +4,7 @@
 
 
 void Simulation::runSimulation(int id){
-    World world(ni, nj, nk);
+    World world(ni, nj, nk, 5);
     world.print_rn_angle();
 
     double3 xm = world.getXm();
@@ -79,7 +79,6 @@ PYBIND11_MODULE(SimProfile, m) {
         .def("printParticle", &Simulation::printParticle)
         .def("moveParticle", &Simulation::moveParticle)
         .def("crossTest", &Simulation::crossTest)
-        .def("particle_react_parallel", &Simulation::particle_react_parallel)
         .def("getCells", &Simulation::getCells)
         .def("inputCell", &Simulation::inputCell, 
             py::arg("typeid"),
