@@ -18,7 +18,32 @@ void World::WprintCell(int idx, int idy, int idz) {
 }
 
 
-
+double World::linear_interp(double x, const std::vector<double>& xp, const std::vector<double>& fp) {
+    // 检查输入数组是否有效
+    // if (xp.size() != fp.size() || xp.empty()) {
+    // 	throw std::invalid_argument("xp 和 fp 必须有相同且非空的长度。");
+    // }
+    
+    // 边界情况：如果 x 在 xp 的最左侧或最右侧，则直接返回端点值
+    if (x <= xp.front()) {
+        return fp.front();
+    }
+    if (x >= xp.back()) {
+        return fp.back();
+    }
+    
+    // 使用 std::upper_bound 找到第一个大于 x 的元素
+    auto it = std::upper_bound(xp.begin(), xp.end(), x);
+    int i = static_cast<int>(it - xp.begin()) - 1;  // xp[i] <= x < xp[i+1]
+    
+    double x0 = xp[i];
+    double x1 = xp[i + 1];
+    double y0 = fp[i];
+    double y1 = fp[i + 1];
+    
+    // 线性插值公式
+    return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+}
 
 
 

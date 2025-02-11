@@ -1,5 +1,8 @@
 #include <vector>
 #include <array>
+#include <algorithm>
+#include <stdexcept>
+#include <cmath> // 包含 M_PI 常量
 #include <iostream>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
@@ -25,7 +28,11 @@ class World
 public:	
 	/*constructor, allocates memory*/
 	World(int ni, int nj, int nk): 
-     ni(ni), nj(nj), nk(nk), xm({(double)ni,(double)nj,(double)nk}) {}
+     ni(ni), nj(nj), nk(nk), xm({(double)ni,(double)nj,(double)nk}), rn_angle(180) {
+		for (int i = 0; i < 180; ++i) {
+            rn_angle[i] = (M_PI / 2) * i / 179;
+        }
+	 }
 
 	// /*functions to set mesh origin and spacing*/
 	// void setExtents() {xm[0] = <double>ni; xm[1] = <double>nj; xm[2] = <double>nk;}
@@ -37,6 +44,17 @@ public:
 			if (pos[i] < 0 || pos[i]>=xm[i]) return false;
 		return true;
 	}
+
+	bool inFilm(int3 posInt){
+		// int3 posInt = {(int)pos[0], (int)pos[1], (int)pos[2]};
+		if (Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 1 ) return true;
+		return false;
+	}
+
+	// Cell toCell(int3 posInt){
+	// 	Cell cell = 
+	// 	return Cells[posInt[0]][posInt[1]][posInt[2]];
+	// }
 
     int getNumThreads() const {return num_threads;}
 
@@ -71,6 +89,121 @@ public:
 		return x;
 	}
 
+
+	void set_parameters(
+		const std::vector<std::vector<std::vector<int>>>& react_table_equation,
+		const std::vector<std::vector<int>>& react_type_table,
+		const std::vector<double>& react_prob_chemical,
+		const std::vector<double>& react_yield_p0,
+		const std::vector<std::vector<double>>& rn_coeffcients
+	) {
+		this->react_table_equation = react_table_equation;
+		this->react_type_table = react_type_table;
+		this->react_prob_chemical = react_prob_chemical;
+		this->react_yield_p0 = react_yield_p0;
+		this->rn_coeffcients = rn_coeffcients;
+		this->rn_matrix = Rn_matrix_func(rn_coeffcients);
+		print3DVector(react_table_equation);
+	}
+
+	void print3DVector(const std::vector<std::vector<std::vector<int>>>& vec) {
+		for (size_t i = 0; i < vec.size(); ++i) {
+			std::cout << "react_table_equation " << i << ":\n";
+			for (size_t j = 0; j < vec[i].size(); ++j) {
+				for (size_t k = 0; k < vec[i][j].size(); ++k) {
+					std::cout << vec[i][j][k] << ' ';
+				}
+				std::cout << '\n';
+			}
+			std::cout << '\n';
+		}
+	}
+
+		// 线性插值函数：根据给定的 x 值，在 xp 和 fp 数组中找到合适的区间，然后计算插值
+	double linear_interp(double x, const std::vector<double>& xp, const std::vector<double>& fp);
+
+	// 打印 rn_angle 的函数
+	void print_rn_angle() const {
+		std::cout << "World rn_angle: " <<  std::endl;
+		for (const auto& angle : rn_angle) {
+			std::cout << angle << ' ';
+		}
+		std::cout << std::endl;
+	}
+
+	double Rn_coeffcient(double c1, double c2, double c3, double c4, double alpha) {
+		return c1 + c2 * std::tanh(c3 * alpha - c4);
+	}
+
+
+	// 定义 Rn_probability 函数
+	std::vector<double> Rn_probability(const std::vector<double>& c_list) {
+		const int i_max = 180;
+		// std::vector<double> rn_angle(i_max);
+		std::vector<double> rn_prob(i_max);
+
+		// // 使用循环初始化 rn_angle
+		// for (int i = 0; i < i_max; ++i) {
+		// 	rn_angle[i] = (M_PI / 2) * i / (i_max - 1);
+		// }
+
+		// 计算 rn_prob
+		for (int i = 0; i < i_max; ++i) {
+			rn_prob[i] = Rn_coeffcient(c_list[0], c_list[1], c_list[2], c_list[3], rn_angle[i]);
+		}
+
+		// 归一化 rn_prob
+		double max_prob = *std::max_element(rn_prob.begin(), rn_prob.end());
+		for (int i = 0; i < i_max; ++i) {
+			rn_prob[i] /= max_prob;
+		}
+
+		// 反转 rn_prob
+		for (int i = 0; i < i_max; ++i) {
+			rn_prob[i] = 1 - rn_prob[i];
+		}
+
+		return rn_prob;
+	}
+
+	// 定义 Rn_matrix_func 函数
+	std::vector<std::vector<double>> Rn_matrix_func(const std::vector<std::vector<double>>& rn_coeffcients) {
+		const int num_rows = rn_coeffcients.size();
+		const int num_cols = 180;
+		std::vector<std::vector<double>> rn_matrix_f(num_rows, std::vector<double>(num_cols));
+
+		for (int p = 0; p < num_rows; ++p) {
+			std::vector<double> rn_prob = Rn_probability(rn_coeffcients[p]);
+			for (int pp = 0; pp < num_cols; ++pp) {
+				rn_matrix_f[p][pp] = rn_prob[pp];
+			}
+		}
+
+		return rn_matrix_f;
+	}
+
+    // 打印 rn_matrix 的函数
+    void print_rn_coeffcients() const {
+		std::cout << "print_rn_coeffcients " << ":\n";
+        for (const auto& row : rn_coeffcients) {
+            for (const auto& val : row) {
+                std::cout << val << ' ';
+            }
+            std::cout << '\n';
+        }
+		std::cout << std::endl;
+    }
+
+    void print_rn_matrix() const {
+		std::cout << "print_rn_matrix " << ":\n";
+        for (const auto& row : rn_matrix) {
+            for (const auto& val : row) {
+                std::cout << val << ' ';
+            }
+            std::cout << '\n';
+        }
+		std::cout << std::endl;
+    }
 	//mesh geometry
 	const int ni,nj,nk;	//number of nodes
     
@@ -81,7 +214,13 @@ protected:
 
 	double3 xm;	//origin-diagonally opposite corner (max bound)
     int num_threads;  //number of threads;
-
+	std::vector<std::vector<std::vector<int>>> react_table_equation;
+	std::vector<std::vector<int>> react_type_table;
+	std::vector<double> react_prob_chemical;
+	std::vector<double> react_yield_p0;
+	std::vector<std::vector<double>> rn_coeffcients;
+	std::vector<double> rn_angle;
+	std::vector<std::vector<double>> rn_matrix;
 };
 
 

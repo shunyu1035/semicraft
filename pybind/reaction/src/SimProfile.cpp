@@ -5,6 +5,8 @@
 
 void Simulation::runSimulation(int id){
     World world(ni, nj, nk);
+    world.print_rn_angle();
+
     double3 xm = world.getXm();
     std::cout << "World xm: " << xm << std::endl; 
 
@@ -16,16 +18,38 @@ void Simulation::runSimulation(int id){
     std::cout<<"Running with "<<num_threads<<" threads"<<std::endl;
     world.setNumThreads(num_threads);   //set number of threads to use
 
+    world.set_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, rn_coeffcients);
+    world.print_rn_matrix();
+    world.print_rn_coeffcients();
     Species sp("test", 1, world);
     sp.inputParticle(particles);
 
     sp.printParticle(id);
-    sp.change_cell(5,5,5);
-    // sp.advance();
+    // sp.change_cell(5,5,5);
+    sp.advance();
     // world.change_cell(5,5,5);
-    world.WprintCell(5,5,5);  
+    // world.WprintCell(5,5,5);  
+
 
     std::cout << "After advance particle size: " << sp.getNp() <<  std::endl;
+
+    sp.printParticle(id);
+
+    int3 posInt = {(int)sp.particles[id].pos[0], (int)sp.particles[id].pos[1], (int)sp.particles[id].pos[2]};
+    bool testIn = world.inFilm(posInt);
+
+    if(testIn){
+        std::cout << "Film in : " << std::endl;
+        std::cout << "particle size: " << sp.particles.size() << std::endl;
+        std::cout << "particles["<< id <<"].pos: " << sp.particles[id].pos << std::endl; 
+    }
+    else{
+        std::cout << "Film out :" << std::endl;
+        std::cout << "particle size: " << sp.particles.size() << std::endl;
+        std::cout << "particles["<< id <<"].pos: " << sp.particles[id].pos << std::endl; 
+    }
+
+
 }
 
 
