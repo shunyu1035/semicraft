@@ -19,8 +19,9 @@ void Simulation::runSimulation(int id){
     world.setNumThreads(num_threads);   //set number of threads to use
 
     world.set_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, rn_coeffcients);
-    world.print_rn_matrix();
+    // world.print_rn_matrix();
     world.print_rn_coeffcients();
+    world.print_react_type_table();
     Species sp("test", 1, world);
     sp.inputParticle(particles);
 

@@ -4,7 +4,7 @@
 #include "Field.h"
 #include "Cell.h"
 #include <random>
-
+#include <algorithm>
 /** Data structures for particle storage **/
 // struct Particle
 // {

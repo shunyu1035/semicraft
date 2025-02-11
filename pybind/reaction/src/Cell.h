@@ -207,18 +207,31 @@ public:
 		std::cout << std::endl;
     }
 
+	// 打印 react_type_table 的函数
+	void print_react_type_table() const {
+		std::cout << "print_react_type_table " << ":\n";
+		for (const auto& row : react_type_table) {
+			for (const auto& val : row) {
+				std::cout << val << ' ';
+			}
+			std::cout << '\n';
+		}
+		std::cout << std::endl;
+	}
 
 	//mesh geometry
 	const int ni,nj,nk;	//number of nodes
 	const int FILMSIZE;
     std::vector<Field> buffers;	//temporary buffers for density calculation
     std::vector<std::vector<std::vector<Cell>>> Cells;
+	
+	std::vector<std::vector<int>> react_type_table;
 
 protected:
 	double3 xm;	//origin-diagonally opposite corner (max bound)
     int num_threads;  //number of threads;
 	std::vector<std::vector<std::vector<int>>> react_table_equation;
-	std::vector<std::vector<int>> react_type_table;
+	// std::vector<std::vector<int>> react_type_table;
 	std::vector<double> react_prob_chemical;
 	std::vector<double> react_yield_p0;
 	std::vector<std::vector<double>> rn_coeffcients;

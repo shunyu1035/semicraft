@@ -6,6 +6,15 @@
 
 // const double PI = 3.14159265358979323846;
 
+int find_max_position(const std::vector<double>& arr) noexcept {
+    // 使用 std::max_element 找到最大值的迭代器
+    auto max_iter = std::max_element(arr.begin(), arr.end());
+
+    // 计算迭代器的位置
+    int max_pos = std::distance(arr.begin(), max_iter);
+
+    return max_pos;
+}
 
 void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Particle> &particles)
 {
@@ -20,21 +29,29 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		{
 			double angle_rad = acos(fabs(dot(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal)));
 			std::vector<int> sticking_acceptList = world.sticking_probability_structed(part, world.Cells[posInt[0]][posInt[1]][posInt[2]], angle_rad, rnd);
-			if(sticking_acceptList[0] == 1){
+			std::vector<double> react_choice_random(sticking_acceptList.size(), 0);
+			for (int i=0; i<world.FILMSIZE; ++i){
+				react_choice_random[i] = rnd();
+			}
+			int react_choice = find_max_position(react_choice_random);
+
+			const int react_type = world.react_type_table[part.id][react_choice];
+
+			if(react_type == 1){
 				part.id = -1;	//mark the particle as dead by setting its weight to zero
 				continue;
 			}
 		}
 
 		/*update position from v=dx/dt*/
-		part.pos += part.vel;
+		// part.pos += part.vel;
 
 		/*did this particle get inside the sphere or leave the domain?*/
-		if (!world.inBounds(part.pos))
-		{
-			part.id = -1;	//mark the particle as dead by setting its weight to zero
-			continue;
-		}
+		// if (!world.inBounds(part.pos))
+		// {
+		// 	part.id = -1;	//mark the particle as dead by setting its weight to zero
+		// 	continue;
+		// }
 	}
 }
 
