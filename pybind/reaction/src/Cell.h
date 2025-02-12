@@ -219,6 +219,8 @@ public:
 		std::cout << std::endl;
 	}
 
+	void film_add(int3 posInt, std::vector<int> react_add);
+
 	//mesh geometry
 	const int ni,nj,nk;	//number of nodes
 	const int FILMSIZE;
@@ -226,11 +228,12 @@ public:
     std::vector<std::vector<std::vector<Cell>>> Cells;
 	
 	std::vector<std::vector<int>> react_type_table;
+	std::vector<std::vector<std::vector<int>>> react_table_equation;
 
 protected:
 	double3 xm;	//origin-diagonally opposite corner (max bound)
     int num_threads;  //number of threads;
-	std::vector<std::vector<std::vector<int>>> react_table_equation;
+	// std::vector<std::vector<std::vector<int>>> react_table_equation;
 	// std::vector<std::vector<int>> react_type_table;
 	std::vector<double> react_prob_chemical;
 	std::vector<double> react_yield_p0;

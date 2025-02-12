@@ -46,6 +46,13 @@ double World::linear_interp(double x, const std::vector<double>& xp, const std::
 }
 
 
+void World::film_add(int3 posInt, std::vector<int> react_add){
+    for (int a=0; a<FILMSIZE; ++a){
+        Cells[posInt[0]][posInt[1]][posInt[2]].film[a] += react_add[a];
+    }
+}
+
+
 std::vector<int> World::sticking_probability_structed(const Particle& particle, const Cell& cell, double angle_rad, Rnd &rnd) {
 
     std::vector<int> sticking_acceptList(FILMSIZE, 0);

@@ -36,10 +36,18 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 			int react_choice = find_max_position(react_choice_random);
 
 			const int react_type = world.react_type_table[part.id][react_choice];
+			
+			std::vector<int> react_add(world.FILMSIZE, 0);
+
+			for (int f=0; f<world.FILMSIZE; ++f){
+				react_add[f] = world.react_table_equation[part.id][react_choice][f];
+			}
 
 			if(react_type == 1){
-				part.id = -1;	//mark the particle as dead by setting its weight to zero
-				continue;
+				world.film_add(posInt, react_add);
+			}
+			else if(react_type == 4){
+				world.film_add(posInt, react_add);
 			}
 		}
 

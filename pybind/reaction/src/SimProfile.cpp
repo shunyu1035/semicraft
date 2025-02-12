@@ -27,6 +27,10 @@ void Simulation::runSimulation(int id){
 
     sp.printParticle(id);
     // sp.change_cell(5,5,5);
+    for(size_t t=0; t<10000; ++t){
+        std::cout<<"Running with "<< t <<" step"<<std::endl;
+        sp.advance();
+    }
     sp.advance();
     // world.change_cell(5,5,5);
     // world.WprintCell(5,5,5);  
