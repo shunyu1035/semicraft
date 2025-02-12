@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 
 
-
+// Rnd rnd;
 
 void World::WprintCell(int idx, int idy, int idz) {
     std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].typeID: " << Cells[idx][idy][idz].typeID << std::endl;

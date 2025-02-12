@@ -26,12 +26,14 @@ void Simulation::runSimulation(int id){
     sp.inputParticle(particles);
 
     sp.printParticle(id);
+
+    int reaction_count = 0;
     // sp.change_cell(5,5,5);
     for(size_t t=0; t<10000; ++t){
-        std::cout<<"Running with "<< t <<" step"<<std::endl;
-        sp.advance();
+        std::cout<<"Running "<< t <<" step; " <<"    reaction_count: "<< reaction_count <<std::endl;
+        sp.advance(reaction_count);
     }
-    sp.advance();
+    sp.advance(reaction_count);
     // world.change_cell(5,5,5);
     // world.WprintCell(5,5,5);  
 
@@ -53,6 +55,8 @@ void Simulation::runSimulation(int id){
         std::cout << "particle size: " << sp.particles.size() << std::endl;
         std::cout << "particles["<< id <<"].pos: " << sp.particles[id].pos << std::endl; 
     }
+
+    std::cout << "Simulation particle size: " << particles.size() <<  std::endl;
 
 
 }

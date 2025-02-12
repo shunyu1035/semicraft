@@ -6,6 +6,8 @@
 
 // const double PI = 3.14159265358979323846;
 
+// Rnd rnd;
+
 int find_max_position(const std::vector<double>& arr) noexcept {
     // 使用 std::max_element 找到最大值的迭代器
     auto max_iter = std::max_element(arr.begin(), arr.end());
@@ -52,18 +54,18 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		}
 
 		/*update position from v=dx/dt*/
-		// part.pos += part.vel;
+		part.pos += part.vel;
 
 		/*did this particle get inside the sphere or leave the domain?*/
-		// if (!world.inBounds(part.pos))
-		// {
-		// 	part.id = -1;	//mark the particle as dead by setting its weight to zero
-		// 	continue;
-		// }
+		if (!world.inBounds(part.pos))
+		{
+			part.id = -1;	//mark the particle as dead by setting its weight to zero
+			continue;
+		}
 	}
 }
 
-void Species::advance(){
+void Species::advance(int reaction_count){
 
 	/*calculate number of particles per thread*/
 	size_t np = particles.size();
@@ -83,14 +85,18 @@ void Species::advance(){
 	/*perform a particle removal step, dead particles are replaced by the entry at the end*/
 	for (size_t p=0;p<np;p++)
 	{
-		if (particles[p].id>=0) continue;	//ignore live particles
-		particles[p] = particles[np-1]; //fill the hole
-		np--;	//reduce count of valid elements
-		p--;	//decrement p so this position gets checked again
+		if (particles[p].id<0){
+			inletParticle(particles[p]);
+			reaction_count++;
+		}
+		// if (particles[p].id>=0) continue;	//ignore live particles
+		// particles[p] = particles[np-1]; //fill the hole
+		// np--;	//reduce count of valid elements
+		// p--;	//decrement p so this position gets checked again
 	}
 
 	//now delete particles[np:end]
-	particles.erase(particles.begin()+np,particles.end());
+	// particles.erase(particles.begin()+np,particles.end());
 
 }
 

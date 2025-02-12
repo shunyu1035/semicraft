@@ -9,8 +9,35 @@
 #include <omp.h>
 #include "Field.h"
 
-namespace py = pybind11;
 
+// /*object for sampling random numbers*/
+// class Rnd {
+// 	public:
+// 		//constructor: set initial random seed and distribution limits
+// 		Rnd(): mt_gen{std::random_device()()}, rnd_dist{0,1.0} {}
+// 		// 接受种子作为参数的构造函数
+// 		explicit Rnd(unsigned int seed) : mt_gen{ seed }, rnd_dist{ 0, 1.0 } {}
+	
+// 		double operator() () { return rnd_dist(mt_gen); }
+// 		//double operator() () {return rnd_dist(mt_gen);}
+		
+// 	    // 生成 [0, N] 之间的 int 随机数
+// 		int getInt(int N) {
+// 			std::uniform_int_distribution<int> dist(0, N);  // 指定范围
+// 			return dist(mt_gen);
+// 		}
+// 	protected:
+// 		std::mt19937 mt_gen;	    //random number generator
+// 		std::uniform_real_distribution<double> rnd_dist;  //uniform distribution
+// 	};
+	
+// extern Rnd rnd;		//tell the compiler that an object of type Rnd called rnd is defined somewhere
+
+
+
+// namespace py = pybind11;
+
+// Rnd rnd;
 
 struct Cell {
     int typeID;
@@ -32,6 +59,9 @@ public:
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
+
+		/*set inlet thick here*/
+		topGap = 5;
 	 }
 
 	// /*functions to set mesh origin and spacing*/
@@ -219,6 +249,17 @@ public:
 		std::cout << std::endl;
 	}
 
+	double3 posInlet(){
+		Rnd rnd;
+		double x = xm[0] * rnd();
+		double y = xm[1] * rnd();
+		double z = topGap;
+		z *= rnd();
+		z += xm[2] - topGap;
+		double3 pos{x, y, z};
+		return pos;
+	}
+
 	void film_add(int3 posInt, std::vector<int> react_add);
 
 	//mesh geometry
@@ -231,6 +272,7 @@ public:
 	std::vector<std::vector<std::vector<int>>> react_table_equation;
 
 protected:
+	double topGap;
 	double3 xm;	//origin-diagonally opposite corner (max bound)
     int num_threads;  //number of threads;
 	// std::vector<std::vector<std::vector<int>>> react_table_equation;

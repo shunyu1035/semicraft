@@ -5,35 +5,27 @@
 #include "Cell.h"
 #include <random>
 #include <algorithm>
-/** Data structures for particle storage **/
-// struct Particle
-// {
-// 	double3 pos;			/*position*/
-// 	double3 vel;			/*velocity*/
-// 	double E;
-//     int id;
-// 	Particle(double3 x, double3 v, double E, int id):
-// 	pos{x}, vel{v}, E{E}, id{id} { }
-// };
 
-
-// /*object for sampling random numbers*/
-// class Rnd {
-// public:
-// 	//constructor: set initial random seed and distribution limits
-// 	Rnd(): mt_gen{std::random_device()()}, rnd_dist{0,1.0} {}
-// 	// 接受种子作为参数的构造函数
-// 	explicit Rnd(unsigned int seed) : mt_gen{ seed }, rnd_dist{ 0, 1.0 } {}
-
-// 	double operator() () { return rnd_dist(mt_gen); }
-// 	//double operator() () {return rnd_dist(mt_gen);}
-
-// protected:
-// 	std::mt19937 mt_gen;	    //random number generator
-// 	std::uniform_real_distribution<double> rnd_dist;  //uniform distribution
-// };
-
-// extern Rnd rnd;		//tell the compiler that an object of type Rnd called rnd is defined somewhere
+// class RndInt {
+// 	public:
+// 		// 默认构造函数：使用随机设备种子
+// 		RndInt() : mt_gen{std::random_device()()} {}
+	
+// 		// 允许用户指定种子
+// 		explicit RndInt(unsigned int seed) : mt_gen{seed} {}
+	
+// 		// 生成 0 到 N 之间的整数
+// 		int operator()(int N) { 
+// 			std::uniform_int_distribution<int> dist(0, N);
+// 			return dist(mt_gen);
+// 		}
+	
+// 	protected:
+// 		std::mt19937 mt_gen;  // Mersenne Twister 伪随机数生成器
+// 	};
+	
+// 	// 定义一个全局对象
+// extern RndInt rndInt;
 
 
 /*species container*/
@@ -50,9 +42,27 @@ public:
 	/*adds a new particle*/
 	void addParticle(double3 pos, double3 vel, double E, int id);
 
+	void inletParticle(Particle part){
+		Rnd rng(10); 
+		int randID;
+		randID = rng.getInt(particles.size());
+
+		double3 pos = world.posInlet();
+		double3 vel = particleIn[randID].vel;
+		double E = particleIn[randID].E;
+		int id = particleIn[randID].id;
+
+		part.pos = pos;
+		part.vel = vel;
+		part.E = E;
+		part.id = id;
+		// addParticle(pos, vel, E, id);
+
+	}
 
 	void inputParticle(std::vector<Particle> particleAll){
 		particles = particleAll;
+		particleIn = particleAll;
 		std::cout << "particle size: " << particles.size() <<  std::endl;
 	}
     void change_cell(int idx, int idy, int idz){
@@ -62,18 +72,24 @@ public:
 	
    // print
 	void printParticle(int id) {
-		std::cout << "particles["<< id <<"].pos: " << particles[id].pos << std::endl;    // 输出: particles[id].pos
-		std::cout << "particles["<< id <<"].vel: " << particles[id].vel << std::endl;    // 输出: particles[id].pos
+		int a = particles.size();
+		if(a > id){
+			std::cout << "particles["<< id <<"].pos: " << particles[id].pos << std::endl;    // 输出: particles[id].pos
+			std::cout << "particles["<< id <<"].vel: " << particles[id].vel << std::endl;    // 输出: particles[id].pos
+		}
+		std::cout << "No enough particle: " << particles.size() <<  std::endl;
 	}
 	/*moves all particles */
-	void advance();
+	void advance(int reaction_count);
 
 	const std::string name;			/*species name*/
 	const int id;
 	std::vector<Particle> particles;	/*contiguous array for storing particles*/
+	// std::vector<Particle> particleIn;	/*contiguous array for add*/
 
 protected:
 	World &world;
+	std::vector<Particle> particleIn;	/*contiguous array for add*/
 };
 
 

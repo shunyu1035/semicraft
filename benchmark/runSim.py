@@ -259,7 +259,7 @@ simulation.inputCell(cell['id'], cell['index'], cell['normal'], cell['film'])
 
 
 def posGenerator_top_nolength(IN, cellSizeX, cellSizeY, cellSizeZ):
-    emptyZ = 70
+    emptyZ = 10
     position_matrix = np.array([np.random.rand(IN)*cellSizeX, \
                                 np.random.rand(IN)*cellSizeY, \
                                 np.random.uniform(0, emptyZ, IN) + cellSizeZ - emptyZ], dtype=np.double).T

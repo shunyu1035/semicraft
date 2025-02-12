@@ -312,7 +312,12 @@ class Rnd {
 	
 		double operator() () { return rnd_dist(mt_gen); }
 		//double operator() () {return rnd_dist(mt_gen);}
-	
+		
+	    // 生成 [0, N] 之间的 int 随机数
+		int getInt(int N) {
+			std::uniform_int_distribution<int> dist(0, N);  // 指定范围
+			return dist(mt_gen);
+		}
 	protected:
 		std::mt19937 mt_gen;	    //random number generator
 		std::uniform_real_distribution<double> rnd_dist;  //uniform distribution

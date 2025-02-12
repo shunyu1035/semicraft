@@ -1,91 +1,51 @@
-template<typename T>
-class threadsafe_queue
-{
-private:
-  struct node
-  {
-    std::shared_ptr<T> data;
-    std::unique_ptr<node> next;
-  };
-  std::mutex head_mutex;
-  std::unique_ptr<node> head;
-  std::mutex tail_mutex;
-  node* tail;
+#include <random>
+#include <iostream>
 
-  node* get_tail()
-  {
-    std::lock_guard<std::mutex> tail_lock(tail_mutex);
-    return tail;
-  }
+// Rnd 类定义
+class Rnd {
+public:
+    // 默认构造函数：使用随机设备种子
+    Rnd() : mt_gen{std::random_device()()}, rnd_dist_double{0, 1.0} {}
 
-  std::unique_ptr<node> pop_head()
-  {
-    std::lock_guard<std::mutex> head_lock(head_mutex);
-    if(head.get()==get_tail())
-    {
-      return nullptr;
+    // 接受种子作为参数的构造函数
+    explicit Rnd(unsigned int seed) : mt_gen{seed}, rnd_dist_double{0, 1.0} {}
+
+    // 生成 [0, 1] 之间的 double 随机数
+    double operator()() { return rnd_dist_double(mt_gen); }
+
+    // 生成 [0, N] 之间的 int 随机数
+    int getInt(int N) {
+        std::uniform_int_distribution<int> dist(0, N);  // 指定范围
+        return dist(mt_gen);
     }
-    std::unique_ptr<node> old_head=std::move(head);
-    head=std::move(old_head->next);
-    return old_head;
-  }
-public:
-  threadsafe_queue():
-  head(new node),tail(head.get())
-  {}
-  threadsafe_queue(const threadsafe_queue& other)=delete;
-  threadsafe_queue& operator=(const threadsafe_queue& other)=delete;
 
-  std::shared_ptr<T> try_pop()
-  {
-     std::unique_ptr<node> old_head=pop_head();
-     return old_head?old_head->data:std::shared_ptr<T>();
-  }
-
-  void push(T new_value)
-  {
-    std::shared_ptr<T> new_data(
-      std::make_shared<T>(std::move(new_value)));
-    std::unique_ptr<node> p(new node);
-    node* const new_tail=p.get();
-    std::lock_guard<std::mutex> tail_lock(tail_mutex);
-    tail->data=new_data;
-    tail->next=std::move(p);
-    tail=new_tail;
-  }
+protected:
+    std::mt19937 mt_gen;  // Mersenne Twister 伪随机数生成器
+    std::uniform_real_distribution<double> rnd_dist_double;  // double 随机数分布
 };
 
-
-template<typename T>
-class lock_free_stack
-{
-private:
-  struct node
-  {
-    T data;
-    node* next;
-    node(T const& data_):  // 1
-     data(data_)
-    {}
-  };
-  std::atomic<node*> head;
+// 目标类
+class MyClass {
 public:
-  void push(T const& data)
-  {
-    node* const new_node=new node(data); // 2
-    new_node->next=head.load();  // 3
-    while(!head.compare_exchange_weak(new_node->next,new_node));  // 4
-  }
+    void generateRandom() {
+        // 在成员函数中创建 Rnd 对象
+        Rnd rnd;  // 默认构造：使用随机种子
+        std::cout << "Random double (0-1): " << rnd() << std::endl;
+        std::cout << "Random int (0-10): " << rnd.getInt(10) << std::endl;
+    }
+
+    void generateRandomWithSeed(unsigned int seed) {
+        // 使用指定种子初始化
+        Rnd rnd(seed);
+        std::cout << "Random double with seed (0-1): " << rnd() << std::endl;
+        std::cout << "Random int with seed (0-10): " << rnd.getInt(10) << std::endl;
+    }
 };
 
-template<typename T>
-class lock_free_stack
-{
-public:
-  void pop(T& result)
-  {
-    node* old_head=head.load();
-    while(!head.compare_exchange_weak(old_head,old_head->next));
-    result=old_head->data;
-  }
-};
+int main() {
+    MyClass obj;
+    obj.generateRandom();  // 使用默认种子
+    obj.generateRandomWithSeed(42);  // 使用自定义种子
+
+    return 0;
+}
