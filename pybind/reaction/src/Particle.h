@@ -33,7 +33,7 @@ class Species
 {
 public:
 	Species(std::string name, int id, World &world) :
-		name(name), id(id), world(world) { 	}
+	rnd(), name(name), id(id), world(world) { 	}
 
 	/*returns the number of simulation particles*/
 	size_t getNp()	{return particles.size();}
@@ -42,10 +42,12 @@ public:
 	/*adds a new particle*/
 	void addParticle(double3 pos, double3 vel, double E, int id);
 
+	void addParticleIn();
+
 	void inletParticle(Particle part){
-		Rnd rng(10); 
+		// Rnd rng; 
 		int randID;
-		randID = rng.getInt(particles.size());
+		randID = rnd.getInt(particles.size());
 
 		double3 pos = world.posInlet();
 		double3 vel = particleIn[randID].vel;
@@ -77,19 +79,35 @@ public:
 			std::cout << "particles["<< id <<"].pos: " << particles[id].pos << std::endl;    // 输出: particles[id].pos
 			std::cout << "particles["<< id <<"].vel: " << particles[id].vel << std::endl;    // 输出: particles[id].pos
 		}
-		std::cout << "No enough particle: " << particles.size() <<  std::endl;
+		else{
+			std::cout << "No enough particle: " << particleIn.size() <<  std::endl;
+		}
 	}
 	/*moves all particles */
 	void advance(int reaction_count);
 
+	void showParticleIn(int id){
+		int a = particleIn.size();
+		if(a > id){
+			std::cout << "particleIn["<< id <<"].pos: " << particleIn[id].pos << std::endl;    // 输出: particles[id].pos
+			std::cout << "particleIn["<< id <<"].vel: " << particleIn[id].vel << std::endl;    // 输出: particles[id].pos
+			std::cout << "particleIn["<< id <<"].id: " << particleIn[id].id << std::endl; 
+			std::cout << "particleIn["<< id <<"].E: " << particleIn[id].E << std::endl;
+		}
+		else{
+			std::cout << "No enough particle: " << particleIn.size() <<  std::endl;
+		}
+	}
+	
+	Rnd rnd;  // 类的成员变量
 	const std::string name;			/*species name*/
 	const int id;
 	std::vector<Particle> particles;	/*contiguous array for storing particles*/
-	// std::vector<Particle> particleIn;	/*contiguous array for add*/
+	std::vector<Particle> particleIn;	/*contiguous array for add*/
 
 protected:
 	World &world;
-	std::vector<Particle> particleIn;	/*contiguous array for add*/
+	// std::vector<Particle> particleIn;	/*contiguous array for add*/
 };
 
 

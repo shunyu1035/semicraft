@@ -9,8 +9,11 @@ ext_modules = [
         # ["Cell.cpp"],
         sorted(glob("src/*.cpp")),  # 所有的源文件
         include_dirs=['/usr/include/eigen3'],  # Eigen路径
-        extra_compile_args=["-fopenmp"],
-        extra_link_args=["-fopenmp"],
+        # extra_compile_args=["-fopenmp", "-g", "-O0"],
+        # extra_link_args=["-fopenmp"],
+        extra_compile_args=["-fopenmp", "-g"],
+        extra_link_args=["-fopenmp", "-g"],
+
 
     ),
 ]

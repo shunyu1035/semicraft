@@ -3,7 +3,7 @@
 
 
 
-void Simulation::runSimulation(int id){
+void Simulation::runSimulation(){
     World world(ni, nj, nk, 5);
     world.print_rn_angle();
 
@@ -11,6 +11,7 @@ void Simulation::runSimulation(int id){
     std::cout << "World xm: " << xm << std::endl; 
 
     world.set_cell(Cells);
+    world.inputParticle(particles);
 
     /*check command line arguments for thread count*/
     int num_threads = std::thread::hardware_concurrency();
@@ -25,40 +26,44 @@ void Simulation::runSimulation(int id){
     Species sp("test", 1, world);
     sp.inputParticle(particles);
 
-    sp.printParticle(id);
-
-    int reaction_count = 0;
+    // int reaction_count = 0;
     // sp.change_cell(5,5,5);
-    for(size_t t=0; t<10000; ++t){
-        std::cout<<"Running "<< t <<" step; " <<"    reaction_count: "<< reaction_count <<std::endl;
+    for(size_t t=0; t<4000; ++t){
+        int reaction_count = 0;
+        std::cout<<"Running "<< t <<" step; "  <<std::endl;
         sp.advance(reaction_count);
     }
-    sp.advance(reaction_count);
+    // sp.advance(reaction_count);
     // world.change_cell(5,5,5);
     // world.WprintCell(5,5,5);  
 
 
     std::cout << "After advance particle size: " << sp.getNp() <<  std::endl;
 
-    sp.printParticle(id);
+    // sp.printParticle(id);
 
-    int3 posInt = {(int)sp.particles[id].pos[0], (int)sp.particles[id].pos[1], (int)sp.particles[id].pos[2]};
-    bool testIn = world.inFilm(posInt);
-
-    if(testIn){
-        std::cout << "Film in : " << std::endl;
-        std::cout << "particle size: " << sp.particles.size() << std::endl;
-        std::cout << "particles["<< id <<"].pos: " << sp.particles[id].pos << std::endl; 
+    // int3 posInt = {(int)sp.particles[id].pos[0], (int)sp.particles[id].pos[1], (int)sp.particles[id].pos[2]};
+    // bool testIn = world.inFilm(posInt);
+    for(size_t i=0; i<particles.size(); ++i){
+    if(world.inBounds(sp.particles[i].pos)){        
+        continue;
     }
     else{
-        std::cout << "Film out :" << std::endl;
+        
+        std::cout << "Film out :" << i << std::endl;
         std::cout << "particle size: " << sp.particles.size() << std::endl;
-        std::cout << "particles["<< id <<"].pos: " << sp.particles[id].pos << std::endl; 
+        std::cout << "particles["<< i <<"].pos: " << sp.particles[i].pos << std::endl; 
+        std::cout << "particles["<< i <<"].vel: " << sp.particles[i].vel << std::endl; 
+        std::cout << "particles["<< i <<"].id: " << sp.particles[i].id << std::endl; 
+        std::cout << "particles["<< i <<"].E: " << sp.particles[i].E << std::endl; 
+        std::cout << "Simulation particle size: " << particles.size() <<  std::endl;
+        sp.showParticleIn(i);
+
+        break;
+    }
     }
 
-    std::cout << "Simulation particle size: " << particles.size() <<  std::endl;
-
-
+    std::cout << "Film in :" << std::endl;
 }
 
 

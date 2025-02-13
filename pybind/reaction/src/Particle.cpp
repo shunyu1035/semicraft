@@ -26,6 +26,8 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		thread_local Rnd rnd;
 		Particle &part = particles[p];
 		int3 posInt = {(int)part.pos[0], (int)part.pos[1], (int)part.pos[2]};
+		// std::cout << "posInt: " << posInt[0] << ", " << posInt[1] << ", " << posInt[2] << std::endl;
+
 		/*判断粒子是否进入cell表面*/
 		if (world.inFilm(posInt))
 		{
@@ -59,7 +61,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		/*did this particle get inside the sphere or leave the domain?*/
 		if (!world.inBounds(part.pos))
 		{
-			part.id = -1;	//mark the particle as dead by setting its weight to zero
+			part = world.inletParticle();
 			continue;
 		}
 	}
@@ -83,20 +85,28 @@ void Species::advance(int reaction_count){
 	for (std::thread &t: threads) t.join();
 
 	/*perform a particle removal step, dead particles are replaced by the entry at the end*/
-	for (size_t p=0;p<np;p++)
-	{
-		if (particles[p].id<0){
-			inletParticle(particles[p]);
-			reaction_count++;
-		}
-		// if (particles[p].id>=0) continue;	//ignore live particles
-		// particles[p] = particles[np-1]; //fill the hole
-		// np--;	//reduce count of valid elements
-		// p--;	//decrement p so this position gets checked again
-	}
+	// for (size_t p=0;p<np;p++)
+	// {
+	// 	// if (particles[p].id<0){
+	// 	// 	// inletParticle(particles[p]);
+	// 	// 	// std::cout << "Advance reaction_count: "<< reaction_count <<  std::endl;
+	// 	// 	reaction_count++;
+	// 	// }
+	// 	if (particles[p].id>=0){
+	// 		reaction_count++;
+	// 		continue;
+	// 	} 	//ignore live particles
+	// 	particles[p] = particles[np-1]; //fill the hole
+	// 	np--;	//reduce count of valid elements
+	// 	p--;	//decrement p so this position gets checked again
+	// }
 
 	//now delete particles[np:end]
 	// particles.erase(particles.begin()+np,particles.end());
+
+	// for (int i=0; i<reaction_count;i++){
+	// 	addParticleIn();
+	// }
 
 }
 
@@ -112,6 +122,20 @@ void Species::addParticle(double3 pos, double3 vel, double E, int id)
 }
 
 
+void Species::addParticleIn(){
+	Rnd rng; 
+	int randID;
+	randID = rng.getInt(particleIn.size());
+
+	double3 pos = world.posInlet();
+	double3 vel = particleIn[randID].vel;
+	double E = particleIn[randID].E;
+	int id = particleIn[randID].id;
+
+	// particles.emplace_back(pos, vel, E, id)
+	addParticle(pos, vel, E, id);
+
+}
 // void Species::change_cell(int idx, int idy, int idz){
 //     double3 test{1, 1, 1};
 //     world.Cells[idx][idy][idz].normal += test;

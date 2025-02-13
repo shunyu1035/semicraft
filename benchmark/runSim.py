@@ -281,4 +281,4 @@ E  = vel_matrix[:, -2].copy()
 
 simulation.inputParticle(pos, vel, E, id)
 
-simulation.runSimulation(9)
+simulation.runSimulation()

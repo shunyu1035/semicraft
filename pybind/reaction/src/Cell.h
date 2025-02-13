@@ -55,7 +55,7 @@ class World
 public:	
 	/*constructor, allocates memory*/
 	World(int ni, int nj, int nk, int FILMSIZE): 
-     ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,(double)nk}), rn_angle(180) {
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,(double)nk}), rn_angle(180) {
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
@@ -67,6 +67,42 @@ public:
 	// /*functions to set mesh origin and spacing*/
 	// void setExtents() {xm[0] = <double>ni; xm[1] = <double>nj; xm[2] = <double>nk;}
 	
+	void inputParticle(std::vector<Particle> particleAll){
+		particleIn = particleAll;
+		std::cout << "particleIn size: " << particleIn.size() <<  std::endl;
+	}
+
+
+
+	Particle inletParticle(){
+
+		int randID;
+		randID = rng.getInt(particleIn.size());
+
+		double3 pos = posInlet();
+
+		// std::cout << "particleIn pos: " << pos <<  std::endl;
+		Particle part = particleIn[randID];
+		part.pos = pos;
+		// double3 vel = particleIn[randID].vel;
+		// double E = particleIn[randID].E;
+		// int id = particleIn[randID].id;
+
+		// part.pos[0] = pos[0];
+		// part.pos[1] = pos[1];
+		// part.pos[2] = pos[2];
+		// part.vel[0] = vel[0];
+		// part.vel[1] = vel[1];
+		// part.vel[2] = vel[2];
+		// part.E = E;
+		// part.id = id;
+
+
+		return part;
+		// addParticle(pos, vel, E, id);
+
+	}
+
 	double3 getXm() const {return double3(xm);}
 
 	bool inBounds(double3 pos) {
@@ -76,6 +112,11 @@ public:
 	}
 
 	bool inFilm(int3 posInt){
+	// 	if (posInt[0] < 0 || posInt[0] >= Cells.size() ||
+    //     posInt[1] < 0 || posInt[1] >= Cells[0].size() ||
+    //     posInt[2] < 0 || posInt[2] >= Cells[0][0].size()) {
+    //     return false; // 超出边界，返回 false
+    // }
 		// int3 posInt = {(int)pos[0], (int)pos[1], (int)pos[2]};
 		if (Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 1 ) return true;
 		return false;
@@ -250,11 +291,11 @@ public:
 	}
 
 	double3 posInlet(){
-		Rnd rnd;
-		double x = xm[0] * rnd();
-		double y = xm[1] * rnd();
+		// Rnd rnd;
+		double x = xm[0] * rng();
+		double y = xm[1] * rng();
 		double z = topGap;
-		z *= rnd();
+		z *= rng();
 		z += xm[2] - topGap;
 		double3 pos{x, y, z};
 		return pos;
@@ -263,6 +304,7 @@ public:
 	void film_add(int3 posInt, std::vector<int> react_add);
 
 	//mesh geometry
+	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
 	const int FILMSIZE;
     std::vector<Field> buffers;	//temporary buffers for density calculation
@@ -270,7 +312,8 @@ public:
 	
 	std::vector<std::vector<int>> react_type_table;
 	std::vector<std::vector<std::vector<int>>> react_table_equation;
-
+	std::vector<Particle> particleIn;	/*contiguous array for add*/
+	// Rnd rng;
 protected:
 	double topGap;
 	double3 xm;	//origin-diagonally opposite corner (max bound)
