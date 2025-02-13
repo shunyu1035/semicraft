@@ -282,3 +282,16 @@ E  = vel_matrix[:, -2].copy()
 simulation.inputParticle(pos, vel, E, id)
 
 simulation.runSimulation()
+
+typeID_array, film_array = simulation.cell_data_to_numpy()
+
+print('film_array:', film_array.shape)
+
+print(np.any(film_array[:,:,:,0] < 0))
+
+if np.any(film_array[:,:,:,0] < 0):
+    print(np.where(film_array[:,:,:,0] < 0))
+    etch_point = np.array(np.where(film_array[:,:,:,0] < 0)).T
+    print(etch_point)
+    for i in etch_point:
+        print(film_array[i[0],i[1],i[2]])

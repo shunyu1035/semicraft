@@ -64,6 +64,7 @@ void Simulation::runSimulation(){
     }
 
     std::cout << "Film in :" << std::endl;
+    Cells = world.Cells;
 }
 
 
@@ -102,6 +103,7 @@ PYBIND11_MODULE(SimProfile, m) {
         .def("printCell", &Simulation::printCell)
         .def("runSimulation", &Simulation::runSimulation)
         .def("normal_to_numpy", &Simulation::normal_to_numpy)
+        .def("cell_data_to_numpy", &Simulation::cell_data_to_numpy)
         .def("print_react_table_equation", &Simulation::print_react_table_equation)
         .def("set_all_parameters", &Simulation::set_all_parameters,
             py::arg("react_table_equation"),

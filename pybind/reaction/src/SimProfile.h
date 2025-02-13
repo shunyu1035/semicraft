@@ -455,4 +455,57 @@ public:
         }
         return result;
     }
+
+    py::tuple cell_data_to_numpy() const {
+        if (Cells.empty() || Cells[0].empty() || Cells[0][0].empty()) {
+            throw std::runtime_error("Cells 数据为空");
+        }
+    
+        size_t dim0 = Cells.size();
+        size_t dim1 = Cells[0].size();
+        size_t dim2 = Cells[0][0].size();
+    
+        // 创建用于存储 typeID 的 NumPy 数组
+        auto typeID_array = py::array_t<int>({dim0, dim1, dim2});
+        auto typeID_buf = typeID_array.request();
+        int* typeID_ptr = static_cast<int*>(typeID_buf.ptr);
+    
+        // 计算 film 向量的最大长度
+        size_t max_film_length = 0;
+        for (const auto& layer : Cells) {
+            for (const auto& row : layer) {
+                for (const auto& cell : row) {
+                    if (cell.film.size() > max_film_length) {
+                        max_film_length = cell.film.size();
+                    }
+                }
+            }
+        }
+    
+        // 创建用于存储 film 的 NumPy 数组，形状为 (dim0, dim1, dim2, max_film_length)
+        auto film_array = py::array_t<int>({dim0, dim1, dim2, max_film_length});
+        auto film_buf = film_array.request();
+        int* film_ptr = static_cast<int*>(film_buf.ptr);
+    
+        // 将数据复制到 NumPy 数组
+        for (size_t i = 0; i < dim0; ++i) {
+            for (size_t j = 0; j < dim1; ++j) {
+                for (size_t k = 0; k < dim2; ++k) {
+                    const Cell& cell = Cells[i][j][k];
+                    typeID_ptr[i * dim1 * dim2 + j * dim2 + k] = cell.typeID;
+    
+                    // 复制 film 数据，如果长度不足 max_film_length，填充 0
+                    for (size_t l = 0; l < max_film_length; ++l) {
+                        if (l < cell.film.size()) {
+                            film_ptr[i * dim1 * dim2 * max_film_length + j * dim2 * max_film_length + k * max_film_length + l] = cell.film[l];
+                        } else {
+                            film_ptr[i * dim1 * dim2 * max_film_length + j * dim2 * max_film_length + k * max_film_length + l] = 0;
+                        }
+                    }
+                }
+            }
+        }
+    
+        return py::make_tuple(typeID_array, film_array);
+    } 
 };
