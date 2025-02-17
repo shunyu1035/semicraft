@@ -55,9 +55,9 @@ void World::film_add(int3 posInt, std::vector<int> react_add){
 }
 
 
-std::vector<int> World::sticking_probability_structed(const Particle& particle, const Cell& cell, double angle_rad, Rnd &rnd) {
+std::vector<bool> World::sticking_probability_structed(const Particle& particle, const Cell& cell, double angle_rad, Rnd &rnd) {
 
-    std::vector<int> sticking_acceptList(FILMSIZE, 0);
+    std::vector<bool> sticking_acceptList(FILMSIZE, false);
     std::vector<double> choice(FILMSIZE);
 
     // 使用外部传入的 rnd 生成 [0,1) 内的随机数
@@ -90,7 +90,7 @@ std::vector<int> World::sticking_probability_structed(const Particle& particle, 
         }
 
         if (sticking_rate > choice[j]) {
-            sticking_acceptList[j] = 1;
+            sticking_acceptList[j] = true;
         }
     }
     return sticking_acceptList;

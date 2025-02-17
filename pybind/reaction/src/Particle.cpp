@@ -15,7 +15,7 @@ int find_max_position(const std::vector<double>& arr) noexcept {
     // 计算迭代器的位置
     int max_pos = std::distance(arr.begin(), max_iter);
 
-    return 0;
+    return max_pos;
 }
 
 void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Particle> &particles)
@@ -32,28 +32,46 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		if (world.inFilm(posInt))
 		{
 			double angle_rad = acos(fabs(dot(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal)));
-			std::vector<int> sticking_acceptList = world.sticking_probability_structed(part, world.Cells[posInt[0]][posInt[1]][posInt[2]], angle_rad, rnd);
-			std::vector<double> react_choice_random(sticking_acceptList.size(), 0);
-			for (int i=0; i<world.FILMSIZE; ++i){
-				react_choice_random[i] = rnd();
-			}
-			int react_choice = find_max_position(react_choice_random);
-
-			const int react_type = world.react_type_table[part.id][react_choice];
+			std::vector<bool> sticking_acceptList = world.sticking_probability_structed(part, world.Cells[posInt[0]][posInt[1]][posInt[2]], angle_rad, rnd);
 			
-			std::vector<int> react_add(world.FILMSIZE, 0);
-
-			for (int f=0; f<world.FILMSIZE; ++f){
-				// std::cout << world.react_table_equation[part.id][react_choice][f] <<  std::endl;
-				react_add[f] = world.react_table_equation[part.id][react_choice][f];
-				// std::cout << react_add[f] <<  std::endl;
+			// std::cout << "sticking_acceptList: ";
+			// for (size_t f = 0; f < sticking_acceptList.size(); ++f) {
+			//     std::cout << sticking_acceptList[f] << ' ';
+			// }
+			// std::cout << '\n';
+			bool stick_bool = false;
+			for (int s=0; s<world.FILMSIZE; ++s){
+				if(sticking_acceptList[s]){
+					stick_bool = true;
+				}
 			}
+			if(stick_bool){
+				std::vector<double> react_choice_random(world.FILMSIZE, 0);
+				for (int i=0; i<world.FILMSIZE; ++i){
+					if(sticking_acceptList[i]){
+						react_choice_random[i] = rnd();
+					}
+				}
+				int react_choice = find_max_position(react_choice_random);
 
-			if(react_type == 1){
-				world.film_add(posInt, react_add);
-			}
-			else if(react_type == 4){
-				world.film_add(posInt, react_add);
+				std::cout << "react_choice: " << react_choice << std::endl;
+
+				const int react_type = world.react_type_table[part.id][react_choice];
+				
+				std::vector<int> react_add(world.FILMSIZE, 0);
+
+				for (int f=0; f<world.FILMSIZE; ++f){
+					// std::cout << world.react_table_equation[part.id][react_choice][f] <<  std::endl;
+					react_add[f] = world.react_table_equation[part.id][react_choice][f];
+					// std::cout << react_add[f] <<  std::endl;
+				}
+
+				if(react_type == 1){
+					world.film_add(posInt, react_add);
+				}
+				else if(react_type == 4){
+					world.film_add(posInt, react_add);
+				}
 			}
 		}
 
