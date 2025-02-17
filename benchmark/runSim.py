@@ -244,10 +244,11 @@ cell = np.zeros((film_label_index_normal_mirror.shape[0],
                  film_label_index_normal_mirror.shape[1], 
                  film_label_index_normal_mirror.shape[2]), dtype=Cell_dtype)
 
-cell['id'] = film_label_index_normal_mirror[:,:,:,0]
-cell['normal'] = film_label_index_normal_mirror[:,:,:,-3:]
-cell['film'] = film_mirror
-cell['index'] = film_label_index_normal_mirror[:,:,:,1:4]
+
+cellid = np.ascontiguousarray(film_label_index_normal_mirror[:,:,:,0].copy(), dtype=np.int32)
+cellnormal = np.ascontiguousarray(film_label_index_normal_mirror[:,:,:,-3:].copy(), dtype=np.double)
+cellfilm = np.ascontiguousarray(film_mirror.copy(), dtype=np.int32)
+cellindex = np.ascontiguousarray(film_label_index_normal_mirror[:,:,:,1:4].copy(), dtype=np.int32)
 
 
 simulation = SimProfile.Simulation(42, 26, 190, 670)
@@ -255,7 +256,7 @@ simulation = SimProfile.Simulation(42, 26, 190, 670)
 simulation.set_all_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, rn_coeffcients)
 simulation.print_react_table_equation()
 
-simulation.inputCell(cell['id'], cell['index'], cell['normal'], cell['film'])
+simulation.inputCell(cellid, cellindex, cellnormal, cellfilm)
 
 
 def posGenerator_top_nolength(IN, cellSizeX, cellSizeY, cellSizeZ):
@@ -267,7 +268,7 @@ def posGenerator_top_nolength(IN, cellSizeX, cellSizeY, cellSizeZ):
 
 
 N = int(1e6)
-particle_list = [[N, 1, 'maxwell', 50]]
+particle_list = [[N, 0, 'maxwell', 50]]
 vel_matrix = particleGenerator.vel_generator(particle_list)
 
 pos = posGenerator_top_nolength(N, 26, 190, 670)

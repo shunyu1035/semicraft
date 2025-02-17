@@ -306,6 +306,13 @@ public:
                     for (size_t n = 0; n < filmN; ++n) {
                         film[n] = film_ptr[offset_film + n];
                     }
+                    // std::cout << "normal: " << normal << std::endl;
+                    // std::cout << "index: " << index << std::endl;
+                    // std::cout << "film: ";
+                    // for (size_t f = 0; f < film.size(); ++f) {
+                    //     std::cout << film[f] << ' ';
+                    // }
+                    // std::cout << '\n';
                     Cells[i][j].emplace_back(typeID_ptr[offset], index, normal, film);
                 }
             }
@@ -471,17 +478,8 @@ public:
         int* typeID_ptr = static_cast<int*>(typeID_buf.ptr);
     
         // 计算 film 向量的最大长度
-        size_t max_film_length = 0;
-        for (const auto& layer : Cells) {
-            for (const auto& row : layer) {
-                for (const auto& cell : row) {
-                    if (cell.film.size() > max_film_length) {
-                        max_film_length = cell.film.size();
-                    }
-                }
-            }
-        }
-    
+        size_t max_film_length = 5;
+
         // 创建用于存储 film 的 NumPy 数组，形状为 (dim0, dim1, dim2, max_film_length)
         auto film_array = py::array_t<int>({dim0, dim1, dim2, max_film_length});
         auto film_buf = film_array.request();

@@ -15,7 +15,7 @@ int find_max_position(const std::vector<double>& arr) noexcept {
     // 计算迭代器的位置
     int max_pos = std::distance(arr.begin(), max_iter);
 
-    return max_pos;
+    return 0;
 }
 
 void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Particle> &particles)
@@ -44,7 +44,9 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 			std::vector<int> react_add(world.FILMSIZE, 0);
 
 			for (int f=0; f<world.FILMSIZE; ++f){
+				// std::cout << world.react_table_equation[part.id][react_choice][f] <<  std::endl;
 				react_add[f] = world.react_table_equation[part.id][react_choice][f];
+				// std::cout << react_add[f] <<  std::endl;
 			}
 
 			if(react_type == 1){

@@ -48,7 +48,9 @@ double World::linear_interp(double x, const std::vector<double>& xp, const std::
 
 void World::film_add(int3 posInt, std::vector<int> react_add){
     for (int a=0; a<FILMSIZE; ++a){
+        // std::cout << react_add[a] <<  std::endl;
         Cells[posInt[0]][posInt[1]][posInt[2]].film[a] += react_add[a];
+        // std::cout << Cells[posInt[0]][posInt[1]][posInt[2]].film[a] <<  std::endl;
     }
 }
 
