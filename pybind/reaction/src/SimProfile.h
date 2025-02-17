@@ -97,6 +97,8 @@ private:
     std::vector<double> react_prob_chemical;
     std::vector<double> react_yield_p0;
     std::vector<std::vector<double>> rn_coeffcients;
+    std::vector<double> sputter_yield_coefficient;
+    std::vector<double> film_eth;
 
 public:
     // 构造函数：初始化随机数引擎
@@ -180,7 +182,6 @@ public:
     }
 
 
-    // 从 NumPy 数组设置数据，要求输入必须为三维数组
     void set_react_yield_p0(py::array_t<double> arr) {
         py::buffer_info buf = arr.request();
         if (buf.ndim != 1) {
@@ -199,6 +200,23 @@ public:
         }
     }
 
+    void set_film_eth(py::array_t<double> arr) {
+        py::buffer_info buf = arr.request();
+        if (buf.ndim != 1) {
+            throw std::runtime_error("react_yield_p0 输入数组必须是1维的");
+        }
+        // 获取每一维的大小
+        ssize_t dim0 = buf.shape[0];
+        double* ptr = static_cast<double*>(buf.ptr);
+
+        // 按三维结构分配 react_table_equation
+        film_eth.resize(dim0);
+        for (ssize_t i = 0; i < dim0; ++i) {
+            // 计算内存中对应的起始偏移：
+            ssize_t offset = i;
+            film_eth[i] = ptr[offset];
+        }
+    }
 
     // 从 NumPy 数组设置数据，要求输入必须为三维数组
     void set_react_prob_chemical(py::array_t<double> arr) {
@@ -225,12 +243,14 @@ public:
                             py::array_t<int> react_type_table,
                             py::array_t<double> react_prob_chemical,
                             py::array_t<double> react_yield_p0,
+                            py::array_t<double> film_eth,
                             py::array_t<double> rn_coeffcients){
 
         set_react_table_equation(react_table_equation);
         set_react_type_table(react_type_table);
         set_react_prob_chemical(react_prob_chemical);
         set_react_yield_p0(react_yield_p0);
+        set_film_eth(film_eth);
         set_rn_coeffcients(rn_coeffcients);
     }
 
@@ -324,6 +344,21 @@ public:
         // }
     }
 
+
+    void input_sputter_yield_coefficient(py::array_t<double> sputter_yield_coefficient_py){
+        py::buffer_info  sputter_yield_coefficient_py_buf = sputter_yield_coefficient_py.request();
+        size_t shape = sputter_yield_coefficient_py_buf.shape[0];
+        double* sputter_yield_coefficient_ptr = static_cast<double*>(sputter_yield_coefficient_py_buf.ptr);
+        sputter_yield_coefficient.resize(shape);
+
+        std::cout << "sputter_yield_coefficient: ";
+        for(size_t i=0; i<shape; ++i){
+            sputter_yield_coefficient[i] = sputter_yield_coefficient_ptr[i];
+            std::cout << sputter_yield_coefficient[i] << ' ';
+        }
+        std::cout << '\n';
+
+    }
 
     void inputParticle(
         py::array_t<double> pos_py,

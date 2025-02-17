@@ -54,7 +54,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				}
 				int react_choice = find_max_position(react_choice_random);
 
-				std::cout << "react_choice: " << react_choice << std::endl;
+				// std::cout << "react_choice: " << react_choice << std::endl;
 
 				const int react_type = world.react_type_table[part.id][react_choice];
 				
@@ -65,12 +65,21 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					react_add[f] = world.react_table_equation[part.id][react_choice][f];
 					// std::cout << react_add[f] <<  std::endl;
 				}
-
+				//  chemical transfer
 				if(react_type == 1){
 					world.film_add(posInt, react_add);
 				}
+				// chemical remove
 				else if(react_type == 4){
 					world.film_add(posInt, react_add);
+				}
+				// physics sputter
+				else if(react_type == 2){
+					double react_yield = world.sputter_yield(world.react_yield_p0[0], angle_rad, part.E, world.film_eth[react_choice]);
+					// std::cout << react_yield <<  std::endl;
+					if(react_yield > rnd()){
+						world.film_add(posInt, react_add);
+					}
 				}
 			}
 		}

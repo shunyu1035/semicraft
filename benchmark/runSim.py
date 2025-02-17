@@ -36,13 +36,14 @@ react_type_table = np.array([[1, 1, 1, 4, 0], # 1: chlorination  # 0: no reactio
 
 react_prob_chemical = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
 react_yield_p0 = np.array([0.30, 0.30, 0.30, 0.30, 0.30])
-
+film_eth = np.array([5, 5, 5, 5, 5], dtype=np.double)
 
 rn_coeffcients = np.array([[0.9423, 0.9434, 2.742, 3.026],
                             [0.9620, 0.9608, 2.542, 3.720],
                             [0.9458, 0.9445, 2.551, 3.735],
                             [1.046, 1.046, 2.686, 4.301]])
 
+sputter_yield_coefficient = [0.3, 0.001, np.pi/4]
 
 # 读取图像为灰度模式
 image = Image.open("./hard_mask_KLA3.jpg").convert("L")
@@ -253,7 +254,8 @@ cellindex = np.ascontiguousarray(film_label_index_normal_mirror[:,:,:,1:4].copy(
 
 simulation = SimProfile.Simulation(42, 26, 190, 670)
 
-simulation.set_all_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, rn_coeffcients)
+simulation.set_all_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients)
+simulation.input_sputter_yield_coefficient(sputter_yield_coefficient)
 simulation.print_react_table_equation()
 
 simulation.inputCell(cellid, cellindex, cellnormal, cellfilm)
@@ -268,7 +270,7 @@ def posGenerator_top_nolength(IN, cellSizeX, cellSizeY, cellSizeZ):
 
 
 N = int(1e6)
-particle_list = [[N, 0, 'maxwell', 50]]
+particle_list = [[N, 1, 'maxwell', 50]]
 vel_matrix = particleGenerator.vel_generator(particle_list)
 
 pos = posGenerator_top_nolength(N, 26, 190, 670)
@@ -296,3 +298,12 @@ if np.any(film_array[:,:,:,0] < 0):
     print(etch_point)
     for i in etch_point:
         print(film_array[i[0],i[1],i[2]])
+
+
+print('typeID_array:', typeID_array.shape)
+
+for i in range(typeID_array.shape[0]):
+    for j in range(typeID_array.shape[1]):
+        for k in range(typeID_array.shape[2]):
+            if typeID_array[i,j,k] == 1:
+                print(film_array[i,j,k])

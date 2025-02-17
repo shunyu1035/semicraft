@@ -166,12 +166,14 @@ public:
 		const std::vector<std::vector<int>>& react_type_table,
 		const std::vector<double>& react_prob_chemical,
 		const std::vector<double>& react_yield_p0,
+		const std::vector<double>& film_eth,
 		const std::vector<std::vector<double>>& rn_coeffcients
 	) {
 		this->react_table_equation = react_table_equation;
 		this->react_type_table = react_type_table;
 		this->react_prob_chemical = react_prob_chemical;
 		this->react_yield_p0 = react_yield_p0;
+		this->film_eth = film_eth;
 		this->rn_coeffcients = rn_coeffcients;
 		this->rn_matrix = Rn_matrix_func(rn_coeffcients);
 		print3DVector(react_table_equation);
@@ -303,15 +305,75 @@ public:
 
 	void film_add(int3 posInt, std::vector<int> react_add);
 
+
+	// 生成从start到end，步长为step的序列
+	std::vector<double> linspace(double start, double end, double step) {
+		std::vector<double> result;
+		for (double value = start; value <= end; value += step) {
+			result.push_back(value);
+		}
+		return result;
+	}
+
+	// 计算溅射产率随入射角度的变化
+	void sputter_yield_angle(const double gamma0, const double gammaMax, const double thetaMax) {
+		double f = -std::log(gammaMax / gamma0) / (std::log(std::cos(gammaMax)) + 1 - std::cos(thetaMax));
+		double s = f * std::cos(thetaMax);
+		std::vector<double> theta = linspace(0, M_PI / 2, M_PI / 360);
+		std::vector<double> sputterYield(theta.size());
+
+		for (size_t i = 0; i < theta.size(); ++i) {
+			sputterYield[i] = gamma0 * std::pow(std::cos(theta[i]), -f) * std::exp(-s * (1 / std::cos(theta[i]) - 1));
+		}
+		sputterYield.back() = 0;
+		theta.back() = M_PI / 2;
+
+		sputterYield_ion.resize(2);
+		for (size_t j = 0; j < theta.size(); ++j) {
+			sputterYield_ion[0].push_back(sputterYield[j]);
+			sputterYield_ion[1].push_back(theta[j]);
+		}
+	}
+
+	// 计算溅射产率随能量的变化
+	double sputter_yield_energy(double E, const double Eth) {
+		return std::sqrt(E) - std::sqrt(Eth);
+	}
+
+	// 线性插值函数
+	double linear_interpolate_sputter(const std::vector<double>& x, const std::vector<double>& y, double xi) {
+		if (x.size() != y.size()) {
+			throw std::invalid_argument("x and y must have the same size");
+		}
+		for (size_t i = 1; i < x.size(); ++i) {
+			if (xi < x[i]) {
+				double t = (xi - x[i - 1]) / (x[i] - x[i - 1]);
+				return y[i - 1] + t * (y[i] - y[i - 1]);
+			}
+		}
+		return y.back();
+	}
+
+	// 计算最终的溅射产率
+	double sputter_yield(double p0, double theta, double energy, const double Eth) {
+		double angle_factor = linear_interpolate_sputter(sputterYield_ion[1], sputterYield_ion[0], theta);
+		double energy_factor = sputter_yield_energy(energy, Eth);
+		return p0 * angle_factor * energy_factor;
+	}
+
+
 	//mesh geometry
 	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
 	const int FILMSIZE;
     std::vector<Field> buffers;	//temporary buffers for density calculation
+	std::vector<std::vector<double>> sputterYield_ion;
     std::vector<std::vector<std::vector<Cell>>> Cells;
 	
 	std::vector<std::vector<int>> react_type_table;
 	std::vector<std::vector<std::vector<int>>> react_table_equation;
+	std::vector<double> react_yield_p0;
+	std::vector<double> film_eth;
 	std::vector<Particle> particleIn;	/*contiguous array for add*/
 	// Rnd rng;
 protected:
@@ -321,7 +383,7 @@ protected:
 	// std::vector<std::vector<std::vector<int>>> react_table_equation;
 	// std::vector<std::vector<int>> react_type_table;
 	std::vector<double> react_prob_chemical;
-	std::vector<double> react_yield_p0;
+	// std::vector<double> react_yield_p0;
 	std::vector<std::vector<double>> rn_coeffcients;
 	std::vector<double> rn_angle;
 	std::vector<std::vector<double>> rn_matrix;

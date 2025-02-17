@@ -11,6 +11,7 @@ void Simulation::runSimulation(){
     std::cout << "World xm: " << xm << std::endl; 
 
     world.set_cell(Cells);
+    world.sputter_yield_angle(sputter_yield_coefficient[0], sputter_yield_coefficient[1], sputter_yield_coefficient[2]);
     world.inputParticle(particles);
 
     /*check command line arguments for thread count*/
@@ -19,7 +20,7 @@ void Simulation::runSimulation(){
     std::cout<<"Running with "<<num_threads<<" threads"<<std::endl;
     world.setNumThreads(num_threads);   //set number of threads to use
 
-    world.set_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, rn_coeffcients);
+    world.set_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients);
     // world.print_rn_matrix();
     world.print_rn_coeffcients();
     world.print_react_type_table();
@@ -110,11 +111,13 @@ PYBIND11_MODULE(SimProfile, m) {
             py::arg("react_type_table"),
             py::arg("react_prob_chemical"),
             py::arg("react_yield_p0"),
+            py::arg("film_eth"),
             py::arg("rn_coeffcients"), "react_table_equation, react_type_table, react_prob_chemical")
         .def("inputParticle", &Simulation::inputParticle, 
             py::arg("pos"),
             py::arg("vel"),
             py::arg("E"),
-            py::arg("id"), "pos, vel, E, id");
+            py::arg("id"), "pos, vel, E, id")
+        .def("input_sputter_yield_coefficient", &Simulation::input_sputter_yield_coefficient);
 
 }
