@@ -383,6 +383,19 @@ public:
 		return newVel;
 	}
 
+	bool film_empty(int3 posInt){
+		int sum = 0;
+		for(int i=0; i<FILMSIZE; ++i){
+			sum += Cells[posInt[0]][posInt[1]][posInt[2]].film[i];
+		}
+
+		if(sum == 0){
+			return true;
+		}
+		return false;
+	}
+
+
 	//mesh geometry
 	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
@@ -396,6 +409,7 @@ public:
 	std::vector<double> react_yield_p0;
 	std::vector<double> film_eth;
 	std::vector<Particle> particleIn;	/*contiguous array for add*/
+	std::vector<int3> update_film_etch;
 	// Rnd rng;
 protected:
 	double topGap;

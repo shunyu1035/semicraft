@@ -66,6 +66,12 @@ void Simulation::runSimulation(){
 
     std::cout << "Film in :" << std::endl;
     Cells = world.Cells;
+
+    std::cout << "update_film_etch: ";
+    for (size_t f = 0; f < world.update_film_etch.size(); ++f) {
+        std::cout << world.update_film_etch[f] << '\n';
+    }
+    std::cout << '\n';
 }
 
 

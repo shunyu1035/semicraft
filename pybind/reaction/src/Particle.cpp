@@ -75,6 +75,9 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				else if(react_type == 4){
 					world.film_add(posInt, react_add);
 					react = true;
+					if (world.film_empty(posInt)) {
+						world.update_film_etch.push_back(posInt);
+					}
 				}
 				// physics sputter
 				else if(react_type == 2){
@@ -83,6 +86,9 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					if(react_yield > rnd()){
 						world.film_add(posInt, react_add);
 						react = true;
+						if (world.film_empty(posInt)) {
+							world.update_film_etch.push_back(posInt);
+						}
 					}
 				}
 			}

@@ -300,10 +300,10 @@ if np.any(film_array[:,:,:,0] < 0):
         print(film_array[i[0],i[1],i[2]])
 
 
-print('typeID_array:', typeID_array.shape)
+# print('typeID_array:', typeID_array.shape)
 
-for i in range(typeID_array.shape[0]):
-    for j in range(typeID_array.shape[1]):
-        for k in range(typeID_array.shape[2]):
-            if typeID_array[i,j,k] == 1:
-                print(film_array[i,j,k])
+# for i in range(typeID_array.shape[0]):
+#     for j in range(typeID_array.shape[1]):
+#         for k in range(typeID_array.shape[2]):
+#             if typeID_array[i,j,k] == 1:
+#                 print(film_array[i,j,k])
