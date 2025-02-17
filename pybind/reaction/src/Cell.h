@@ -74,12 +74,12 @@ public:
 
 
 
-	Particle inletParticle(){
+	Particle inletParticle(Rnd &rnd){
 
 		int randID;
-		randID = rng.getInt(particleIn.size());
+		randID = rnd.getInt(particleIn.size());
 
-		double3 pos = posInlet();
+		double3 pos = posInlet(rnd);
 
 		// std::cout << "particleIn pos: " << pos <<  std::endl;
 		Particle part = particleIn[randID];
@@ -292,12 +292,12 @@ public:
 		std::cout << std::endl;
 	}
 
-	double3 posInlet(){
+	double3 posInlet(Rnd &rnd){
 		// Rnd rnd;
-		double x = xm[0] * rng();
-		double y = xm[1] * rng();
+		double x = xm[0] * rnd();
+		double y = xm[1] * rnd();
 		double z = topGap;
-		z *= rng();
+		z *= rnd();
 		z += xm[2] - topGap;
 		double3 pos{x, y, z};
 		return pos;
@@ -361,6 +361,27 @@ public:
 		return p0 * angle_factor * energy_factor;
 	}
 
+
+	double3 SpecularReflect(double3 vel, double3 normal){
+		double3 newVel;
+		newVel = vel - 2*dot(vel, normal)*normal;
+		return newVel;
+	}
+
+
+	double3 DiffusionReflect(double3 vel, double3 normal, Rnd &rnd){
+		double3 newVel;
+		double3 Ut;
+		Ut = vel - dot(vel, normal)*normal;
+		double3 tw1 = unit(Ut);
+		double3 tw2 = cross(tw1, normal);
+		double pm = 1;
+		if( dot(vel, normal) > 0){
+			pm = -1;
+		}
+		newVel = unit(rnd.randn()*tw1 + rnd.randn()*tw2  + pm*sqrt(-2*log((1-rnd())))*normal);
+		return newVel;
+	}
 
 	//mesh geometry
 	Rnd rng;

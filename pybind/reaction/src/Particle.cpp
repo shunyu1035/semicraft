@@ -24,6 +24,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 	for (size_t p = p_start; p<p_end; p++)
 	{
 		thread_local Rnd rnd;
+		bool react = false;
 		Particle &part = particles[p];
 		int3 posInt = {(int)part.pos[0], (int)part.pos[1], (int)part.pos[2]};
 		// std::cout << "posInt: " << posInt[0] << ", " << posInt[1] << ", " << posInt[2] << std::endl;
@@ -68,10 +69,12 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				//  chemical transfer
 				if(react_type == 1){
 					world.film_add(posInt, react_add);
+					react = true;
 				}
 				// chemical remove
 				else if(react_type == 4){
 					world.film_add(posInt, react_add);
+					react = true;
 				}
 				// physics sputter
 				else if(react_type == 2){
@@ -79,8 +82,17 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					// std::cout << react_yield <<  std::endl;
 					if(react_yield > rnd()){
 						world.film_add(posInt, react_add);
+						react = true;
 					}
 				}
+			}
+
+			if (react == false) {
+				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
+				// std::cout << "reflect normal: " << p << world.Cells[posInt[0]][posInt[1]][posInt[2]].normal << std::endl;
+				// part.vel = world.SpecularReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal);
+				part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
+				// std::cout << "reflect after vel: " << p << part.vel << std::endl;
 			}
 		}
 
@@ -88,9 +100,9 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		part.pos += part.vel;
 
 		/*did this particle get inside the sphere or leave the domain?*/
-		if (!world.inBounds(part.pos))
+		if (!world.inBounds(part.pos) || react == true)
 		{
-			part = world.inletParticle();
+			part = world.inletParticle(rnd);
 			continue;
 		}
 	}
@@ -156,7 +168,7 @@ void Species::addParticleIn(){
 	int randID;
 	randID = rng.getInt(particleIn.size());
 
-	double3 pos = world.posInlet();
+	double3 pos = world.posInlet(rng);
 	double3 vel = particleIn[randID].vel;
 	double E = particleIn[randID].E;
 	int id = particleIn[randID].id;

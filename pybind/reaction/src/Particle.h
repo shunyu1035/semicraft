@@ -44,23 +44,23 @@ public:
 
 	void addParticleIn();
 
-	void inletParticle(Particle part){
-		// Rnd rng; 
-		int randID;
-		randID = rnd.getInt(particles.size());
+	// void inletParticle(Particle part){
+	// 	// Rnd rng; 
+	// 	int randID;
+	// 	randID = rnd.getInt(particles.size());
 
-		double3 pos = world.posInlet();
-		double3 vel = particleIn[randID].vel;
-		double E = particleIn[randID].E;
-		int id = particleIn[randID].id;
+	// 	double3 pos = world.posInlet();
+	// 	double3 vel = particleIn[randID].vel;
+	// 	double E = particleIn[randID].E;
+	// 	int id = particleIn[randID].id;
 
-		part.pos = pos;
-		part.vel = vel;
-		part.E = E;
-		part.id = id;
-		// addParticle(pos, vel, E, id);
+	// 	part.pos = pos;
+	// 	part.vel = vel;
+	// 	part.E = E;
+	// 	part.id = id;
+	// 	// addParticle(pos, vel, E, id);
 
-	}
+	// }
 
 	void inputParticle(std::vector<Particle> particleAll){
 		particles = particleAll;

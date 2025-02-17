@@ -306,7 +306,7 @@ struct Particle
 class Rnd {
 	public:
 		//constructor: set initial random seed and distribution limits
-		Rnd(): mt_gen{std::random_device()()}, rnd_dist{0,1.0} {}
+		Rnd(): mt_gen{std::random_device()()}, rnd_dist{0,1.0}, normal_dist{0.0, 1.0} {}
 		// 接受种子作为参数的构造函数
 		explicit Rnd(unsigned int seed) : mt_gen{ seed }, rnd_dist{ 0, 1.0 } {}
 	
@@ -318,9 +318,15 @@ class Rnd {
 			std::uniform_int_distribution<int> dist(0, N);  // 指定范围
 			return dist(mt_gen);
 		}
+
+		double randn() {
+		    // 创建标准正态分布（均值为0，标准差为1）
+			return normal_dist(mt_gen);
+		}
 	protected:
 		std::mt19937 mt_gen;	    //random number generator
 		std::uniform_real_distribution<double> rnd_dist;  //uniform distribution
+		std::normal_distribution<double> normal_dist;
 	};
 	
 extern Rnd rnd;		//tell the compiler that an object of type Rnd called rnd is defined somewhere
