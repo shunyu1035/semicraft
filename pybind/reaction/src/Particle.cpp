@@ -66,7 +66,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					react_add[f] = world.react_table_equation[part.id][react_choice][f];
 					// std::cout << react_add[f] <<  std::endl;
 				}
-				//  chemical transfer
+				// chemical transfer
 				if(react_type == 1){
 					world.film_add(posInt, react_add);
 					react = true;
@@ -105,6 +105,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		/*update position from v=dx/dt*/
 		part.pos += part.vel;
 
+		part.pos = world.mirror(part.pos);
 		/*did this particle get inside the sphere or leave the domain?*/
 		if (!world.inBounds(part.pos) || react == true)
 		{
@@ -130,6 +131,17 @@ void Species::advance(int reaction_count){
 
 	//wait for threads to finish
 	for (std::thread &t: threads) t.join();
+
+	std::cout << "update_Cells: " << world.update_film_etch.size() << std::endl;
+
+    std::cout << "update_film_etch: ";
+    for (size_t f = 0; f < world.update_film_etch.size(); ++f) {
+        std::cout << world.update_film_etch[f] << '\n';
+    }
+    std::cout << '\n';
+
+
+	world.update_Cells();
 
 	/*perform a particle removal step, dead particles are replaced by the entry at the end*/
 	// for (size_t p=0;p<np;p++)

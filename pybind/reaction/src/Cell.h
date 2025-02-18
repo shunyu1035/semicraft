@@ -107,8 +107,24 @@ public:
 
 	bool inBounds(double3 pos) {
 		for (int i=0;i<3;i++)
-			if (pos[i] < 0 || pos[i]>=xm[i]) return false;
+			if (pos[i] < 0 || pos[i]>=xm[i] + padding*2) return false;
 		return true;
+	}
+
+	double3 mirror(double3 pos) {
+
+		double3 newPos = pos;
+		for (int i=0;i<2;i++) {
+			if (newPos[i] < padding){
+				// std::cout << "mirror : "<< part.pos << std::endl;
+				newPos[i] += xm[i];
+			}
+			else if (newPos[i] > xm[i] + padding){
+				// std::cout << "mirror : "<< part.pos << std::endl;
+				newPos[i] -= xm[i];
+			}
+		}
+		return newPos;
 	}
 
 	bool inFilm(int3 posInt){
@@ -294,8 +310,8 @@ public:
 
 	double3 posInlet(Rnd &rnd){
 		// Rnd rnd;
-		double x = xm[0] * rnd();
-		double y = xm[1] * rnd();
+		double x = xm[0] * rnd() + padding;
+		double y = xm[1] * rnd() + padding;
 		double z = topGap;
 		z *= rnd();
 		z += xm[2] - topGap;
@@ -396,6 +412,12 @@ public:
 	}
 
 
+	void update_Cells();
+
+	void get_normal_from_grid(int3 posInt);
+
+	void update_normal_in_matrix();
+
 	//mesh geometry
 	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
@@ -410,6 +432,15 @@ public:
 	std::vector<double> film_eth;
 	std::vector<Particle> particleIn;	/*contiguous array for add*/
 	std::vector<int3> update_film_etch;
+
+	std::vector<int3> grid_cross = {
+		{1, 0, 0},
+		{-1, 0, 0},
+		{0, 1, 0},
+		{0, -1, 0},
+		{0, 0, 1},
+		{0, 0, -1}
+	};
 	// Rnd rng;
 protected:
 	double topGap;
@@ -424,6 +455,7 @@ protected:
 	std::vector<std::vector<double>> rn_matrix;
 	std::array<double, 5> react_redepo_sticking = {1.0, 1.0, 1.0, 1.0, 1.0};
 	std::array<double, 4> rn_energy = {100, 1000, 1050, 10000};
+	const double padding = 6;
 };
 
 

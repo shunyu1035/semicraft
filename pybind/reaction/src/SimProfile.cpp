@@ -7,6 +7,12 @@ void Simulation::runSimulation(){
     World world(ni, nj, nk, 5);
     world.print_rn_angle();
 
+    std::cout << "grid_cross: " << std::endl; 
+    for(size_t i=0; i<6; ++i){
+        std::cout << world.grid_cross[i] << '\n'; 
+    }
+
+
     double3 xm = world.getXm();
     std::cout << "World xm: " << xm << std::endl; 
 

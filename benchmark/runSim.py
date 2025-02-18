@@ -229,7 +229,7 @@ def build_film_label_index_normal( sumfilm, mirrorGap):
 
 
 sumFilm = np.sum(film, axis=-1)
-mirrorGap = 3
+mirrorGap = 6
 cellSizeX, cellSizeY, cellSizeZ = sumFilm.shape
 film_label_index_normal = build_film_label_index_normal(sumFilm, mirrorGap)
 film_label_index_normal_mirror = np.zeros((cellSizeX+int(mirrorGap*2), cellSizeY+int(mirrorGap*2), cellSizeZ, 7))
@@ -252,7 +252,7 @@ cellfilm = np.ascontiguousarray(film_mirror.copy(), dtype=np.int32)
 cellindex = np.ascontiguousarray(film_label_index_normal_mirror[:,:,:,1:4].copy(), dtype=np.int32)
 
 
-simulation = SimProfile.Simulation(42, 26, 190, 670)
+simulation = SimProfile.Simulation(42, cellSizeX, cellSizeY, cellSizeZ)
 
 simulation.set_all_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients)
 simulation.input_sputter_yield_coefficient(sputter_yield_coefficient)
@@ -273,10 +273,13 @@ N = int(1e6)
 particle_list = [[N, 1, 'maxwell', 50]]
 vel_matrix = particleGenerator.vel_generator(particle_list)
 
-pos = posGenerator_top_nolength(N, 26, 190, 670)
+pos = posGenerator_top_nolength(N, cellSizeX, cellSizeY, cellSizeZ)
 # pos = posGenerator_top_nolength(N, 100, 100, 100)
 # pos = posGenerator_top_nolength(N, 50, 100, 100)
 pos = np.ascontiguousarray(pos, dtype=np.double)
+pos[:, 0] += mirrorGap
+pos[:, 1] += mirrorGap
+
 vel = vel_matrix[:, :3].copy()
 vel = np.ascontiguousarray(vel, dtype=np.double)
 id  = vel_matrix[:, -1].astype(np.int32).copy()
