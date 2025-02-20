@@ -34,7 +34,8 @@ react_type_table = np.array([[1, 1, 1, 4, 0], # 1: chlorination  # 0: no reactio
                             [2, 2, 2, 2, 2], # 2 for physics and chemical sputtering
                             [3, 3, 3, 3, 3]])
 
-react_prob_chemical = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
+# react_prob_chemical = np.array([1.0, 1.0, 1.0, 1.0, 0.0])
+react_prob_chemical = np.array([0.50, 0.50, 0.50, 0.9, 0.0])
 react_yield_p0 = np.array([0.30, 0.30, 0.30, 0.30, 0.30])
 film_eth = np.array([5, 5, 5, 5, 5], dtype=np.double)
 
@@ -270,10 +271,10 @@ def posGenerator_top_nolength(IN, cellSizeX, cellSizeY, cellSizeZ):
 
 
 N = int(1e6)
-particle_list = [[N, 1, 'maxwell', 50]]
+particle_list = [[N, 0, 'maxwell', 50], [N, 1, 'updown', 50]]
 vel_matrix = particleGenerator.vel_generator(particle_list)
 
-pos = posGenerator_top_nolength(N, cellSizeX, cellSizeY, cellSizeZ)
+pos = posGenerator_top_nolength(vel_matrix.shape[0], cellSizeX, cellSizeY, cellSizeZ)
 # pos = posGenerator_top_nolength(N, 100, 100, 100)
 # pos = posGenerator_top_nolength(N, 50, 100, 100)
 pos = np.ascontiguousarray(pos, dtype=np.double)
@@ -287,13 +288,13 @@ E  = vel_matrix[:, -2].copy()
 
 simulation.inputParticle(pos, vel, E, id)
 
-typeID_array_bf, film_array_bf = simulation.cell_data_to_numpy()
-normal_array_bf = simulation.normal_to_numpy()
-np.save('./typeID_array_bf.npy', typeID_array_bf)
-np.save('./film_array_bf.npy', film_array_bf)
-np.save('./normal_array_bf.npy', normal_array_bf)
+# typeID_array_bf, film_array_bf = simulation.cell_data_to_numpy()
+# normal_array_bf = simulation.normal_to_numpy()
+# np.save('./typeID_array_bf.npy', typeID_array_bf)
+# np.save('./film_array_bf.npy', film_array_bf)
+# np.save('./normal_array_bf.npy', normal_array_bf)
 
-simulation.runSimulation()
+simulation.runSimulation(4000)
 
 typeID_array, film_array = simulation.cell_data_to_numpy()
 normal_array = simulation.normal_to_numpy()

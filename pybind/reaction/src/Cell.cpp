@@ -254,11 +254,11 @@ void World::update_normal_in_matrix() {
 
     size_t unique_points_size = unique_points.size();
 
-    std::cout << "unique_points: ";
-    for (size_t f = 0; f < unique_points.size(); ++f) {
-        std::cout << unique_points[f] << '\n';
-    }
-    std::cout << '\n';
+    // std::cout << "unique_points: ";
+    // for (size_t f = 0; f < unique_points.size(); ++f) {
+    //     std::cout << unique_points[f] << '\n';
+    // }
+    // std::cout << '\n';
 
     for (int j = 0; j < unique_points_size; ++j) {
         get_normal_from_grid(unique_points[j]);

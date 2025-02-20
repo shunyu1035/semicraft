@@ -3,7 +3,7 @@
 
 
 
-void Simulation::runSimulation(){
+void Simulation::runSimulation(int time){
     World world(ni, nj, nk, 5);
     world.print_rn_angle();
 
@@ -35,7 +35,7 @@ void Simulation::runSimulation(){
 
     // int reaction_count = 0;
     // sp.change_cell(5,5,5);
-    for(size_t t=0; t<4000; ++t){
+    for(int t=0; t<time; ++t){
         int reaction_count = 0;
         std::cout<<"Running "<< t <<" step; "  <<std::endl;
         sp.advance(reaction_count);
@@ -79,8 +79,8 @@ void Simulation::runSimulation(){
     }
     std::cout << '\n';
 
-    world.print_Cells();
-    print_Cells();
+    // world.print_Cells();
+    // print_Cells();
 }
 
 

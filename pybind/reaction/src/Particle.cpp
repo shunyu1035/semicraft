@@ -132,13 +132,13 @@ void Species::advance(int reaction_count){
 	//wait for threads to finish
 	for (std::thread &t: threads) t.join();
 
-	std::cout << "update_Cells: " << world.update_film_etch.size() << std::endl;
+	// std::cout << "update_Cells: " << world.update_film_etch.size() << std::endl;
 
-    std::cout << "update_film_etch: ";
-    for (size_t f = 0; f < world.update_film_etch.size(); ++f) {
-        std::cout << world.update_film_etch[f] << '\n';
-    }
-    std::cout << '\n';
+    // std::cout << "update_film_etch: ";
+    // for (size_t f = 0; f < world.update_film_etch.size(); ++f) {
+    //     std::cout << world.update_film_etch[f] << '\n';
+    // }
+    // std::cout << '\n';
 
 
 	world.update_Cells();

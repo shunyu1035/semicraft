@@ -274,7 +274,7 @@ public:
     }
 
 
-    void runSimulation();
+    void runSimulation(int time);
 
 
     void inputCell(
