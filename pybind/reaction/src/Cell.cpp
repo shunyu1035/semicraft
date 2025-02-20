@@ -107,14 +107,15 @@ void World::update_Cells(){
         for (size_t i=0; i<update_film_etch_size; i++){
             int3 posInt = update_film_etch[i];
 
-            std::cout << "posInt: " << posInt << std::endl;
+            // std::cout << "posInt: " << posInt << std::endl;
 
             local_point_nn.resize(6);
             Cells[posInt[0]][posInt[1]][posInt[2]].typeID = -1;
             for (size_t j=0; j<6; ++j){
                 local_point_nn[j] = posInt + grid_cross[j];
+                
 
-                std::cout << "inloop local_point_nn: " << local_point_nn[j] << std::endl;
+                // std::cout << "inloop local_point_nn: " << local_point_nn[j] << std::endl;
 
                 if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == 2){
                     Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 1;
@@ -126,11 +127,11 @@ void World::update_Cells(){
                             Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID = 2;
                         }
                     }
-                    std::cout << "local_point_nn_vaccum: ";
-                    for (size_t q = 0; q < local_point_nn_under.size(); ++q) {
-                        std::cout << local_point_nn_under[q] << '\n';
-                    }
-                    std::cout << '\n';
+                    // std::cout << "local_point_nn_vaccum: ";
+                    // for (size_t q = 0; q < local_point_nn_under.size(); ++q) {
+                    //     std::cout << local_point_nn_under[q] << '\n';
+                    // }
+                    // std::cout << '\n';
                 }
                 else if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1) {
 
@@ -145,20 +146,20 @@ void World::update_Cells(){
                         }
                     }
 
-                    std::cout << "local_point_nn_vaccum: ";
-                    for (size_t f = 0; f < local_point_nn_vaccum.size(); ++f) {
-                        std::cout << local_point_nn_vaccum[f] << '\n';
-                    }
-                    std::cout << '\n';
+                    // std::cout << "local_point_nn_vaccum: ";
+                    // for (size_t f = 0; f < local_point_nn_vaccum.size(); ++f) {
+                    //     std::cout << local_point_nn_vaccum[f] << '\n';
+                    // }
+                    // std::cout << '\n';
 
 
                 }
             }
-            std::cout << "local_point_nn: ";
-            for (size_t w = 0; w < local_point_nn.size(); ++w) {
-                std::cout << local_point_nn[w] << '\n';
-            }
-            std::cout << '\n';
+            // std::cout << "local_point_nn: ";
+            // for (size_t w = 0; w < local_point_nn.size(); ++w) {
+            //     std::cout << local_point_nn[w] << '\n';
+            // }
+            // std::cout << '\n';
 
         }
     

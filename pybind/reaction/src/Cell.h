@@ -55,7 +55,7 @@ class World
 public:	
 	/*constructor, allocates memory*/
 	World(int ni, int nj, int nk, int FILMSIZE): 
-	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,(double)nk}), rn_angle(180) {
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}),  rn_angle(180) {
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
@@ -72,6 +72,17 @@ public:
 		std::cout << "particleIn size: " << particleIn.size() <<  std::endl;
 	}
 
+
+    // // 辅助函数：计算镜像索引
+    int3 mirror_index(int3 posInt) {
+
+		for(size_t i=0; i<3;++i){
+			if (posInt[i] < 0) posInt[i] += ijk[i];
+        // 如果索引超出上界，则镜像计算：例如，当 idx == dim 时返回 dim-1
+			if (posInt[i] >= ijk[i]) posInt[i] -= ijk[i];
+		}
+        return posInt;
+    }
 
 
 	Particle inletParticle(Rnd &rnd){
@@ -445,6 +456,7 @@ public:
 protected:
 	double topGap;
 	double3 xm;	//origin-diagonally opposite corner (max bound)
+	int3 ijk; // for mirror correctify
     int num_threads;  //number of threads;
 	// std::vector<std::vector<std::vector<int>>> react_table_equation;
 	// std::vector<std::vector<int>> react_type_table;

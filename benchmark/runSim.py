@@ -291,16 +291,20 @@ simulation.runSimulation()
 
 typeID_array, film_array = simulation.cell_data_to_numpy()
 
-print('film_array:', film_array.shape)
 
-print(np.any(film_array[:,:,:,0] < 0))
+np.save('./typeID_array.npy', typeID_array)
+np.save('./film_array.npy', film_array)
 
-if np.any(film_array[:,:,:,0] < 0):
-    print(np.where(film_array[:,:,:,0] < 0))
-    etch_point = np.array(np.where(film_array[:,:,:,0] < 0)).T
-    print(etch_point)
-    for i in etch_point:
-        print(film_array[i[0],i[1],i[2]])
+# print('film_array:', film_array.shape)
+
+# print(np.any(film_array[:,:,:,0] < 0))
+
+# if np.any(film_array[:,:,:,0] < 0):
+#     print(np.where(film_array[:,:,:,0] < 0))
+#     etch_point = np.array(np.where(film_array[:,:,:,0] < 0)).T
+#     print(etch_point)
+#     for i in etch_point:
+#         print(film_array[i[0],i[1],i[2]])
 
 
 # print('typeID_array:', typeID_array.shape)
