@@ -11,8 +11,8 @@ ext_modules = [
         include_dirs=['/usr/include/eigen3'],  # Eigen路径
         # extra_compile_args=["-fopenmp", "-g", "-O0"],
         # extra_link_args=["-fopenmp"],
-        extra_compile_args=["-fopenmp", "-g", "-pg"],
-        extra_link_args=["-fopenmp", "-g", "-pg"],
+        extra_compile_args=["-fopenmp", "-g", "-O3"],
+        extra_link_args=["-fopenmp", "-g", "-O3"],
 
 
     ),

@@ -18,7 +18,7 @@ int find_max_position(const std::vector<double>& arr) noexcept {
     return max_pos;
 }
 
-void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Particle> &particles)
+void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Particle> &particles, int threadID)
 {
 	/*loop over particles in [p_start,p_end)*/
 	for (size_t p = p_start; p<p_end; p++)
@@ -33,7 +33,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		if (world.inFilm(posInt))
 		{
 			double angle_rad = acos(fabs(dot(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal)));
-			std::vector<bool> sticking_acceptList = world.sticking_probability_structed(part, world.Cells[posInt[0]][posInt[1]][posInt[2]], angle_rad, rnd);
+			std::vector<int> sticking_acceptList = world.sticking_probability_structed(part, world.Cells[posInt[0]][posInt[1]][posInt[2]], angle_rad, rnd);
 			
 			// std::cout << "sticking_acceptList: ";
 			// for (size_t f = 0; f < sticking_acceptList.size(); ++f) {
@@ -42,10 +42,20 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 			// std::cout << '\n';
 			bool stick_bool = false;
 			for (int s=0; s<world.FILMSIZE; ++s){
-				if(sticking_acceptList[s]){
+				if(sticking_acceptList[s] == 1){
 					stick_bool = true;
 				}
 			}
+
+			// if (part.id==1 && stick_bool == true){
+			// 	std::cout << "sticking_acceptList: ";
+			// 	for (size_t f = 0; f < sticking_acceptList.size(); ++f) {
+			// 		std::cout << sticking_acceptList[f] << ' ';
+			// 	}
+			// 	std::cout << '\n';
+			// }
+
+
 			if(stick_bool){
 				std::vector<double> react_choice_random(world.FILMSIZE, 0);
 				for (int i=0; i<world.FILMSIZE; ++i){
@@ -76,7 +86,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					world.film_add(posInt, react_add);
 					react = true;
 					if (world.film_empty(posInt)) {
-						world.update_film_etch.push_back(posInt);
+						world.update_film_etch_buffers[threadID].push_back(posInt);
 					}
 				}
 				// physics sputter
@@ -87,7 +97,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 						world.film_add(posInt, react_add);
 						react = true;
 						if (world.film_empty(posInt)) {
-							world.update_film_etch.push_back(posInt);
+							world.update_film_etch_buffers[threadID].push_back(posInt);
 						}
 					}
 				}
@@ -126,7 +136,7 @@ void Species::advance(int reaction_count){
 		size_t p_start = i*np_per_thread;
 		size_t p_end = p_start + np_per_thread;
 		if (i==n_threads-1) p_end = np;	//make sure all particles are captured
-		threads.emplace_back(advanceKernel, p_start, p_end,	std::ref(world), std::ref(particles));
+		threads.emplace_back(advanceKernel, p_start, p_end,	std::ref(world), std::ref(particles), i);
 	}
 
 	//wait for threads to finish
@@ -140,9 +150,15 @@ void Species::advance(int reaction_count){
     // }
     // std::cout << '\n';
 
+	for (int threadID=0; threadID<n_threads; threadID++){
+		size_t np = world.update_film_etch_buffers[threadID].size();
+		for (size_t pt=0; pt<np; pt++){
+			world.update_film_etch.push_back(world.update_film_etch_buffers[threadID][pt]);
+			world.update_film_etch_buffers[threadID].resize(0);
+		}
+	}
 
 	world.update_Cells();
-
 	/*perform a particle removal step, dead particles are replaced by the entry at the end*/
 	// for (size_t p=0;p<np;p++)
 	// {

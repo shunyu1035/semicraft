@@ -55,9 +55,9 @@ void World::film_add(int3 posInt, std::vector<int> react_add){
 }
 
 
-std::vector<bool> World::sticking_probability_structed(const Particle& particle, const Cell& cell, double angle_rad, Rnd &rnd) {
+std::vector<int> World::sticking_probability_structed(Particle particle, const Cell cell, double angle_rad, Rnd &rnd) {
 
-    std::vector<bool> sticking_acceptList(FILMSIZE, false);
+    std::vector<int> sticking_acceptList(FILMSIZE, 0);
     std::vector<double> choice(FILMSIZE);
 
     // 使用外部传入的 rnd 生成 [0,1) 内的随机数
@@ -76,13 +76,16 @@ std::vector<bool> World::sticking_probability_structed(const Particle& particle,
 
         if (particle_id == 1) {
             energy_range = 0;
-            for (int e = 0; e < FILMSIZE; ++e) {
+            for (int e = 0; e < rn_energy.size(); ++e) {
                 if (particle.E < rn_energy[e]) {
                     energy_range = e;
+                    // std::cout << "energy_range:  "<< energy_range <<  std::endl;
                     break;
+
                 }
             }
             sticking_rate = linear_interp(angle_rad, rn_angle, rn_matrix[energy_range]);
+            // std::cout << "sticking_rate:  "<< sticking_rate <<  std::endl;
         } else if (particle_id == 0) {
             sticking_rate = react_prob_chemical[j];
         } else if (particle_id >= 2) {
@@ -90,7 +93,8 @@ std::vector<bool> World::sticking_probability_structed(const Particle& particle,
         }
 
         if (sticking_rate > choice[j]) {
-            sticking_acceptList[j] = true;
+            sticking_acceptList[j] = 1;
+            // std::cout << "sticking_acceptList:  "<< j <<  std::endl;
         }
     }
     return sticking_acceptList;

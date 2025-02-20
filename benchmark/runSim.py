@@ -270,8 +270,11 @@ def posGenerator_top_nolength(IN, cellSizeX, cellSizeY, cellSizeZ):
     return position_matrix
 
 
-N = int(1e6)
-particle_list = [[N, 0, 'maxwell', 50], [N, 1, 'updown', 50]]
+N = int(2e6)
+particle_list = [[int(N/2), 0, 'maxwell', 50], [int(N/2), 1, 'updown', 50]]
+# particle_list = [[N, 0, 'maxwell', 50]]
+# particle_list = [[N, 1, 'updown', 50]]
+# particle_list = [[N, 1, 'maxwell', 50]]
 vel_matrix = particleGenerator.vel_generator(particle_list)
 
 pos = posGenerator_top_nolength(vel_matrix.shape[0], cellSizeX, cellSizeY, cellSizeZ)
