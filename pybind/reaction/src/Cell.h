@@ -423,6 +423,8 @@ public:
 	}
 
 
+	void print_Cells();
+
 	void update_Cells();
 
 	void get_normal_from_grid(int3 posInt);
@@ -467,7 +469,7 @@ protected:
 	std::vector<std::vector<double>> rn_matrix;
 	std::array<double, 5> react_redepo_sticking = {1.0, 1.0, 1.0, 1.0, 1.0};
 	std::array<double, 4> rn_energy = {100, 1000, 1050, 10000};
-	const double padding = 6;
+	const double padding = 0;
 };
 
 

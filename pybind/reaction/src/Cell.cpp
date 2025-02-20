@@ -112,7 +112,7 @@ void World::update_Cells(){
             local_point_nn.resize(6);
             Cells[posInt[0]][posInt[1]][posInt[2]].typeID = -1;
             for (size_t j=0; j<6; ++j){
-                local_point_nn[j] = posInt + grid_cross[j];
+                local_point_nn[j] = mirror_index(posInt + grid_cross[j]);
                 
 
                 // std::cout << "inloop local_point_nn: " << local_point_nn[j] << std::endl;
@@ -122,7 +122,7 @@ void World::update_Cells(){
 
                     local_point_nn_under.resize(6);
                     for (size_t k=0; k<6; ++k){
-                        local_point_nn_under[k] = local_point_nn[j] + grid_cross[k];
+                        local_point_nn_under[k] = mirror_index(local_point_nn[j] + grid_cross[k]);
                         if (Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID == 3){
                             Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID = 2;
                         }
@@ -137,12 +137,12 @@ void World::update_Cells(){
 
                     local_point_nn_vaccum.resize(6);
                     for (size_t l=0; l<6; ++l){
-                        local_point_nn_vaccum[l] = local_point_nn[j] + grid_cross[l];
+                        local_point_nn_vaccum[l] = mirror_index(local_point_nn[j] + grid_cross[l]);
 
                         // std::cout << "local_point_nn_vaccum: " << local_point_nn_vaccum[l] << std::endl;
 
                         if (Cells[local_point_nn_vaccum[l][0]][local_point_nn_vaccum[l][1]][local_point_nn_vaccum[l][2]].typeID == 1){
-                            Cells[local_point_nn_vaccum[l][0]][local_point_nn_vaccum[l][1]][local_point_nn_vaccum[l][2]].typeID = 0;
+                            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
                         }
                     }
 
@@ -185,12 +185,11 @@ void World::get_normal_from_grid(int3 posInt) {
                 int xi = posInt[0] + dx;
                 int yi = posInt[1] + dy;
                 int zi = posInt[2] + dz;
-                
-
-                if (Cells[xi][yi][zi].typeID == 1) {
+                int3 point = {xi, yi, zi};
+                point = mirror_index(point);
+                if (Cells[point[0]][point[1]][point[2]].typeID == 1) {                
                     positions.emplace_back(dx, dy, dz);
                 }
-                
             }
         }
     }
@@ -219,6 +218,7 @@ void World::get_normal_from_grid(int3 posInt) {
     Eigen::JacobiSVD<Eigen::Matrix3d> svd(cov, Eigen::ComputeFullU);
     Eigen::Vector3d normal = svd.matrixU().col(2); // 最小特征值对应的特征向量
 
+    // std::cout << "Eigen::Vector3d normal: " << normal << std::endl;
     // 步骤5: 写入法线数据
     for (size_t i = 0; i < 3; ++i) {
         Cells[posInt[0]][posInt[1]][posInt[2]].normal[i] = normal[i];
@@ -239,10 +239,11 @@ void World::update_normal_in_matrix() {
                     int xi = posInt[0] + dx;
                     int yi = posInt[1] + dy;
                     int zi = posInt[2] + dz;
-                    
+                    int3 point = {xi, yi, zi};
+                    point = mirror_index(point);
 
-                    if (Cells[xi][yi][zi].typeID == 1) {
-                        int3 point = {xi, yi, zi};
+                    if (Cells[point[0]][point[1]][point[2]].typeID == 1) {
+                        // int3 point = {xi, yi, zi};
                         unique_points.push_back(point);
                     }
                     
@@ -264,6 +265,22 @@ void World::update_normal_in_matrix() {
     }
 }
 
+void World::print_Cells(){
+        // 将数据复制到 NumPy 数组
+
+    int surface = 0;
+    for (size_t i = 0; i < ni; ++i) {
+        for (size_t j = 0; j < nj; ++j) {
+            for (size_t k = 0; k < nk; ++k) {
+                if(Cells[i][j][k].typeID == 1) {
+                    surface++;
+                    std::cout << "surface: " << i << " " << j << " " << k << " " << Cells[i][j][k].normal << std::endl;
+                }
+            }
+        }
+    }
+    std::cout << "surfacecount: "<< surface << std::endl;
+}
 
 // void get_normal_from_grid_Cell(
 //     py::array_t<Cell, py::array::c_style> cell_array,

@@ -78,6 +78,9 @@ void Simulation::runSimulation(){
         std::cout << world.update_film_etch[f] << '\n';
     }
     std::cout << '\n';
+
+    world.print_Cells();
+    print_Cells();
 }
 
 

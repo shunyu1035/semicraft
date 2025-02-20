@@ -229,27 +229,27 @@ def build_film_label_index_normal( sumfilm, mirrorGap):
 
 
 sumFilm = np.sum(film, axis=-1)
-mirrorGap = 6
+mirrorGap = 3
 cellSizeX, cellSizeY, cellSizeZ = sumFilm.shape
 film_label_index_normal = build_film_label_index_normal(sumFilm, mirrorGap)
-film_label_index_normal_mirror = np.zeros((cellSizeX+int(mirrorGap*2), cellSizeY+int(mirrorGap*2), cellSizeZ, 7))
-film_label_index_normal_mirror = update_surface_mirror(film_label_index_normal, film_label_index_normal_mirror, mirrorGap, cellSizeX, cellSizeY)
+# film_label_index_normal_mirror = np.zeros((cellSizeX+int(mirrorGap*2), cellSizeY+int(mirrorGap*2), cellSizeZ, 7))
+# film_label_index_normal_mirror = update_surface_mirror(film_label_index_normal, film_label_index_normal_mirror, mirrorGap, cellSizeX, cellSizeY)
 
 
-film_mirror = np.zeros((film.shape[0]+int(mirrorGap*2), film.shape[1]+int(mirrorGap*2), film.shape[2], film.shape[3]))
-film_mirror= update_surface_mirror(film, film_mirror, mirrorGap, cellSizeX, cellSizeY)
+# film_mirror = np.zeros((film.shape[0]+int(mirrorGap*2), film.shape[1]+int(mirrorGap*2), film.shape[2], film.shape[3]))
+# film_mirror= update_surface_mirror(film, film_mirror, mirrorGap, cellSizeX, cellSizeY)
 
 
 
-cell = np.zeros((film_label_index_normal_mirror.shape[0], 
-                 film_label_index_normal_mirror.shape[1], 
-                 film_label_index_normal_mirror.shape[2]), dtype=Cell_dtype)
+cell = np.zeros((film_label_index_normal.shape[0], 
+                 film_label_index_normal.shape[1], 
+                 film_label_index_normal.shape[2]), dtype=Cell_dtype)
 
 
-cellid = np.ascontiguousarray(film_label_index_normal_mirror[:,:,:,0].copy(), dtype=np.int32)
-cellnormal = np.ascontiguousarray(film_label_index_normal_mirror[:,:,:,-3:].copy(), dtype=np.double)
-cellfilm = np.ascontiguousarray(film_mirror.copy(), dtype=np.int32)
-cellindex = np.ascontiguousarray(film_label_index_normal_mirror[:,:,:,1:4].copy(), dtype=np.int32)
+cellid = np.ascontiguousarray(film_label_index_normal[:,:,:,0].copy(), dtype=np.int32)
+cellnormal = np.ascontiguousarray(film_label_index_normal[:,:,:,-3:].copy(), dtype=np.double)
+cellfilm = np.ascontiguousarray(film.copy(), dtype=np.int32)
+cellindex = np.ascontiguousarray(film_label_index_normal[:,:,:,1:4].copy(), dtype=np.int32)
 
 
 simulation = SimProfile.Simulation(42, cellSizeX, cellSizeY, cellSizeZ)
@@ -277,8 +277,8 @@ pos = posGenerator_top_nolength(N, cellSizeX, cellSizeY, cellSizeZ)
 # pos = posGenerator_top_nolength(N, 100, 100, 100)
 # pos = posGenerator_top_nolength(N, 50, 100, 100)
 pos = np.ascontiguousarray(pos, dtype=np.double)
-pos[:, 0] += mirrorGap
-pos[:, 1] += mirrorGap
+# pos[:, 0] += mirrorGap
+# pos[:, 1] += mirrorGap
 
 vel = vel_matrix[:, :3].copy()
 vel = np.ascontiguousarray(vel, dtype=np.double)
@@ -287,14 +287,20 @@ E  = vel_matrix[:, -2].copy()
 
 simulation.inputParticle(pos, vel, E, id)
 
+typeID_array_bf, film_array_bf = simulation.cell_data_to_numpy()
+normal_array_bf = simulation.normal_to_numpy()
+np.save('./typeID_array_bf.npy', typeID_array_bf)
+np.save('./film_array_bf.npy', film_array_bf)
+np.save('./normal_array_bf.npy', normal_array_bf)
+
 simulation.runSimulation()
 
 typeID_array, film_array = simulation.cell_data_to_numpy()
-
+normal_array = simulation.normal_to_numpy()
 
 np.save('./typeID_array.npy', typeID_array)
 np.save('./film_array.npy', film_array)
-
+np.save('./normal_array.npy', normal_array)
 # print('film_array:', film_array.shape)
 
 # print(np.any(film_array[:,:,:,0] < 0))

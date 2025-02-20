@@ -469,9 +469,9 @@ public:
         if (Cells.empty() || Cells[0].empty() || Cells[0][0].empty()) {
             throw std::runtime_error("数据为空");
         }
-        int dim0 = Cells.size();
-        int dim1 = Cells[0].size();
-        int dim2 = Cells[0][0].size();
+        int dim0 = ni;
+        int dim1 = nj;
+        int dim2 = nk;
 
         // 创建一个新的 NumPy 数组，形状为 (dim0, dim1, dim2)
         auto result = py::array_t<double>({dim0, dim1, dim2, 3});
@@ -489,9 +489,11 @@ public:
                 }
                 for (int k = 0; k < dim2; k++) {
                     // 计算连续内存中的索引位置
-                    ptr[i * (dim1 * dim2) + j * dim2 + k] = Cells[i][j][k].normal(0);
-                    ptr[i * (dim1 * dim2) + j * dim2 + k + 1] = Cells[i][j][k].normal(1);
-                    ptr[i * (dim1 * dim2) + j * dim2 + k + 2] = Cells[i][j][k].normal(2);
+                    for (size_t l = 0; l < 3; ++l) {
+                        ptr[i * (dim1 * dim2)*3  + j * dim2*3 + k*3 + l] = Cells[i][j][k].normal(l);
+                    }
+                    // ptr[i * (dim1 * dim2) + j * dim2 + k + 1] = Cells[i][j][k].normal(1);
+                    // ptr[i * (dim1 * dim2) + j * dim2 + k + 2] = Cells[i][j][k].normal(2);
                 }
             }
         }
@@ -541,4 +543,26 @@ public:
     
         return py::make_tuple(typeID_array, film_array);
     } 
+
+
+    void print_Cells(){
+        // 将数据复制到 NumPy 数组
+
+    int surface = 0;
+    for (size_t i = 0; i < ni; ++i) {
+        for (size_t j = 0; j < nj; ++j) {
+            for (size_t k = 0; k < nk; ++k) {
+                if(Cells[i][j][k].typeID == 1) {
+                    surface++;
+                    std::cout << "surface: " << i << " " << j << " " << k << " " << Cells[i][j][k].normal << std::endl;
+                }
+            }
+        }
+    }
+    std::cout << "surfacecount: "<< surface << std::endl;
+    }
+
+
 };
+
+
