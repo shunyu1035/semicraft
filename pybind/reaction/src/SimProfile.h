@@ -91,7 +91,7 @@ private:
 	//mesh geometry
     const int seed;
 	const int ni,nj,nk;	//number of nodes
-
+    const int FILMSIZE;
     std::vector<std::vector<std::vector<int>>> react_table_equation;
     std::vector<std::vector<int>> react_type_table;
     std::vector<std::vector<double>> react_prob_chemical;
@@ -102,7 +102,7 @@ private:
 
 public:
     // 构造函数：初始化随机数引擎
-    Simulation(int seed, int ni, int nj, int nk) : seed(seed), ni{ni}, nj{nj}, nk{nk} {}
+    Simulation(int seed, int ni, int nj, int nk, int FILMSIZE) : seed(seed), ni{ni}, nj{nj}, nk{nk}, FILMSIZE{FILMSIZE} {}
 
     // 从 NumPy 数组设置数据，要求输入必须为三维数组
     void set_react_table_equation(py::array_t<int> arr) {
@@ -279,7 +279,7 @@ public:
     }
 
 
-    void runSimulation(int time, int FILMSIZE, int ArgonID);
+    void runSimulation(int time, int ArgonID);
 
 
     void inputCell(
@@ -518,12 +518,9 @@ public:
         auto typeID_array = py::array_t<int>({dim0, dim1, dim2});
         auto typeID_buf = typeID_array.request();
         int* typeID_ptr = static_cast<int*>(typeID_buf.ptr);
-    
-        // 计算 film 向量的最大长度
-        size_t max_film_length = 5;
 
-        // 创建用于存储 film 的 NumPy 数组，形状为 (dim0, dim1, dim2, max_film_length)
-        auto film_array = py::array_t<int>({dim0, dim1, dim2, max_film_length});
+        // 创建用于存储 film 的 NumPy 数组，形状为 (dim0, dim1, dim2, FILMSIZE)
+        auto film_array = py::array_t<int>({dim0, dim1, dim2, static_cast<size_t>(FILMSIZE)});
         auto film_buf = film_array.request();
         int* film_ptr = static_cast<int*>(film_buf.ptr);
     
@@ -534,12 +531,12 @@ public:
                     const Cell& cell = Cells[i][j][k];
                     typeID_ptr[i * dim1 * dim2 + j * dim2 + k] = cell.typeID;
     
-                    // 复制 film 数据，如果长度不足 max_film_length，填充 0
-                    for (size_t l = 0; l < max_film_length; ++l) {
+                    // 复制 film 数据，如果长度不足 FILMSIZE，填充 0
+                    for (size_t l = 0; l < FILMSIZE; ++l) {
                         if (l < cell.film.size()) {
-                            film_ptr[i * dim1 * dim2 * max_film_length + j * dim2 * max_film_length + k * max_film_length + l] = cell.film[l];
+                            film_ptr[i * dim1 * dim2 * FILMSIZE + j * dim2 * FILMSIZE + k * FILMSIZE + l] = cell.film[l];
                         } else {
-                            film_ptr[i * dim1 * dim2 * max_film_length + j * dim2 * max_film_length + k * max_film_length + l] = 0;
+                            film_ptr[i * dim1 * dim2 * FILMSIZE + j * dim2 * FILMSIZE + k * FILMSIZE + l] = 0;
                         }
                     }
                 }

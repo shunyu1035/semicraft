@@ -98,6 +98,7 @@ image = Image.open("./sf_o2_mask.jpg").convert("L")
 # 转换为 NumPy 数组
 HardMasK = np.array(image)
 
+FILMSIZE = 11 
 # Hard mask SF6_O2
 film = np.zeros((20, HardMasK.shape[1], HardMasK.shape[0], 11), dtype=np.int32)
 density = 20
@@ -119,7 +120,7 @@ film[:, :, :10, 0] = density
 Cell_dtype = np.dtype([
     ('id', np.int32),
     ('index', np.int32, (3,)),
-    ('film', np.int32, (5,)),
+    ('film', np.int32, (FILMSIZE,)),
     ('normal', np.float64, (3,))
 ], align=True)  # 添加 align=True
 
@@ -304,7 +305,7 @@ cellfilm = np.ascontiguousarray(film.copy(), dtype=np.int32)
 cellindex = np.ascontiguousarray(film_label_index_normal[:,:,:,1:4].copy(), dtype=np.int32)
 
 
-simulation = SimProfile.Simulation(42, cellSizeX, cellSizeY, cellSizeZ)
+simulation = SimProfile.Simulation(42, cellSizeX, cellSizeY, cellSizeZ, FILMSIZE)
 
 simulation.set_all_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients)
 simulation.input_sputter_yield_coefficient(sputter_yield_coefficient)
@@ -321,8 +322,8 @@ def posGenerator_top_nolength(IN, cellSizeX, cellSizeY, cellSizeZ):
     return position_matrix
 
 
-N = int(2e6)
-particle_list = [[int(N/2), 0, 'maxwell', 50], [int(N/2), 1, 'updown', 50]]
+N = int(1e6)
+particle_list = [[N, 0, 'maxwell', 50], [N, 1, 'maxwell', 50], [N, 2, 'updown', 50]]
 # particle_list = [[N, 0, 'maxwell', 50]]
 # particle_list = [[N, 1, 'updown', 50]]
 # particle_list = [[N, 1, 'maxwell', 50]]
@@ -348,14 +349,14 @@ simulation.inputParticle(pos, vel, E, id)
 # np.save('./film_array_bf.npy', film_array_bf)
 # np.save('./normal_array_bf.npy', normal_array_bf)
 
-simulation.runSimulation(4000)
+simulation.runSimulation(8000, 2)
 
 typeID_array, film_array = simulation.cell_data_to_numpy()
 normal_array = simulation.normal_to_numpy()
 
-np.save('./typeID_array.npy', typeID_array)
-np.save('./film_array.npy', film_array)
-np.save('./normal_array.npy', normal_array)
+np.save('./typeID_array_sfo2.npy', typeID_array)
+np.save('./film_array_sfo2.npy', film_array)
+np.save('./normal_array_sfo2.npy', normal_array)
 # print('film_array:', film_array.shape)
 
 # print(np.any(film_array[:,:,:,0] < 0))

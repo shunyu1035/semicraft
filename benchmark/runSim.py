@@ -12,6 +12,7 @@ import src.particleGenerator as particleGenerator
 
 import SimProfile
 
+FILMSIZE = 5
 react_table_equation = np.array([
     [
         [-1, 1, 0, 0, 0],
@@ -52,7 +53,7 @@ image = Image.open("./hard_mask_KLA3.jpg").convert("L")
 HardMasK = np.array(image)
 
 # Hard mask
-film = np.zeros((20, HardMasK.shape[1], HardMasK.shape[0], 5), dtype=np.int32)
+film = np.zeros((20, HardMasK.shape[1], HardMasK.shape[0], FILMSIZE), dtype=np.int32)
 density = 20
 for i in range(HardMasK.shape[1]):
     for j in range(HardMasK.shape[0]):
@@ -68,7 +69,7 @@ film[:, :, :2, -1] = density
 Cell_dtype = np.dtype([
     ('id', np.int32),
     ('index', np.int32, (3,)),
-    ('film', np.int32, (5,)),
+    ('film', np.int32, (FILMSIZE,)),
     ('normal', np.float64, (3,))
 ], align=True)  # 添加 align=True
 
@@ -253,7 +254,7 @@ cellfilm = np.ascontiguousarray(film.copy(), dtype=np.int32)
 cellindex = np.ascontiguousarray(film_label_index_normal[:,:,:,1:4].copy(), dtype=np.int32)
 
 
-simulation = SimProfile.Simulation(42, cellSizeX, cellSizeY, cellSizeZ)
+simulation = SimProfile.Simulation(42, cellSizeX, cellSizeY, cellSizeZ, FILMSIZE)
 
 simulation.set_all_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients)
 simulation.input_sputter_yield_coefficient(sputter_yield_coefficient)

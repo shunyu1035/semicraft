@@ -3,7 +3,7 @@
 
 
 
-void Simulation::runSimulation(int time, int FILMSIZE, int ArgonID){
+void Simulation::runSimulation(int time, int ArgonID){
     World world(ni, nj, nk, FILMSIZE, ArgonID);
     world.print_rn_angle();
 
@@ -103,7 +103,7 @@ PYBIND11_MODULE(SimProfile, m) {
     
         // 绑定 Simulation 类
     py::class_<Simulation>(m, "Simulation")
-        .def(py::init<int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"))
+        .def(py::init<int, int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"),py::arg("FILMSIZE"))
         .def("add_particle", &Simulation::addParticle,
              py::arg("pos"), py::arg("vel"), py::arg("E"), py::arg("id"))
         .def("remove_particle", &Simulation::removeParticle,
