@@ -54,8 +54,8 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE): 
-	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}),  rn_angle(180) {
+	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID): 
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}),  ArgonID(ArgonID), rn_angle(180) {
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
@@ -118,7 +118,7 @@ public:
 
 	bool inBounds(double3 pos) {
 		for (int i=0;i<3;i++)
-			if (pos[i] < 0 || pos[i]>=xm[i] + padding*2) return false;
+			if (pos[i] < 0 || pos[i]>=xm[i]) return false;
 		return true;
 	}
 
@@ -126,11 +126,11 @@ public:
 
 		double3 newPos = pos;
 		for (int i=0;i<2;i++) {
-			if (newPos[i] < padding){
+			if (newPos[i] < 0){
 				// std::cout << "mirror : "<< part.pos << std::endl;
 				newPos[i] += xm[i];
 			}
-			else if (newPos[i] > xm[i] + padding){
+			else if (newPos[i] > xm[i]){
 				// std::cout << "mirror : "<< part.pos << std::endl;
 				newPos[i] -= xm[i];
 			}
@@ -193,7 +193,7 @@ public:
 	void set_parameters(
 		const std::vector<std::vector<std::vector<int>>>& react_table_equation,
 		const std::vector<std::vector<int>>& react_type_table,
-		const std::vector<double>& react_prob_chemical,
+		const std::vector<std::vector<double>>& react_prob_chemical,
 		const std::vector<double>& react_yield_p0,
 		const std::vector<double>& film_eth,
 		const std::vector<std::vector<double>>& rn_coeffcients
@@ -323,8 +323,8 @@ public:
 
 	double3 posInlet(Rnd &rnd){
 		// Rnd rnd;
-		double x = xm[0] * rnd() + padding;
-		double y = xm[1] * rnd() + padding;
+		double x = xm[0] * rnd();
+		double y = xm[1] * rnd();
 		double z = topGap;
 		z *= rnd();
 		z += xm[2] - topGap;
@@ -462,16 +462,16 @@ protected:
 	double topGap;
 	double3 xm;	//origin-diagonally opposite corner (max bound)
 	int3 ijk; // for mirror correctify
+	int ArgonID;
     int num_threads;  //number of threads;
 	// std::vector<std::vector<std::vector<int>>> react_table_equation;
 	// std::vector<std::vector<int>> react_type_table;
-	std::vector<double> react_prob_chemical;
+	std::vector<std::vector<double>> react_prob_chemical;
 	// std::vector<double> react_yield_p0;
 	std::vector<std::vector<double>> rn_coeffcients;
 	std::vector<double> rn_angle;
 	std::vector<std::vector<double>> rn_matrix;
-	std::array<double, 5> react_redepo_sticking = {1.0, 1.0, 1.0, 1.0, 1.0};
+	std::array<double, 11> react_redepo_sticking = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 	std::array<double, 4> rn_energy = {100, 1000, 1050, 10000};
-	const double padding = 0;
 };
 

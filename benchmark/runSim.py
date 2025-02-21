@@ -35,7 +35,7 @@ react_type_table = np.array([[1, 1, 1, 4, 0], # 1: chlorination  # 0: no reactio
                             [3, 3, 3, 3, 3]])
 
 # react_prob_chemical = np.array([1.0, 1.0, 1.0, 1.0, 0.0])
-react_prob_chemical = np.array([0.50, 0.50, 0.50, 0.9, 0.0])
+react_prob_chemical = np.array([[0.50, 0.50, 0.50, 0.9, 0.0]])
 react_yield_p0 = np.array([0.30, 0.30, 0.30, 0.30, 0.30])
 film_eth = np.array([5, 5, 5, 5, 5], dtype=np.double)
 
@@ -297,7 +297,7 @@ simulation.inputParticle(pos, vel, E, id)
 # np.save('./film_array_bf.npy', film_array_bf)
 # np.save('./normal_array_bf.npy', normal_array_bf)
 
-simulation.runSimulation(4000)
+simulation.runSimulation(4000, 5, 1)
 
 typeID_array, film_array = simulation.cell_data_to_numpy()
 normal_array = simulation.normal_to_numpy()

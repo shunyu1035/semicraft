@@ -12,32 +12,78 @@ import src.particleGenerator as particleGenerator
 
 import SimProfile
 
-react_table_equation = np.array([
-    [
-        [-1, 1, 0, 0, 0],
-        [0, -1, 1, 0, 0],
-        [0, 0, -1, 1, 0],
-        [0, 0, 0, -1, 0],
-        [0, 0, 0, 0, 0]
-    ],
-    [
-        [-1, 0, 0, 0, 0],
-        [0, -1, 0, 0, 0],
-        [0, 0, -1, 0, 0],
-        [0, 0, 0, -1, 0],
-        [0, 0, 0, 0, -1]
-    ]
-])
+# react_table_equation = np.array([
+#     [
+#         [-1, 1, 0, 0, 0],
+#         [0, -1, 1, 0, 0],
+#         [0, 0, -1, 1, 0],
+#         [0, 0, 0, -1, 0],
+#         [0, 0, 0, 0, 0]
+#     ],
+#     [
+#         [-1, 0, 0, 0, 0],
+#         [0, -1, 0, 0, 0],
+#         [0, 0, -1, 0, 0],
+#         [0, 0, 0, -1, 0],
+#         [0, 0, 0, 0, -1]
+#     ]
+# ])
 
+react_table3 = np.array([[[0.9, 2], [0.9, 3], [0.9, 4], [0.9, -4], [0.5, 7], [0.0, 0], [0.5, 8], [0.0, 0], [0.6, 10], [0.0, 0], [0.0, 0]],
+                        [[0.5, 5], [0.0, 0], [0.0, 0], [0.0, 0], [0.5, 6], [0.0, 0], [0.0, 0], [0.0, 0], [0.0, 0], [0.0, 0], [0.0, 0]],
+                        [[1, -1], [1, -2], [1, -3], [1, -4], [1, -5], [1, -6], [1, -7], [1, -8], [1, -9], [1, -10], [0.0, 0]]])
 
-react_type_table = np.array([[1, 1, 1, 4, 0], # 1: chlorination  # 0: no reaction  # 4: Themal etch
-                            [2, 2, 2, 2, 2], # 2 for physics and chemical sputtering
-                            [3, 3, 3, 3, 3]])
+# react_table3 = np.array([[[0.1, 2], [0.1, 3], [0.1, 4], [0.1, -4], [0.5, 7], [0.0, 0], [0.5, 8], [0.0, 0], [0.6, 10], [0.0, 0]],
+#                         [[0.5, 5], [0.0, 0], [0.0, 0], [0.0, 0], [0.5, 6], [0.0, 0], [0.0, 0], [0.0, 0], [0.0, 0], [0.0, 0]],
+#                         [[0.27, -1], [0.27, -2], [0.27, -3], [0.27, -4], [0.27, -5], [0.27, -6], [0.27, -7], [0.27, -8], [0.27, -9], [0.27, -10]]])
+color_names = ['dimgray', 'blue', 'red', 'green','cyan', 'black', 'white','yellow', 'brown', 'magenta', 'orange', 'purple', 'pink', 'gray']
+labels = ['Si', 'SiF1', 'SiF2', 'SiF3', 'SiO', 'SiO2', 'SiOF', 'SiOF2', 'SiO2F', 'SiO2F2', 'mask']
+
+# print(react_table3.shape)
+# react_table = np.zeros((3, 11, 12))
+react_table = np.zeros((react_table3.shape[0], react_table3.shape[1], react_table3.shape[1] + 1))
+
+for i in range(react_table3.shape[0]):
+    for j in range(react_table3.shape[1]):
+        for k in range(react_table3.shape[2]):
+            react_table[i, j, 0] = react_table3[i, j, 0]
+            react_table[i, j, j+1] = -1
+            react_chem =  int(np.abs(react_table3[i, j, 1]))
+            if react_table3[i, j, 1] > 0:
+                react_plus_min = 1
+            elif react_table3[i, j, 1] < 0:
+                react_plus_min = -1
+            elif react_table3[i, j, 1] == 0:
+                react_plus_min = 0
+            react_table[i, j, react_chem] = react_plus_min
+
+# print(react_table)
+react_table_equation = react_table[:, :, 1:].copy()
+react_table_equation = np.ascontiguousarray(react_table_equation, dtype=np.int32)
+
+# react_type_table = np.array([[1, 1, 1, 4, 0], # 1: chlorination  # 0: no reaction  # 4: Themal etch
+#                             [2, 2, 2, 2, 2], # 2 for physics and chemical sputtering
+#                             [3, 3, 3, 3, 3]])
+
+react_type_table = np.ones((4, 11), dtype=np.int32) # 1 for chemical transfer 
+react_type_table[2, :] = 2 # 2 for physics
+react_type_table[3, :] = 3 # 3 for redepo
+react_type_table[0, 3] = 4 # 1 for chemical remove
+react_type_table[2, -1] = 0 # 2 for no reaction for mask in test
+
+print(react_type_table)
 
 # react_prob_chemical = np.array([1.0, 1.0, 1.0, 1.0, 0.0])
-react_prob_chemical = np.array([0.50, 0.50, 0.50, 0.9, 0.0])
-react_yield_p0 = np.array([0.30, 0.30, 0.30, 0.30, 0.30])
-film_eth = np.array([5, 5, 5, 5, 5], dtype=np.double)
+# react_prob_chemical = np.array([0.50, 0.50, 0.50, 0.9, 0.0])
+
+react_prob_chemical = react_table[:2, :, 0].copy()
+react_prob_chemical = np.ascontiguousarray(react_prob_chemical, dtype=np.double)
+
+# react_yield_p0 = np.array([0.30, 0.30, 0.30, 0.30, 0.30])
+react_yield_p0 = np.array([0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30, 0.30], dtype=np.double)
+
+# film_eth = np.array([5, 5, 5, 5, 5], dtype=np.double)
+film_eth = np.array([10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], dtype=np.double)
 
 rn_coeffcients = np.array([[0.9423, 0.9434, 2.742, 3.026],
                             [0.9620, 0.9608, 2.542, 3.720],
@@ -47,23 +93,28 @@ rn_coeffcients = np.array([[0.9423, 0.9434, 2.742, 3.026],
 sputter_yield_coefficient = [0.3, 0.001, np.pi/4]
 
 # 读取图像为灰度模式
-image = Image.open("./hard_mask_KLA3.jpg").convert("L")
+# image = Image.open("./hard_mask_KLA3.jpg").convert("L")
+image = Image.open("./sf_o2_mask.jpg").convert("L")
 # 转换为 NumPy 数组
 HardMasK = np.array(image)
 
-# Hard mask
-film = np.zeros((20, HardMasK.shape[1], HardMasK.shape[0], 5), dtype=np.int32)
+# Hard mask SF6_O2
+film = np.zeros((20, HardMasK.shape[1], HardMasK.shape[0], 11), dtype=np.int32)
 density = 20
 for i in range(HardMasK.shape[1]):
     for j in range(HardMasK.shape[0]):
-        if HardMasK[j, i] < 80: # Si
+        if HardMasK[j, i] >= 120 and HardMasK[j, i] < 200: # HM
             film[:, i, -j, 0] = density
-        if HardMasK[j, i] >= 80 and HardMasK[j, i] < 120: # HM
+        if HardMasK[j, i] < 100: # Si
             film[:, i, -j, -1] = density
 
-film[:, :, :450, -1] = 0
+film[:, :, :432, -1] = 0
+film[:, :, 432:, 0] = 0
+film[:, :, :432, 0] = 20
+# film[:, :, 431:, 0] = 0
 # film[:, :, :60, -1] = 0
-film[:, :, :2, -1] = density
+film[:, :, :10, 0] = density
+
 
 Cell_dtype = np.dtype([
     ('id', np.int32),

@@ -3,8 +3,8 @@
 
 
 
-void Simulation::runSimulation(int time){
-    World world(ni, nj, nk, 5);
+void Simulation::runSimulation(int time, int FILMSIZE, int ArgonID){
+    World world(ni, nj, nk, FILMSIZE, ArgonID);
     world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 

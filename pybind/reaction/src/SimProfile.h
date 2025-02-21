@@ -94,7 +94,7 @@ private:
 
     std::vector<std::vector<std::vector<int>>> react_table_equation;
     std::vector<std::vector<int>> react_type_table;
-    std::vector<double> react_prob_chemical;
+    std::vector<std::vector<double>> react_prob_chemical;
     std::vector<double> react_yield_p0;
     std::vector<std::vector<double>> rn_coeffcients;
     std::vector<double> sputter_yield_coefficient;
@@ -221,19 +221,24 @@ public:
     // 从 NumPy 数组设置数据，要求输入必须为三维数组
     void set_react_prob_chemical(py::array_t<double> arr) {
         py::buffer_info buf = arr.request();
-        if (buf.ndim != 1) {
+        if (buf.ndim != 2) {
             throw std::runtime_error("react_prob_chemical 输入数组必须是2维的");
         }
         // 获取每一维的大小
         ssize_t dim0 = buf.shape[0];
+        ssize_t dim1 = buf.shape[1];
         double* ptr = static_cast<double*>(buf.ptr);
 
         // 按三维结构分配 react_table_equation
         react_prob_chemical.resize(dim0);
         for (ssize_t i = 0; i < dim0; ++i) {
-            // 计算内存中对应的起始偏移：
-            ssize_t offset = i;
-            react_prob_chemical[i] = ptr[offset];
+            react_prob_chemical[i].resize(dim1);
+            for (ssize_t j = 0; j < dim1; ++j) {
+                // 计算内存中对应的起始偏移：
+                ssize_t offset = i * dim1 + j;
+                react_prob_chemical[i][j] = ptr[offset];
+
+            }
         }
     }
 
@@ -274,7 +279,7 @@ public:
     }
 
 
-    void runSimulation(int time);
+    void runSimulation(int time, int FILMSIZE, int ArgonID);
 
 
     void inputCell(
