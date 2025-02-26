@@ -1,9 +1,12 @@
 #include "SimProfile.h"
 
 
+bool Simulation::need_recompute = false;
 
+int Simulation::runSimulation(int time, int ArgonID){
+    // 注册信号处理器
+    std::signal(SIGSEGV, signalHandler);
 
-void Simulation::runSimulation(int time, int ArgonID){
     World world(ni, nj, nk, FILMSIZE, ArgonID);
     world.print_rn_angle();
 
@@ -16,7 +19,7 @@ void Simulation::runSimulation(int time, int ArgonID){
     double3 xm = world.getXm();
     std::cout << "World xm: " << xm << std::endl; 
 
-    world.set_cell(Cells);
+    world.set_cell(typeID_in, index_in, normal_in, film_in);
     world.sputter_yield_angle(sputter_yield_coefficient[0], sputter_yield_coefficient[1], sputter_yield_coefficient[2]);
     world.inputParticle(particles);
 
@@ -41,6 +44,15 @@ void Simulation::runSimulation(int time, int ArgonID){
         int reaction_count = 0;
         std::cout<<"Running "<< t <<" step; "  <<std::endl;
         sp.advance(reaction_count);
+
+        // 检查是否需要重新计算
+        if (need_recompute) {
+            // 调用 Python 函数
+            // recompute();
+            return 0;
+            break;
+            // need_recompute = false; // 重置标志
+        }
     }
     // sp.advance(reaction_count);
     // world.change_cell(5,5,5);
@@ -73,7 +85,10 @@ void Simulation::runSimulation(int time, int ArgonID){
     }
 
     std::cout << "Film in :" << std::endl;
-    Cells = world.Cells;
+    // Cells = world.Cells;
+    normal_in = world.output_normal_in();
+    typeID_in = world.output_typeID_in();
+    film_in = world.output_film_in();
 
     std::cout << "update_film_etch: ";
     for (size_t f = 0; f < world.update_film_etch.size(); ++f) {
@@ -81,9 +96,13 @@ void Simulation::runSimulation(int time, int ArgonID){
     }
     std::cout << '\n';
 
+    return 1;
     // world.print_Cells();
     // print_Cells();
 }
+
+
+
 
 
 
@@ -112,13 +131,11 @@ PYBIND11_MODULE(SimProfile, m) {
         .def("printParticle", &Simulation::printParticle)
         .def("moveParticle", &Simulation::moveParticle)
         .def("crossTest", &Simulation::crossTest)
-        .def("getCells", &Simulation::getCells)
         .def("inputCell", &Simulation::inputCell, 
             py::arg("typeid"),
             py::arg("index"),
             py::arg("normal"),
             py::arg("film"), "typeid, index, normal, film")
-        .def("printCell", &Simulation::printCell)
         .def("runSimulation", &Simulation::runSimulation)
         .def("normal_to_numpy", &Simulation::normal_to_numpy)
         .def("cell_data_to_numpy", &Simulation::cell_data_to_numpy)
@@ -135,6 +152,7 @@ PYBIND11_MODULE(SimProfile, m) {
             py::arg("vel"),
             py::arg("E"),
             py::arg("id"), "pos, vel, E, id")
-        .def("input_sputter_yield_coefficient", &Simulation::input_sputter_yield_coefficient);
+        .def("input_sputter_yield_coefficient", &Simulation::input_sputter_yield_coefficient)
+        .def("recompute", &Simulation::recompute, "A function that returns True");
 
 }

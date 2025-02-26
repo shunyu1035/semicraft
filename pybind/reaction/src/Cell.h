@@ -8,8 +8,8 @@
 #include <pybind11/numpy.h>
 #include <omp.h>
 #include "Field.h"
-
-
+#include <mutex>
+#include <atomic>
 // /*object for sampling random numbers*/
 // class Rnd {
 // 	public:
@@ -39,15 +39,32 @@
 
 // Rnd rnd;
 
-struct Cell {
-    int typeID;
-    int3 index;
-    double3 normal;
-    std::vector<int> film;
-	Cell(int typeID, int3 index, double3 normal, std::vector<int> film):
-	typeID{typeID}, index{index}, normal{normal}, film{film} { }
-};
+// struct Cell {
+//     int typeID;
+//     int3 index;
+//     double3 normal;
+//     std::vector<int> film;
+// 	std::mutex film_mutex; // 添加互斥锁
+// 	Cell(int typeID, int3 index, double3 normal, std::vector<int> film):
+// 	typeID{typeID}, index{index}, normal{normal}, film{film} { }
+// };
 
+class Cell {
+	public:
+		int typeID;
+		int3 index;
+		double3 normal;
+		std::vector<int> film;
+		std::mutex film_mutex; // 添加互斥锁
+		// 自定义拷贝构造函数
+		Cell(const Cell& other) : typeID(other.typeID), index(other.index), normal(other.normal), film(other.film) {}
+	
+		// 其他构造函数
+		Cell(int typeID, int3 index, double3 normal, std::vector<int> film) :
+			typeID{typeID}, index{index}, normal{normal}, film{film} { }
+	
+		// 其他成员函数
+	};
 
 /*defines the computational domain*/
 class World
@@ -170,10 +187,91 @@ public:
         int dim_2 = Cells[0][0].size();
         std::cout << "World Cell: " << dim_0 << " " << dim_1 << " " << dim_2 <<  std::endl;
     }
-    void set_cell(std::vector<std::vector<std::vector<Cell>>> Cell){
-        Cells = Cell;
+    // void set_cell(std::vector<std::vector<std::vector<Cell>>> Cell){
+    //     Cells = Cell;
+    //     print_cell();
+    // }
+
+	void set_cell(std::vector<std::vector<std::vector<int>>> typeID_in,
+		std::vector<std::vector<std::vector<int3>>> index_in,
+		std::vector<std::vector<std::vector<double3>>> normal_in,
+		std::vector<std::vector<std::vector<std::vector<int>>>> film_in)
+	{
+        size_t dim_x = typeID_in.size();
+        size_t dim_y = typeID_in[0].size();
+        size_t dim_z = typeID_in[0][0].size();
+
+		Cells.resize(dim_x);
+		for(size_t i=0; i<dim_x; ++i){
+			Cells[i].resize(dim_y);
+			for (size_t j = 0; j < dim_y; ++j) {
+				for (size_t k = 0; k < dim_z; ++k) {
+					// Cells[i][j].emplace_back(typeID_in[i][j][k], index_in[i][j][k], normal_in[i][j][k], film_in[i][j][k]);
+					Cell new_cell(typeID_in[i][j][k], index_in[i][j][k], normal_in[i][j][k], film_in[i][j][k]);
+					Cells[i][j].push_back(new_cell);
+				}
+			}
+		}
         print_cell();
     }
+
+	std::vector<std::vector<std::vector<int>>> output_typeID_in(){
+		size_t dim_x = Cells.size();
+        size_t dim_y = Cells[0].size();
+        size_t dim_z = Cells[0][0].size();
+
+		std::vector<std::vector<std::vector<int>>> output_typeID;
+		output_typeID.resize(dim_x);
+		for(size_t i=0; i<dim_x; ++i){
+			output_typeID[i].resize(dim_y);
+			for (size_t j = 0; j < dim_y; ++j) {
+				for (size_t k = 0; k < dim_z; ++k) {
+					output_typeID[i][j].emplace_back(Cells[i][j][k].typeID);
+				}
+			}
+		}
+		return output_typeID;
+	}
+
+	std::vector<std::vector<std::vector<std::vector<int>>>> output_film_in(){
+		size_t dim_x = Cells.size();
+        size_t dim_y = Cells[0].size();
+        size_t dim_z = Cells[0][0].size();
+
+		std::vector<std::vector<std::vector<std::vector<int>>>> output_film;
+		output_film.resize(dim_x);
+		for(size_t i=0; i<dim_x; ++i){
+			output_film[i].resize(dim_y);
+			for (size_t j = 0; j < dim_y; ++j) {
+				output_film[i][j].resize(dim_z);
+				for (size_t k = 0; k < dim_z; ++k) {
+					for (int l = 0; l < FILMSIZE; ++l) {
+						output_film[i][j][k].emplace_back(Cells[i][j][k].film[l]);
+					}
+				}
+			}
+		}
+		return output_film;
+	}
+
+	std::vector<std::vector<std::vector<double3>>> output_normal_in(){
+		size_t dim_x = Cells.size();
+        size_t dim_y = Cells[0].size();
+        size_t dim_z = Cells[0][0].size();
+
+		std::vector<std::vector<std::vector<double3>>> output_normal;
+		output_normal.resize(dim_x);
+		for(size_t i=0; i<dim_x; ++i){
+			output_normal[i].resize(dim_y);
+			for (size_t j = 0; j < dim_y; ++j) {
+				// output_normal[i][j].resize(dim_z);
+				for (size_t k = 0; k < dim_z; ++k) {
+						output_normal[i][j].emplace_back(Cells[i][j][k].normal);
+				}
+			}
+		}
+		return output_normal;
+	}
 
     void change_cell(int idx, int idy, int idz){
         double3 test{1, 1, 1};
@@ -332,8 +430,8 @@ public:
 		return pos;
 	}
 
-	void film_add(int3 posInt, std::vector<int> react_add);
-
+	// void film_add(int3 posInt, std::vector<int> react_add);
+	void film_add(int3 posInt, const std::vector<int>& react_add);
 
 	// 生成从start到end，步长为step的序列
 	std::vector<double> linspace(double start, double end, double step) {

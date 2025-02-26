@@ -12,6 +12,7 @@
 #include <omp.h>
 #include <pybind11/pybind11.h>
 #include <thread>
+#include <csignal>
 
 // #include "Cell.h"
 
@@ -86,8 +87,11 @@ void bind_particle(py::module &m) {
 class Simulation {
 private:
     std::vector<Particle> particles;
-    std::vector<std::vector<std::vector<Cell>>> Cells;
-
+    // std::vector<std::vector<std::vector<Cell>>> Cells;
+    std::vector<std::vector<std::vector<int>>> typeID_in;
+    std::vector<std::vector<std::vector<int3>>> index_in;
+    std::vector<std::vector<std::vector<double3>>> normal_in;
+    std::vector<std::vector<std::vector<std::vector<int>>>> film_in;
 	//mesh geometry
     const int seed;
 	const int ni,nj,nk;	//number of nodes
@@ -100,9 +104,20 @@ private:
     std::vector<double> sputter_yield_coefficient;
     std::vector<double> film_eth;
 
+
 public:
     // 构造函数：初始化随机数引擎
     Simulation(int seed, int ni, int nj, int nk, int FILMSIZE) : seed(seed), ni{ni}, nj{nj}, nk{nk}, FILMSIZE{FILMSIZE} {}
+
+
+    // 声明一个静态变量用于标记错误状态
+    static bool need_recompute;
+
+    // 将 signalHandler 改为静态成员函数
+    static void signalHandler(int signum) {
+        std::cout << "Interrupt signal (" << signum << ") received." << std::endl;
+        need_recompute = true;
+    }
 
     // 从 NumPy 数组设置数据，要求输入必须为三维数组
     void set_react_table_equation(py::array_t<int> arr) {
@@ -279,7 +294,7 @@ public:
     }
 
 
-    void runSimulation(int time, int ArgonID);
+    int runSimulation(int time, int ArgonID);
 
 
     void inputCell(
@@ -316,9 +331,17 @@ public:
         std::cout << "inputCell: " << dim_x << " " <<  dim_y << " " << dim_z<< std::endl;
 
         std::vector<int> film;
-        Cells.resize(dim_x);
+        // Cells.resize(dim_x);
+        typeID_in.resize(dim_x);
+        index_in.resize(dim_x);
+        normal_in.resize(dim_x);
+        film_in.resize(dim_x);
         for(size_t i=0; i<dim_x; ++i){
-            Cells[i].resize(dim_y);
+            // Cells[i].resize(dim_y);
+            typeID_in[i].resize(dim_y);
+            index_in[i].resize(dim_y);
+            normal_in[i].resize(dim_y);
+            film_in[i].resize(dim_y);
             for (size_t j = 0; j < dim_y; ++j) {
                 for (size_t k = 0; k < dim_z; ++k) {
                     size_t offset3 = ((i * dim_y + j) * dim_z + k) * 3;
@@ -338,15 +361,20 @@ public:
                     //     std::cout << film[f] << ' ';
                     // }
                     // std::cout << '\n';
-                    Cells[i][j].emplace_back(typeID_ptr[offset], index, normal, film);
+                    // Cells[i][j].emplace_back(typeID_ptr[offset], index, normal, film);
+                    typeID_in[i][j].emplace_back(typeID_ptr[offset]);
+                    index_in[i][j].emplace_back(index);
+                    normal_in[i][j].emplace_back(normal);
+                    film_in[i][j].emplace_back(film);
                 }
             }
         }
 
-        std::cout << "CellSize: " << Cells.size() << " " <<  Cells[0].size() << " " << Cells[0][0].size() << std::endl;
+        // std::cout << "CellSize: " << Cells.size() << " " <<  Cells[0].size() << " " << Cells[0][0].size() << std::endl;
         // for(size_t i=0; i<num; ++i){
         //     particles[i] = particle_ptr[i];
         // }
+        std::cout << "inputCell_over " << std::endl;
     }
 
 
@@ -410,9 +438,9 @@ public:
     }
 
     // 获取所有粒子 (Python 访问接口)
-    const std::vector<std::vector<std::vector<Cell>>>& getCells() const {
-        return Cells;
-    }
+    // const std::vector<std::vector<std::vector<Cell>>>& getCells() const {
+    //     return Cells;
+    // }
 
 
     // 添加粒子（Python 交互接口）
@@ -433,16 +461,16 @@ public:
         std::cout << "particles["<< id <<"].vel: " << particles[id].vel << std::endl;    // 输出: particles[id].pos
     }
 
-    void printCell(int idx, int idy, int idz) {
-        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].typeID: " << Cells[idx][idy][idz].typeID << std::endl;
-        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].index: " << Cells[idx][idy][idz].index << std::endl;    // 输出: particles[id].pos
-        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].normal: " << Cells[idx][idy][idz].normal << std::endl;    // 输出: particles[id].pos
-        std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].film: " << std::endl;
-        for (size_t i = 0; i < Cells[idx][idy][idz].film.size(); ++i) {
-            std::cout << Cells[idx][idy][idz].film[i] << " ";
-        }
-        std::cout << std::endl;
-    }
+    // void printCell(int idx, int idy, int idz) {
+    //     std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].typeID: " << Cells[idx][idy][idz].typeID << std::endl;
+    //     std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].index: " << Cells[idx][idy][idz].index << std::endl;    // 输出: particles[id].pos
+    //     std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].normal: " << Cells[idx][idy][idz].normal << std::endl;    // 输出: particles[id].pos
+    //     std::cout << "Cell["<< idx <<"]["<< idy <<"]["<< idz <<"].film: " << std::endl;
+    //     for (size_t i = 0; i < Cells[idx][idy][idz].film.size(); ++i) {
+    //         std::cout << Cells[idx][idy][idz].film[i] << " ";
+    //     }
+    //     std::cout << std::endl;
+    // }
     
 
     // cross test
@@ -471,7 +499,7 @@ public:
 
     // 将内部的三维 vector 转换为一个 NumPy 数组返回
     py::array_t<double> normal_to_numpy() const {
-        if (Cells.empty() || Cells[0].empty() || Cells[0][0].empty()) {
+        if (normal_in.empty() || normal_in[0].empty() || normal_in[0][0].empty()) {
             throw std::runtime_error("数据为空");
         }
         int dim0 = ni;
@@ -485,17 +513,17 @@ public:
 
         // 将三维 vector 中的数据逐层复制到连续内存中
         for (int i = 0; i < dim0; i++) {
-            if (Cells[i].size() != static_cast<size_t>(dim1)) {
+            if (normal_in[i].size() != static_cast<size_t>(dim1)) {
                 throw std::runtime_error("第 i 层的行数不一致");
             }
             for (int j = 0; j < dim1; j++) {
-                if (Cells[i][j].size() != static_cast<size_t>(dim2)) {
+                if (normal_in[i][j].size() != static_cast<size_t>(dim2)) {
                     throw std::runtime_error("列数不一致");
                 }
                 for (int k = 0; k < dim2; k++) {
                     // 计算连续内存中的索引位置
                     for (size_t l = 0; l < 3; ++l) {
-                        ptr[i * (dim1 * dim2)*3  + j * dim2*3 + k*3 + l] = Cells[i][j][k].normal(l);
+                        ptr[i * (dim1 * dim2)*3  + j * dim2*3 + k*3 + l] = normal_in[i][j][k](l);
                     }
                     // ptr[i * (dim1 * dim2) + j * dim2 + k + 1] = Cells[i][j][k].normal(1);
                     // ptr[i * (dim1 * dim2) + j * dim2 + k + 2] = Cells[i][j][k].normal(2);
@@ -506,13 +534,13 @@ public:
     }
 
     py::tuple cell_data_to_numpy() const {
-        if (Cells.empty() || Cells[0].empty() || Cells[0][0].empty()) {
+        if (typeID_in.empty() || typeID_in[0].empty() || typeID_in[0][0].empty()) {
             throw std::runtime_error("Cells 数据为空");
         }
     
-        size_t dim0 = Cells.size();
-        size_t dim1 = Cells[0].size();
-        size_t dim2 = Cells[0][0].size();
+        size_t dim0 = typeID_in.size();
+        size_t dim1 = typeID_in[0].size();
+        size_t dim2 = typeID_in[0][0].size();
     
         // 创建用于存储 typeID 的 NumPy 数组
         auto typeID_array = py::array_t<int>({dim0, dim1, dim2});
@@ -528,13 +556,13 @@ public:
         for (size_t i = 0; i < dim0; ++i) {
             for (size_t j = 0; j < dim1; ++j) {
                 for (size_t k = 0; k < dim2; ++k) {
-                    const Cell& cell = Cells[i][j][k];
-                    typeID_ptr[i * dim1 * dim2 + j * dim2 + k] = cell.typeID;
+                    // const Cell& cell = Cells[i][j][k];
+                    typeID_ptr[i * dim1 * dim2 + j * dim2 + k] = typeID_in[i][j][k];
     
                     // 复制 film 数据，如果长度不足 FILMSIZE，填充 0
-                    for (size_t l = 0; l < FILMSIZE; ++l) {
-                        if (l < cell.film.size()) {
-                            film_ptr[i * dim1 * dim2 * FILMSIZE + j * dim2 * FILMSIZE + k * FILMSIZE + l] = cell.film[l];
+                    for (size_t l = 0; l < static_cast<size_t>(FILMSIZE); ++l) {
+                        if (l < film_in[i][j][k].size()) {
+                            film_ptr[i * dim1 * dim2 * FILMSIZE + j * dim2 * FILMSIZE + k * FILMSIZE + l] = film_in[i][j][k][l];
                         } else {
                             film_ptr[i * dim1 * dim2 * FILMSIZE + j * dim2 * FILMSIZE + k * FILMSIZE + l] = 0;
                         }
@@ -547,24 +575,27 @@ public:
     } 
 
 
-    void print_Cells(){
-        // 将数据复制到 NumPy 数组
+    // void print_Cells(){
+    //     // 将数据复制到 NumPy 数组
 
-    int surface = 0;
-    for (size_t i = 0; i < ni; ++i) {
-        for (size_t j = 0; j < nj; ++j) {
-            for (size_t k = 0; k < nk; ++k) {
-                if(Cells[i][j][k].typeID == 1) {
-                    surface++;
-                    std::cout << "surface: " << i << " " << j << " " << k << " " << Cells[i][j][k].normal << std::endl;
-                }
-            }
-        }
+    // int surface = 0;
+    // for (size_t i = 0; i < ni; ++i) {
+    //     for (size_t j = 0; j < nj; ++j) {
+    //         for (size_t k = 0; k < nk; ++k) {
+    //             if(Cells[i][j][k].typeID == 1) {
+    //                 surface++;
+    //                 std::cout << "surface: " << i << " " << j << " " << k << " " << Cells[i][j][k].normal << std::endl;
+    //             }
+    //         }
+    //     }
+    // }
+    // std::cout << "surfacecount: "<< surface << std::endl;
+    // }
+
+
+    int recompute() {
+        return 0;
     }
-    std::cout << "surfacecount: "<< surface << std::endl;
-    }
-
-
 };
 
 

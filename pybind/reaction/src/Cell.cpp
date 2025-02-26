@@ -46,13 +46,32 @@ double World::linear_interp(double x, const std::vector<double>& xp, const std::
 }
 
 
-void World::film_add(int3 posInt, std::vector<int> react_add){
-    for (int a=0; a<FILMSIZE; ++a){
-        // std::cout << react_add[a] <<  std::endl;
-        Cells[posInt[0]][posInt[1]][posInt[2]].film[a] += react_add[a];
-        // std::cout << Cells[posInt[0]][posInt[1]][posInt[2]].film[a] <<  std::endl;
+// void World::film_add(int3 posInt, std::vector<int> react_add){
+//     for (int a=0; a<FILMSIZE; ++a){
+//         // std::cout << react_add[a] <<  std::endl;
+//         Cells[posInt[0]][posInt[1]][posInt[2]].film[a] += react_add[a];
+//         // std::cout << Cells[posInt[0]][posInt[1]][posInt[2]].film[a] <<  std::endl;
+//     }
+// }
+
+void World::film_add(int3 posInt, const std::vector<int>& react_add) {
+    Cell& cell = Cells[posInt[0]][posInt[1]][posInt[2]];
+    std::lock_guard<std::mutex> lock(cell.film_mutex); // 加锁
+
+    for (int a = 0; a < FILMSIZE; ++a) {
+        cell.film[a] += react_add[a];
     }
 }
+
+// void World::film_add(int3 posInt, const std::vector<int>& react_add) {
+//     // 假设 Cells 是一个三维容器：std::vector<std::vector<std::vector<Cell>>>
+//     Cell& cell = Cells[posInt[0]][posInt[1]][posInt[2]];
+    
+//     // 对 film 数组中的每个元素使用原子操作进行加法
+//     for (size_t a = 0; a < cell.film.size(); ++a) {
+//         cell.film[a].fetch_add(react_add[a], std::memory_order_relaxed);
+//     }
+// }
 
 
 std::vector<int> World::sticking_probability_structed(Particle particle, const Cell cell, double angle_rad, Rnd &rnd) {
