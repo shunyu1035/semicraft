@@ -14,7 +14,26 @@
 #include <thread>
 #include <csignal>
 
-// #include "Cell.h"
+#include <stdexcept>
+#include <cstdlib>
+class SimulationError : public std::runtime_error {
+public:
+    explicit SimulationError(const std::string &msg)
+        : std::runtime_error(msg) {}
+};
+
+
+
+// 定义全局静态标志，用于指示错误状态
+static volatile std::sig_atomic_t error_flag = 0;
+
+// 全局信号处理函数（不要作为非静态成员函数）
+void globalSignalHandler(int signum) {
+    std::cerr << "Signal " << signum << " received.\n";
+    error_flag = 1;  // 标记错误发生
+    // 注意：不要在这里抛出异常，也不要调用 std::exit()
+    std::exit(0);
+}
 
 namespace py = pybind11;
 

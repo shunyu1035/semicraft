@@ -5,7 +5,8 @@ bool Simulation::need_recompute = false;
 
 int Simulation::runSimulation(int time, int ArgonID){
     // 注册信号处理器
-    std::signal(SIGSEGV, signalHandler);
+    // std::signal(SIGSEGV, signalHandler);
+    std::signal(SIGSEGV, globalSignalHandler);
 
     World world(ni, nj, nk, FILMSIZE, ArgonID);
     world.print_rn_angle();
@@ -40,19 +41,26 @@ int Simulation::runSimulation(int time, int ArgonID){
 
     // int reaction_count = 0;
     // sp.change_cell(5,5,5);
-    for(int t=0; t<time; ++t){
-        int reaction_count = 0;
-        std::cout<<"Running "<< t <<" step; "  <<std::endl;
-        sp.advance(reaction_count);
+    try {
+        for(int t=0; t<time; ++t){
+            int reaction_count = 0;
+            if (t % 1000 == 0) {  // 只有当 t 是 1000 的整数倍时才打印
+                std::cout << "Running " << t << " step;" << std::endl;
+            }
+            // std::cout<<"Running "<< t <<" step; "  <<std::endl;
+            sp.advance(reaction_count);
 
-        // 检查是否需要重新计算
-        if (need_recompute) {
-            // 调用 Python 函数
-            // recompute();
-            return 0;
-            break;
-            // need_recompute = false; // 重置标志
+            // 检查错误标志，如果检测到错误，则抛出异常
+            if (error_flag==1) {
+                throw SimulationError("Simulation encountered a segmentation fault.");
+                std::exit(1);
+                break;
+            }
         }
+    } catch (const SimulationError& e) {
+        std::cout << e.what() << std::endl;
+        // 在捕获异常时跳出循环并返回 0
+        return 0;
     }
     // sp.advance(reaction_count);
     // world.change_cell(5,5,5);
@@ -154,5 +162,15 @@ PYBIND11_MODULE(SimProfile, m) {
             py::arg("id"), "pos, vel, E, id")
         .def("input_sputter_yield_coefficient", &Simulation::input_sputter_yield_coefficient)
         .def("recompute", &Simulation::recompute, "A function that returns True");
+
+    // 可选：将 SimulationError 也绑定为 Python 异常
+    static py::exception<SimulationError> ex(m, "SimulationError");
+    py::register_exception_translator([](std::exception_ptr p) {
+        try {
+            if (p) std::rethrow_exception(p);
+        } catch (const SimulationError &e) {
+            PyErr_SetString(PyExc_RuntimeError, e.what());
+        }
+    });
 
 }
