@@ -60,7 +60,7 @@ int Simulation::runSimulation(int time, int ArgonID){
     } catch (const SimulationError& e) {
         std::cout << e.what() << std::endl;
         // 在捕获异常时跳出循环并返回 0
-        return 0;
+        return 1;
     }
     // sp.advance(reaction_count);
     // world.change_cell(5,5,5);
@@ -73,24 +73,24 @@ int Simulation::runSimulation(int time, int ArgonID){
 
     // int3 posInt = {(int)sp.particles[id].pos[0], (int)sp.particles[id].pos[1], (int)sp.particles[id].pos[2]};
     // bool testIn = world.inFilm(posInt);
-    for(size_t i=0; i<particles.size(); ++i){
-    if(world.inBounds(sp.particles[i].pos)){        
-        continue;
-    }
-    else{
+    // for(size_t i=0; i<particles.size(); ++i){
+    // if(world.inBounds(sp.particles[i].pos)){        
+    //     continue;
+    // }
+    // else{
         
-        std::cout << "Film out :" << i << std::endl;
-        std::cout << "particle size: " << sp.particles.size() << std::endl;
-        std::cout << "particles["<< i <<"].pos: " << sp.particles[i].pos << std::endl; 
-        std::cout << "particles["<< i <<"].vel: " << sp.particles[i].vel << std::endl; 
-        std::cout << "particles["<< i <<"].id: " << sp.particles[i].id << std::endl; 
-        std::cout << "particles["<< i <<"].E: " << sp.particles[i].E << std::endl; 
-        std::cout << "Simulation particle size: " << particles.size() <<  std::endl;
-        sp.showParticleIn(i);
+    //     std::cout << "Film out :" << i << std::endl;
+    //     std::cout << "particle size: " << sp.particles.size() << std::endl;
+    //     std::cout << "particles["<< i <<"].pos: " << sp.particles[i].pos << std::endl; 
+    //     std::cout << "particles["<< i <<"].vel: " << sp.particles[i].vel << std::endl; 
+    //     std::cout << "particles["<< i <<"].id: " << sp.particles[i].id << std::endl; 
+    //     std::cout << "particles["<< i <<"].E: " << sp.particles[i].E << std::endl; 
+    //     std::cout << "Simulation particle size: " << particles.size() <<  std::endl;
+    //     sp.showParticleIn(i);
 
-        break;
-    }
-    }
+    //     break;
+    // }
+    // }
 
     std::cout << "Film in :" << std::endl;
     // Cells = world.Cells;
@@ -98,15 +98,7 @@ int Simulation::runSimulation(int time, int ArgonID){
     typeID_in = world.output_typeID_in();
     film_in = world.output_film_in();
 
-    std::cout << "update_film_etch: ";
-    for (size_t f = 0; f < world.update_film_etch.size(); ++f) {
-        std::cout << world.update_film_etch[f] << '\n';
-    }
-    std::cout << '\n';
-
-    return 1;
-    // world.print_Cells();
-    // print_Cells();
+    return 0;
 }
 
 

@@ -32,7 +32,7 @@ void globalSignalHandler(int signum) {
     std::cerr << "Signal " << signum << " received.\n";
     error_flag = 1;  // 标记错误发生
     // 注意：不要在这里抛出异常，也不要调用 std::exit()
-    std::exit(0);
+    std::exit(1);
 }
 
 namespace py = pybind11;
