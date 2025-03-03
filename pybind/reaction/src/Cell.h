@@ -71,8 +71,9 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID): 
-	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}),  ArgonID(ArgonID), rn_angle(180) {
+	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient): 
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,
+		(double)nk}), ijk({ni,nj,nk}),  ArgonID(ArgonID), rn_angle(180), reflect_coefficient(reflect_coefficient) {
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
@@ -535,7 +536,7 @@ public:
 	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
 	const int FILMSIZE;
-
+	double reflect_coefficient;
 	std::vector<std::vector<double>> sputterYield_ion;
     std::vector<std::vector<std::vector<Cell>>> Cells;
 	
@@ -561,6 +562,7 @@ protected:
 	double3 xm;	//origin-diagonally opposite corner (max bound)
 	int3 ijk; // for mirror correctify
 	int ArgonID;
+	// double reflect_coefficient;
     int num_threads;  //number of threads;
 	// std::vector<std::vector<std::vector<int>>> react_table_equation;
 	// std::vector<std::vector<int>> react_type_table;

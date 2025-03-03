@@ -106,8 +106,14 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 			if (react == false) {
 				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
 				// std::cout << "reflect normal: " << p << world.Cells[posInt[0]][posInt[1]][posInt[2]].normal << std::endl;
+				if (world.reflect_coefficient < rnd()){
+					part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
+				}
+				else{
+					part.vel = world.SpecularReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal);
+				}
 				// part.vel = world.SpecularReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal);
-				part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
+				// part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
 				// std::cout << "reflect after vel: " << p << part.vel << std::endl;
 			}
 		}
