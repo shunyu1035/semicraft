@@ -46,6 +46,7 @@ testNote.ipynb
 *.html
 *.so
 *.gz
+*.jpg
 *-ubyte
 [Dd]ebug/
 [Dd]ebugPublic/

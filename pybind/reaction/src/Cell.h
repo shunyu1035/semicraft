@@ -420,6 +420,15 @@ public:
 		std::cout << std::endl;
 	}
 
+	void print_react_yield_p0() const {
+		std::cout << "print_react_yield_p0 " << ":\n";
+		for (const auto& row : react_yield_p0) {
+			std::cout << row << ' ';
+		}
+		std::cout << '\n';
+		std::cout << std::endl;
+	}
+
 	double3 posInlet(Rnd &rnd){
 		// Rnd rnd;
 		double x = xm[0] * rnd();
