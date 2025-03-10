@@ -71,16 +71,17 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient): 
+	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient, double E_decrease): 
 	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,
-		(double)nk}), ijk({ni,nj,nk}),  ArgonID(ArgonID), rn_angle(180), reflect_coefficient(reflect_coefficient) {
+		(double)nk}), ijk({ni,nj,nk}),  ArgonID(ArgonID), rn_angle(180), reflect_coefficient(reflect_coefficient),
+		E_decrease(E_decrease) {
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
 
 		/*set inlet thick here*/
 		topGap = 5;
-	 }
+	}
 
 	// /*functions to set mesh origin and spacing*/
 	// void setExtents() {xm[0] = <double>ni; xm[1] = <double>nj; xm[2] = <double>nk;}
@@ -546,6 +547,7 @@ public:
 	const int ni,nj,nk;	//number of nodes
 	const int FILMSIZE;
 	double reflect_coefficient;
+	double E_decrease;
 	std::vector<std::vector<double>> sputterYield_ion;
     std::vector<std::vector<std::vector<Cell>>> Cells;
 	
@@ -559,11 +561,11 @@ public:
 
 	std::vector<int3> grid_cross = {
 		{1, 0, 0},
-		{-1, 0, 0},
+		{-1,0, 0},
 		{0, 1, 0},
-		{0, -1, 0},
+		{0,-1, 0},
 		{0, 0, 1},
-		{0, 0, -1}
+		{0, 0,-1}
 	};
 	// Rnd rng;
 protected:

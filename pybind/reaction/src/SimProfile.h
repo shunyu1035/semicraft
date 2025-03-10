@@ -313,7 +313,7 @@ public:
     }
 
 
-    int runSimulation(int time, int ArgonID, double reflect_coefficient);
+    int runSimulation(int time, int ArgonID, double reflect_coefficient, double E_decrease);
 
 
     void inputCell(

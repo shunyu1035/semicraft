@@ -3,12 +3,12 @@
 
 bool Simulation::need_recompute = false;
 
-int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient){
+int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, double E_decrease){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
     std::signal(SIGSEGV, globalSignalHandler);
 
-    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient);
+    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, E_decrease);
     world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 

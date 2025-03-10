@@ -104,6 +104,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 			}
 
 			if (react == false) {
+				part.E -= world.E_decrease;
 				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
 				// std::cout << "reflect normal: " << p << world.Cells[posInt[0]][posInt[1]][posInt[2]].normal << std::endl;
 				if (world.reflect_coefficient < rnd()){
@@ -123,7 +124,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 
 		part.pos = world.mirror(part.pos);
 		/*did this particle get inside the sphere or leave the domain?*/
-		if (!world.inBounds(part.pos) || react == true)
+		if (!world.inBounds(part.pos) || react == true || part.E <= 0)
 		{
 			part = world.inletParticle(rnd);
 			continue;
