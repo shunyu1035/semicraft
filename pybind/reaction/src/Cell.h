@@ -71,10 +71,10 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient, double E_decrease): 
+	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient, double E_decrease, int bottom): 
 	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,
 		(double)nk}), ijk({ni,nj,nk}),  ArgonID(ArgonID), rn_angle(180), reflect_coefficient(reflect_coefficient),
-		E_decrease(E_decrease) {
+		E_decrease(E_decrease), bottom(bottom){
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
@@ -542,12 +542,33 @@ public:
 
 	void update_normal_in_matrix();
 
+	bool scan_bottom(){
+		int filmThickness = 0;
+		int centerX = ni/2;
+		int centerY = nj/2;
+		for(int z=0; z<nk; ++z){
+			int sum = 0;
+			for(int f=0; f<FILMSIZE; ++f){
+				sum += Cells[centerX][centerY][z].film[f];
+			}
+			if(sum <= 0){
+				filmThickness = z;
+				break;
+			}
+		}
+		if(filmThickness == bottom){
+			return true;
+		}
+		return false;
+	}
+
 	//mesh geometry
 	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
 	const int FILMSIZE;
 	double reflect_coefficient;
 	double E_decrease;
+	int bottom;
 	std::vector<std::vector<double>> sputterYield_ion;
     std::vector<std::vector<std::vector<Cell>>> Cells;
 	

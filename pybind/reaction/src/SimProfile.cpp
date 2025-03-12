@@ -3,12 +3,12 @@
 
 bool Simulation::need_recompute = false;
 
-int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, double E_decrease){
+int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, double E_decrease, int bottom){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
     std::signal(SIGSEGV, globalSignalHandler);
 
-    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, E_decrease);
+    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, E_decrease, bottom);
     world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 
@@ -50,7 +50,10 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
             }
             // std::cout<<"Running "<< t <<" step; "  <<std::endl;
             sp.advance(reaction_count);
-
+            if(world.scan_bottom()){
+                std::cout << "etching reach the bottom;" << std::endl;
+                break;
+            }
             // 检查错误标志，如果检测到错误，则抛出异常
             if (error_flag==1) {
                 throw SimulationError("Simulation encountered a segmentation fault.");
