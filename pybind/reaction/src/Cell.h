@@ -458,10 +458,13 @@ public:
 		double f = -std::log(gammaMax / gamma0) / (std::log(std::cos(gammaMax)) + 1 - std::cos(thetaMax));
 		double s = f * std::cos(thetaMax);
 		std::vector<double> theta = linspace(0, M_PI / 2, M_PI / 360);
-		std::vector<double> sputterYield(theta.size());
+		std::vector<double> sputterYield(theta.size(), 0.0);
 
 		for (size_t i = 0; i < theta.size(); ++i) {
 			sputterYield[i] = gamma0 * std::pow(std::cos(theta[i]), -f) * std::exp(-s * (1 / std::cos(theta[i]) - 1));
+			if (sputterYield[i] < 0.01) {
+				break;  // 提前终止计算
+			}
 		}
 		sputterYield.back() = 0;
 		theta.back() = M_PI / 2;
@@ -471,6 +474,12 @@ public:
 			sputterYield_ion[0].push_back(sputterYield[j]);
 			sputterYield_ion[1].push_back(theta[j]);
 		}
+		std::cout << "sputter_yield_angle " << ":\n";
+		for (const auto& row : sputterYield) {
+			std::cout << row << ' ';
+		}
+		std::cout << '\n';
+		std::cout << std::endl;
 	}
 
 	// 计算溅射产率随能量的变化
