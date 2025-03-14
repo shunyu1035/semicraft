@@ -574,6 +574,7 @@ public:
 	//mesh geometry
 	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
+	int ArgonID;
 	const int FILMSIZE;
 	double reflect_coefficient;
 	double E_decrease;
@@ -602,7 +603,7 @@ protected:
 	double topGap;
 	double3 xm;	//origin-diagonally opposite corner (max bound)
 	int3 ijk; // for mirror correctify
-	int ArgonID;
+	// int ArgonID;
 	// double reflect_coefficient;
     int num_threads;  //number of threads;
 	// std::vector<std::vector<std::vector<int>>> react_table_equation;
