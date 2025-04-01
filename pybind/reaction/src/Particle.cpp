@@ -104,10 +104,10 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 			}
 
 			if (react == false) {
-				if (part.id == world.ArgonID){
-					part.E -= world.E_decrease;
-				}
-				// part.E -= world.E_decrease;
+				// if (part.id == world.ArgonID){
+				// 	part.E -= world.E_decrease;
+				// }
+				part.E -= world.E_decrease;
 				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
 				// std::cout << "reflect normal: " << p << world.Cells[posInt[0]][posInt[1]][posInt[2]].normal << std::endl;
 				if (world.reflect_coefficient < rnd()){

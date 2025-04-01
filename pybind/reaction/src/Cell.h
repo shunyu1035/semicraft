@@ -71,10 +71,10 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient, double E_decrease, int bottom): 
-	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), xm({(double)ni,(double)nj,
-		(double)nk}), ijk({ni,nj,nk}),  ArgonID(ArgonID), rn_angle(180), reflect_coefficient(reflect_coefficient),
-		E_decrease(E_decrease), bottom(bottom){
+	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient, double E_decrease, int bottom, double chemical_angle_v1, double chemical_angle_v2): 
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), ArgonID(ArgonID), reflect_coefficient(reflect_coefficient),
+		E_decrease(E_decrease), bottom(bottom), chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
+		xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}), rn_angle(180){
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
         }
@@ -542,6 +542,7 @@ public:
 		return false;
 	}
 
+	double react_prob_chemical_angle(double angle_rad);
 
 	void print_Cells();
 
@@ -574,11 +575,15 @@ public:
 	//mesh geometry
 	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
-	int ArgonID;
 	const int FILMSIZE;
+	int ArgonID;
 	double reflect_coefficient;
 	double E_decrease;
+	// double chemical_angle_v1;
+	// double chemical_angle_v2;
 	int bottom;
+	double chemical_angle_v1;
+	double chemical_angle_v2;
 	std::vector<std::vector<double>> sputterYield_ion;
     std::vector<std::vector<std::vector<Cell>>> Cells;
 	
