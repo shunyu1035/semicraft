@@ -74,15 +74,14 @@ void World::film_add(int3 posInt, const std::vector<int>& react_add) {
 // }
 
 double World::react_prob_chemical_angle(double angle_rad) {
-    double angle_factor = 0.0;
     if (angle_rad < chemical_angle_v1) {
-        angle_factor = 1.0;
+        return 0.9999;
     } else if ((angle_rad >= chemical_angle_v1) && (angle_rad < chemical_angle_v2)) {
-        angle_factor = (angle_rad - chemical_angle_v2)/(chemical_angle_v1 - chemical_angle_v2);
+        return (angle_rad - chemical_angle_v2)/(chemical_angle_v1 - chemical_angle_v2);
     } else if (angle_rad >= chemical_angle_v2) {
-        angle_factor = 0.0;
+        return 0.0;
     }
-    return angle_factor;
+    return 0;
 }
 
 std::vector<int> World::sticking_probability_structed(Particle particle, const Cell cell, double angle_rad, Rnd &rnd) {
@@ -118,7 +117,7 @@ std::vector<int> World::sticking_probability_structed(Particle particle, const C
             // std::cout << "sticking_rate:  "<< sticking_rate <<  std::endl;
         } else if (particle_id < ArgonID) {
             sticking_rate = react_prob_chemical[particle_id][j];
-            // sticking_rate = react_prob_chemical[particle_id][j] * react_prob_chemical_angle(angle_rad);
+            sticking_rate *= react_prob_chemical_angle(angle_rad);
         } else if (particle_id > ArgonID) {
             sticking_rate = react_redepo_sticking[particle_id - ArgonID - 1];
         }
