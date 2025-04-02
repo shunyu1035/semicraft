@@ -84,7 +84,7 @@ double World::react_prob_chemical_angle(double angle_rad) {
     return 0;
 }
 
-std::vector<int> World::sticking_probability_structed(Particle particle, const Cell cell, double angle_rad, Rnd &rnd) {
+std::vector<int> World::sticking_probability_structed(const Particle particle, const Cell cell, double angle_rad, Rnd &rnd) {
 
     std::vector<int> sticking_acceptList(FILMSIZE, 0);
     std::vector<double> choice(FILMSIZE);
@@ -96,7 +96,8 @@ std::vector<int> World::sticking_probability_structed(Particle particle, const C
 
     int energy_range = 0;
     double sticking_rate = 0.0;
-    int particle_id = (particle.id >= 2) ? 2 : particle.id;
+    int particle_id = particle.id;
+    // int particle_id = (particle.id >= 2) ? 2 : particle.id;
 
     for (int j = 0; j < FILMSIZE; ++j) {
         if (cell.film[j] <= 0) {

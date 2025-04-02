@@ -324,7 +324,7 @@ public:
 		// 线性插值函数：根据给定的 x 值，在 xp 和 fp 数组中找到合适的区间，然后计算插值
 	double linear_interp(double x, const std::vector<double>& xp, const std::vector<double>& fp);
 
-	std::vector<int> sticking_probability_structed(Particle particle, const Cell cell, double angle_rad, Rnd &rnd);
+	std::vector<int> sticking_probability_structed(const Particle particle, const Cell cell, double angle_rad, Rnd &rnd);
 	
 	// 打印 rn_angle 的函数
 	void print_rn_angle() const {
@@ -420,6 +420,20 @@ public:
 		}
 		std::cout << std::endl;
 	}
+
+
+	// 打印 react_prob_chemical 的函数
+	void print_react_prob_chemical() const {
+		std::cout << "print_react_prob_chemical " << ":\n";
+		for (const auto& row : react_prob_chemical) {
+			for (const auto& val : row) {
+				std::cout << val << ' ';
+			}
+			std::cout << '\n';
+		}
+		std::cout << std::endl;
+	}
+
 
 	void print_react_yield_p0() const {
 		std::cout << "print_react_yield_p0 " << ":\n";

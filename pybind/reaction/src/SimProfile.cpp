@@ -102,6 +102,8 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     typeID_in = world.output_typeID_in();
     film_in = world.output_film_in();
 
+    world.print_react_prob_chemical();
+
     return 0;
 }
 
