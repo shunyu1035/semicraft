@@ -97,11 +97,11 @@ std::vector<int> World::sticking_probability_structed(const Particle particle, c
     int energy_range = 0;
     double sticking_rate = 0.0;
     int particle_id = particle.id;
-    // int particle_id = (particle.id >= 2) ? 2 : particle.id;
+    // int particle_id = (particle.id > ArgonID) ? ArgonID : particle.id;
 
     for (int j = 0; j < FILMSIZE; ++j) {
         if (cell.film[j] <= 0) {
-            choice[j] = 1.0;
+            choice[j] = 10000.0; // choice can be efficient large for no reaction
         }
 
         if (particle_id == ArgonID) {
