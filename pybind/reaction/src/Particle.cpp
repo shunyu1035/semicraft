@@ -107,7 +107,15 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				// if (part.id == world.ArgonID){
 				// 	part.E -= world.E_decrease;
 				// }
-				part.E -= world.E_decrease;
+
+				// no energy loss if hit the mask
+				if (world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
+					part.E -= 0;
+				}
+				else {
+					part.E -= world.E_decrease;
+				}
+				// part.E -= world.E_decrease;
 				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
 				// std::cout << "reflect normal: " << p << world.Cells[posInt[0]][posInt[1]][posInt[2]].normal << std::endl;
 				if (world.reflect_coefficient < rnd()){
