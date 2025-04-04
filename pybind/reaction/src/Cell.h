@@ -107,12 +107,23 @@ public:
 	Particle inletParticle(Rnd &rnd){
 
 		int randID;
-		randID = rnd.getInt(particleIn.size());
+		randID = rnd.getInt(particleIn.size()-1);
 
 		double3 pos = posInlet(rnd);
 
 		// std::cout << "particleIn pos: " << pos <<  std::endl;
 		Particle part = particleIn[randID];
+
+		// for debug
+		// if (part.id != 0) {
+		// 	std::cout << "inlet randID:  "<< randID <<  std::endl;
+		// 	std::cout << "inlet part.id:  "<< part.id <<  std::endl;
+		// 	std::cout << "inlet part.vel0:  "<< part.vel[0] <<  std::endl;
+		// 	std::cout << "inlet part.vel1:  "<< part.vel[1] <<  std::endl;
+		// 	std::cout << "inlet part.vel2:  "<< part.vel[2] <<  std::endl;
+		// 	std::cout << "inlet part.E:  "<< part.E <<  std::endl;
+		// }
+
 		part.pos = pos;
 		// double3 vel = particleIn[randID].vel;
 		// double E = particleIn[randID].E;
