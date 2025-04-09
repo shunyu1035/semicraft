@@ -63,10 +63,22 @@ public:
 	// }
 
 	void inputParticle(std::vector<Particle> particleAll){
-		particles = particleAll;
+
+		size_t max_particles = 100000;  // 最多取10万
+		size_t half_size = particleAll.size() / 2;  // 或者取前一半
+
+		// 实际取 min(half_size, max_particles) 个
+		size_t n = std::min(half_size, max_particles);
+		
+		// 取前 n 个元素
+		particles = std::vector<Particle>(particleAll.begin(), particleAll.begin() + n);
+
+		// 全部存到 particleIn（你也可以同样截断）
 		particleIn = particleAll;
+
 		std::cout << "particle size: " << particles.size() <<  std::endl;
 	}
+
     void change_cell(int idx, int idy, int idz){
 		double3 test{1, 1, 1};
 		world.Cells[idx][idy][idz].normal += test;

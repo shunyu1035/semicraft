@@ -71,9 +71,9 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient, double E_decrease, int bottom, double chemical_angle_v1, double chemical_angle_v2): 
+	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient, double E_decrease,  double chemical_angle_v1, double chemical_angle_v2): 
 	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), ArgonID(ArgonID), reflect_coefficient(reflect_coefficient),
-		E_decrease(E_decrease), bottom(bottom), chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
+		E_decrease(E_decrease), chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
 		xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}), rn_angle(180){
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
@@ -577,24 +577,39 @@ public:
 
 	void update_normal_in_matrix();
 
-	bool scan_bottom(){
-		int filmThickness = 0;
+	// bool scan_bottom(){
+	// 	int filmThickness = 0;
+	// 	int centerX = ni/2;
+	// 	int centerY = nj/2;
+	// 	for(int z=0; z<nk; ++z){
+	// 		int sum = 0;
+	// 		for(int f=0; f<FILMSIZE; ++f){
+	// 			sum += Cells[centerX][centerY][z].film[f];
+	// 		}
+	// 		if(sum <= 0){
+	// 			filmThickness = z;
+	// 			break;
+	// 		}
+	// 	}
+	// 	if(filmThickness == bottom){
+	// 		return true;
+	// 	}
+	// 	return false;
+	// }
+
+	bool scan_stopPoint(int stopPointY, int stopPointZ){
 		int centerX = ni/2;
-		int centerY = nj/2;
-		for(int z=0; z<nk; ++z){
-			int sum = 0;
-			for(int f=0; f<FILMSIZE; ++f){
-				sum += Cells[centerX][centerY][z].film[f];
-			}
-			if(sum <= 0){
-				filmThickness = z;
-				break;
-			}
+		int sum = 0;
+		for(int f=0; f<FILMSIZE; ++f){
+			sum += Cells[centerX][stopPointY][stopPointZ].film[f];
 		}
-		if(filmThickness == bottom){
+
+		if(sum <= 0){
 			return true;
+		}else {
+			return false;
 		}
-		return false;
+		// return false;
 	}
 
 	//mesh geometry
@@ -606,7 +621,6 @@ public:
 	double E_decrease;
 	// double chemical_angle_v1;
 	// double chemical_angle_v2;
-	int bottom;
 	double chemical_angle_v1;
 	double chemical_angle_v2;
 	std::vector<std::vector<double>> sputterYield_ion;

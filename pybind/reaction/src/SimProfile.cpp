@@ -3,12 +3,12 @@
 
 bool Simulation::need_recompute = false;
 
-int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, double E_decrease, int bottom, double chemical_angle_v1, double chemical_angle_v2){
+int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, double E_decrease, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
     std::signal(SIGSEGV, globalSignalHandler);
 
-    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, E_decrease, bottom, chemical_angle_v1, chemical_angle_v2);
+    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, E_decrease, chemical_angle_v1, chemical_angle_v2);
     world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 
@@ -50,10 +50,16 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
             }
             // std::cout<<"Running "<< t <<" step; "  <<std::endl;
             sp.advance(reaction_count);
-            if(world.scan_bottom()){
+            // if(world.scan_bottom()){
+            //     std::cout << "etching reach the bottom;" << std::endl;
+            //     break;
+            // }
+
+            if(world.scan_stopPoint(stopPointY, stopPointZ)){
                 std::cout << "etching reach the bottom;" << std::endl;
                 break;
             }
+
             // 检查错误标志，如果检测到错误，则抛出异常
             if (error_flag==1) {
                 throw SimulationError("Simulation encountered a segmentation fault.");

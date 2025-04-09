@@ -112,8 +112,14 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				if (world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
 					part.E -= 0;
 				}
-				else {
+				else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
 					part.E -= world.E_decrease;
+				}
+				else if (part.id == 0 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
+					part.E -= world.E_decrease;
+				}
+				else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
+					part.E = 0;
 				}
 				// part.E -= world.E_decrease;
 				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
