@@ -3,12 +3,12 @@
 
 bool Simulation::need_recompute = false;
 
-int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, double E_decrease, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
+int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
     std::signal(SIGSEGV, globalSignalHandler);
 
-    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, E_decrease, chemical_angle_v1, chemical_angle_v2);
+    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, chemical_angle_v1, chemical_angle_v2);
     // world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 
@@ -31,7 +31,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     std::cout<<"Running with "<<num_threads<<" threads"<<std::endl;
     world.setNumThreads(num_threads);   //set number of threads to use
 
-    world.set_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients);
+    world.set_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients, E_decrease);
     // world.print_rn_matrix();
     // world.print_rn_coeffcients();
     // world.print_react_type_table();
@@ -159,7 +159,8 @@ PYBIND11_MODULE(SimProfile, m) {
             py::arg("react_prob_chemical"),
             py::arg("react_yield_p0"),
             py::arg("film_eth"),
-            py::arg("rn_coeffcients"), "react_table_equation, react_type_table, react_prob_chemical")
+            py::arg("rn_coeffcients"),
+            py::arg("E_decrease"), "react_table_equation, react_type_table, react_prob_chemical")
         .def("inputParticle", &Simulation::inputParticle, 
             py::arg("pos"),
             py::arg("vel"),

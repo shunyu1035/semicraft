@@ -120,7 +120,9 @@ private:
     std::vector<std::vector<double>> react_prob_chemical;
     std::vector<double> react_yield_p0;
     std::vector<std::vector<double>> rn_coeffcients;
+    std::vector<std::vector<double>> E_decrease;
     std::vector<std::vector<double>> sputter_yield_coefficient;
+    // std::vector<std::vector<double>> E_decrease;
     std::vector<double> film_eth;
 
 
@@ -215,6 +217,35 @@ public:
         }
     }
 
+    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+    void set_E_decrease(py::array_t<double> arr) {
+        py::buffer_info buf = arr.request();
+        if (buf.ndim != 2) {
+            throw std::runtime_error("E_decrease 输入数组必须是2维的");
+        }
+        // 获取每一维的大小
+        ssize_t dim0 = buf.shape[0];
+        ssize_t dim1 = buf.shape[1];
+        double* ptr = static_cast<double*>(buf.ptr);
+
+        // std::cout << "E_decrease dim0: " << dim0 << "dim1: " << dim1 << "\n" << std::end;
+        // 按三维结构分配 react_table_equation
+        E_decrease.resize(dim0);
+        for (ssize_t i = 0; i < dim0; ++i) {
+            E_decrease[i].resize(dim1);
+            for (ssize_t j = 0; j < dim1; ++j) {
+                // 计算内存中对应的起始偏移：
+                ssize_t offset = i * dim1 + j;
+                E_decrease[i][j] = ptr[offset];
+
+                std::cout << "E_decrease dim0" ;
+                std::cout << E_decrease[i][j] << " ";
+
+            }
+            std::cout << "\n";
+        }
+        std::cout << "\n";
+    }
 
     void set_react_yield_p0(py::array_t<double> arr) {
         py::buffer_info buf = arr.request();
@@ -283,7 +314,8 @@ public:
                             py::array_t<double> react_prob_chemical,
                             py::array_t<double> react_yield_p0,
                             py::array_t<double> film_eth,
-                            py::array_t<double> rn_coeffcients){
+                            py::array_t<double> rn_coeffcients,
+                            py::array_t<double> E_decrease){
 
         set_react_table_equation(react_table_equation);
         set_react_type_table(react_type_table);
@@ -291,6 +323,7 @@ public:
         set_react_yield_p0(react_yield_p0);
         set_film_eth(film_eth);
         set_rn_coeffcients(rn_coeffcients);
+        set_E_decrease(E_decrease);
     }
 
 
@@ -313,7 +346,7 @@ public:
     }
 
 
-    int runSimulation(int time, int ArgonID, double reflect_coefficient, double E_decrease,  int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2);
+    int runSimulation(int time, int ArgonID, double reflect_coefficient, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2);
 
 
     void inputCell(

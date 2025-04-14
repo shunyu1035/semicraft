@@ -18,6 +18,19 @@ int find_max_position(const std::vector<double>& arr) noexcept {
     return max_pos;
 }
 
+int find_max_position_int(const std::vector<int>& arr) noexcept {
+    // 使用 std::max_element 找到最大值的迭代器
+    auto max_iter = std::max_element(arr.begin(), arr.end());
+
+    // 计算迭代器的位置
+    int max_pos = std::distance(arr.begin(), max_iter);
+
+    return max_pos;
+}
+
+
+
+
 void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Particle> &particles, int threadID)
 {
 	/*loop over particles in [p_start,p_end)*/
@@ -109,19 +122,21 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				// }
 
 				// no energy loss if hit the mask
-				if (world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
-					part.E -= 0;
-				}
-				else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
-					part.E -= world.E_decrease;
-				}
-				else if (part.id == 0 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
-					part.E -= world.E_decrease;
-				}
-				else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
-					part.E -= world.E_decrease;
-				}
-				// part.E -= world.E_decrease;
+				// if (world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
+				// 	part.E -= 0;
+				// }
+				// else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
+				// 	part.E -= world.E_decrease;
+				// }
+				// else if (part.id == 0 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
+				// 	part.E -= world.E_decrease;
+				// }
+				// else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
+				// 	part.E -= world.E_decrease;
+				// }
+
+				int reflect_film = find_max_position_int(world.Cells[posInt[0]][posInt[1]][posInt[2]].film);
+				part.E -= world.E_decrease[part.id][reflect_film];
 				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
 				// std::cout << "reflect normal: " << p << world.Cells[posInt[0]][posInt[1]][posInt[2]].normal << std::endl;
 				if (world.reflect_coefficient < rnd()){

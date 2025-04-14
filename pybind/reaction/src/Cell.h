@@ -71,9 +71,9 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient, double E_decrease,  double chemical_angle_v1, double chemical_angle_v2): 
+	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
 	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), ArgonID(ArgonID), reflect_coefficient(reflect_coefficient),
-		E_decrease(E_decrease), chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
+		chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
 		xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}), rn_angle(180){
 		for (int i = 0; i < 180; ++i) {
             rn_angle[i] = (M_PI / 2) * i / 179;
@@ -307,7 +307,8 @@ public:
 		const std::vector<std::vector<double>>& react_prob_chemical,
 		const std::vector<double>& react_yield_p0,
 		const std::vector<double>& film_eth,
-		const std::vector<std::vector<double>>& rn_coeffcients
+		const std::vector<std::vector<double>>& rn_coeffcients,
+		const std::vector<std::vector<double>>& E_decrease
 	) {
 		this->react_table_equation = react_table_equation;
 		this->react_type_table = react_type_table;
@@ -315,6 +316,7 @@ public:
 		this->react_yield_p0 = react_yield_p0;
 		this->film_eth = film_eth;
 		this->rn_coeffcients = rn_coeffcients;
+		this->E_decrease = E_decrease;
 		this->rn_matrix = Rn_matrix_func(rn_coeffcients);
 		print3DVector(react_table_equation);
 	}
@@ -650,7 +652,8 @@ public:
 	const int FILMSIZE;
 	int ArgonID;
 	double reflect_coefficient;
-	double E_decrease;
+	// double E_decrease;
+	// std::vector<double> E_decrease;
 	// double chemical_angle_v1;
 	// double chemical_angle_v2;
 	double chemical_angle_v1;
@@ -664,6 +667,7 @@ public:
 	std::vector<std::vector<std::vector<int>>> react_table_equation;
 	std::vector<double> react_yield_p0;
 	std::vector<double> film_eth;
+	std::vector<std::vector<double>> E_decrease;
 	std::vector<Particle> particleIn;	/*contiguous array for add*/
 	std::vector<int3> update_film_etch;
 	std::vector<std::vector<int3>> update_film_etch_buffers;	//temporary buffers for density calculation
