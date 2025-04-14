@@ -120,7 +120,7 @@ private:
     std::vector<std::vector<double>> react_prob_chemical;
     std::vector<double> react_yield_p0;
     std::vector<std::vector<double>> rn_coeffcients;
-    std::vector<double> sputter_yield_coefficient;
+    std::vector<std::vector<double>> sputter_yield_coefficient;
     std::vector<double> film_eth;
 
 
@@ -399,16 +399,26 @@ public:
 
     void input_sputter_yield_coefficient(py::array_t<double> sputter_yield_coefficient_py){
         py::buffer_info  sputter_yield_coefficient_py_buf = sputter_yield_coefficient_py.request();
-        size_t shape = sputter_yield_coefficient_py_buf.shape[0];
+        int shape = sputter_yield_coefficient_py_buf.shape[0];
+
+        if(shape != FILMSIZE) {
+            std::cout << "shape != FILMSIZE "<< std::endl;
+        }
+
         double* sputter_yield_coefficient_ptr = static_cast<double*>(sputter_yield_coefficient_py_buf.ptr);
-        sputter_yield_coefficient.resize(shape);
+        sputter_yield_coefficient.resize(FILMSIZE);
 
         std::cout << "sputter_yield_coefficient: ";
-        for(size_t i=0; i<shape; ++i){
-            sputter_yield_coefficient[i] = sputter_yield_coefficient_ptr[i];
-            std::cout << sputter_yield_coefficient[i] << ' ';
+        for(int i=0; i<FILMSIZE; ++i){
+            sputter_yield_coefficient[i].resize(3);
+            for (int j = 0; j < 3; ++j) {
+                int offset = i * 3 + j;
+                sputter_yield_coefficient[i][j] = sputter_yield_coefficient_ptr[offset];
+                std::cout << sputter_yield_coefficient[i][j] << ' ';
+            }
+            std::cout << '\n';
         }
-        std::cout << '\n';
+        std::cout << '\n' << std::endl;
 
     }
 

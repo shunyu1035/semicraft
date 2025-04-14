@@ -478,34 +478,66 @@ public:
 		return result;
 	}
 
-	// 计算溅射产率随入射角度的变化
-	void sputter_yield_angle(const double gamma0, const double gammaMax, const double thetaMax) {
-		double f = -std::log(gammaMax / gamma0) / (std::log(std::cos(gammaMax)) + 1 - std::cos(thetaMax));
-		double s = f * std::cos(thetaMax);
-		std::vector<double> theta = linspace(0, M_PI / 2, M_PI / 360);
-		std::vector<double> sputterYield(theta.size(), 0.0);
+	// // 计算溅射产率随入射角度的变化
+	// void sputter_yield_angle(const double gamma0, const double gammaMax, const double thetaMax) {
+	// 	double f = -std::log(gammaMax / gamma0) / (std::log(std::cos(gammaMax)) + 1 - std::cos(thetaMax));
+	// 	double s = f * std::cos(thetaMax);
+	// 	std::vector<double> theta = linspace(0, M_PI / 2, M_PI / 360);
+	// 	std::vector<double> sputterYield(theta.size(), 0.0);
 
-		for (size_t i = 0; i < theta.size(); ++i) {
-			sputterYield[i] = gamma0 * std::pow(std::cos(theta[i]), -f) * std::exp(-s * (1 / std::cos(theta[i]) - 1));
-			if (sputterYield[i] < 0.01) {
-				break;  // 提前终止计算
+	// 	for (size_t i = 0; i < theta.size(); ++i) {
+	// 		sputterYield[i] = gamma0 * std::pow(std::cos(theta[i]), -f) * std::exp(-s * (1 / std::cos(theta[i]) - 1));
+	// 		if (sputterYield[i] < 0.01) {
+	// 			break;  // 提前终止计算
+	// 		}
+	// 	}
+	// 	sputterYield.back() = 0;
+	// 	theta.back() = M_PI / 2;
+
+	// 	sputterYield_ion.resize(2);
+	// 	for (size_t j = 0; j < theta.size(); ++j) {
+	// 		sputterYield_ion[0].push_back(sputterYield[j]);
+	// 		sputterYield_ion[1].push_back(theta[j]);
+	// 	}
+	// 	std::cout << "sputter_yield_angle " << ":\n";
+	// 	for (const auto& row : sputterYield) {
+	// 		std::cout << row << ' ';
+	// 	}
+	// 	std::cout << '\n';
+	// 	std::cout << std::endl;
+	// }
+
+	// 计算溅射产率随入射角度的变化
+	void sputter_yield_angle(const std::vector<std::vector<double>>& sputter_yield_coefficient) {
+		sputterYield_theta = linspace(0, M_PI / 2, M_PI / 360);
+		sputterYield_theta.back() = M_PI / 2;
+		std::cout << "set sputter_yield_angle " << std::endl;
+
+		sputterYield_ion.resize(FILMSIZE);
+
+		for(int i=0; i<FILMSIZE; ++i){
+			double gamma0 = sputter_yield_coefficient[i][0];
+			double gammaMax = sputter_yield_coefficient[i][1];
+			double thetaMax = sputter_yield_coefficient[i][2];
+			double f = -std::log(gammaMax / gamma0) / (std::log(std::cos(gammaMax)) + 1 - std::cos(thetaMax));
+			double s = f * std::cos(thetaMax);
+		
+			std::cout << "gamma0 gammaMax thetaMax: " << gamma0 << " " << gammaMax <<  " "  << thetaMax <<  " :"  << ":\n" << std::endl;
+
+			std::vector<double> sputterYield(sputterYield_theta.size(), 0.0);
+			for (size_t t = 0; t < sputterYield_theta.size(); ++t) {
+				sputterYield[t] = gamma0 * std::pow(std::cos(sputterYield_theta[t]), -f) * std::exp(-s * (1 / std::cos(sputterYield_theta[t]) - 1));
+				if (sputterYield[t] < 0.01) {
+					break;  // 提前终止计算
+				}
+			}
+			sputterYield.back() = 0;
+			for (size_t j = 0; j < sputterYield_theta.size(); ++j) {
+				sputterYield_ion[i].push_back(sputterYield[j]);
 			}
 		}
-		sputterYield.back() = 0;
-		theta.back() = M_PI / 2;
-
-		sputterYield_ion.resize(2);
-		for (size_t j = 0; j < theta.size(); ++j) {
-			sputterYield_ion[0].push_back(sputterYield[j]);
-			sputterYield_ion[1].push_back(theta[j]);
-		}
-		std::cout << "sputter_yield_angle " << ":\n";
-		for (const auto& row : sputterYield) {
-			std::cout << row << ' ';
-		}
-		std::cout << '\n';
-		std::cout << std::endl;
 	}
+
 
 	// 计算溅射产率随能量的变化
 	double sputter_yield_energy(double E, const double Eth) {
@@ -527,8 +559,8 @@ public:
 	}
 
 	// 计算最终的溅射产率
-	double sputter_yield(double p0, double theta, double energy, const double Eth) {
-		double angle_factor = linear_interpolate_sputter(sputterYield_ion[1], sputterYield_ion[0], theta);
+	double sputter_yield(int react_choice, double p0, double theta, double energy, const double Eth) {
+		double angle_factor = linear_interpolate_sputter(sputterYield_theta, sputterYield_ion[react_choice], theta);
 		double energy_factor = sputter_yield_energy(energy, Eth);
 		return p0 * angle_factor * energy_factor;
 	}
@@ -624,6 +656,8 @@ public:
 	double chemical_angle_v1;
 	double chemical_angle_v2;
 	std::vector<std::vector<double>> sputterYield_ion;
+	std::vector<double> sputterYield_theta;
+	// std::vector<std::vector<std::vector<double>>> sputterYield_ion;
     std::vector<std::vector<std::vector<Cell>>> Cells;
 	
 	std::vector<std::vector<int>> react_type_table;

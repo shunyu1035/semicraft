@@ -9,7 +9,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     std::signal(SIGSEGV, globalSignalHandler);
 
     World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, E_decrease, chemical_angle_v1, chemical_angle_v2);
-    world.print_rn_angle();
+    // world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 
     for(size_t i=0; i<6; ++i){
@@ -21,7 +21,8 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     std::cout << "World xm: " << xm << std::endl; 
 
     world.set_cell(typeID_in, index_in, normal_in, film_in);
-    world.sputter_yield_angle(sputter_yield_coefficient[0], sputter_yield_coefficient[1], sputter_yield_coefficient[2]);
+    world.sputter_yield_angle(sputter_yield_coefficient);
+    // world.sputter_yield_angle(sputter_yield_coefficient[0], sputter_yield_coefficient[1], sputter_yield_coefficient[2]);
     world.inputParticle(particles);
 
     /*check command line arguments for thread count*/

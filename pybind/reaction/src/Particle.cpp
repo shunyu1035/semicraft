@@ -91,7 +91,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				}
 				// physics sputter
 				else if(react_type == 2){
-					double react_yield = world.sputter_yield(world.react_yield_p0[react_choice], angle_rad, part.E, world.film_eth[react_choice]);
+					double react_yield = world.sputter_yield(react_choice, world.react_yield_p0[react_choice], angle_rad, part.E, world.film_eth[react_choice]);
 					// std::cout << react_yield <<  std::endl;
 					if(react_yield > rnd()){
 						world.film_add(posInt, react_add);
@@ -119,7 +119,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					part.E -= world.E_decrease;
 				}
 				else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
-					part.E = 0;
+					part.E -= world.E_decrease;
 				}
 				// part.E -= world.E_decrease;
 				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
