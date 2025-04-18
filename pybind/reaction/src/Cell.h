@@ -175,7 +175,7 @@ public:
     //     return false; // 超出边界，返回 false
     // }
 		// int3 posInt = {(int)pos[0], (int)pos[1], (int)pos[2]};
-		if (Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 1 ) return true;
+		if (Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 1 || Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 2) return true;
 		return false;
 	}
 

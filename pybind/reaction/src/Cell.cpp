@@ -277,7 +277,7 @@ void World::update_normal_in_matrix() {
                     int3 point = {xi, yi, zi};
                     point = mirror_index(point);
 
-                    if (Cells[point[0]][point[1]][point[2]].typeID == 1) {
+                    if (Cells[point[0]][point[1]][point[2]].typeID == 1 || Cells[point[0]][point[1]][point[2]].typeID == 2) {
                         // int3 point = {xi, yi, zi};
                         unique_points.push_back(point);
                     }
