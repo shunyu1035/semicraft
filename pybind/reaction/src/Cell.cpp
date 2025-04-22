@@ -131,6 +131,63 @@ std::vector<int> World::sticking_probability_structed(const Particle particle, c
     return sticking_acceptList;
 }
 
+void World::update_Cells_inthread(int3 posInt){
+    std::vector<int3> local_point_nn;
+    std::vector<int3> local_point_nn_under;
+    std::vector<int3> local_point_nn_vaccum;
+
+    // for (size_t i=0; i<update_film_etch_size; i++){
+    //     int3 posInt = update_film_etch[i];
+
+        // std::cout << "posInt: " << posInt << std::endl;
+
+    local_point_nn.resize(6);
+    Cells[posInt[0]][posInt[1]][posInt[2]].typeID = -1;
+    for (size_t j=0; j<6; ++j){
+        local_point_nn[j] = mirror_index(posInt + grid_cross[j]);
+        
+
+        // std::cout << "inloop local_point_nn: " << local_point_nn[j] << std::endl;
+
+        if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == 2){
+            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 1;
+
+            local_point_nn_under.resize(6);
+            for (size_t k=0; k<6; ++k){
+                local_point_nn_under[k] = mirror_index(local_point_nn[j] + grid_cross[k]);
+                if (Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID == 3){
+                    Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID = 2;
+                }
+            }
+            // std::cout << "local_point_nn_vaccum: ";
+            // for (size_t q = 0; q < local_point_nn_under.size(); ++q) {
+            //     std::cout << local_point_nn_under[q] << '\n';
+            // }
+            // std::cout << '\n';
+        }
+        else if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1) {
+
+            local_point_nn_vaccum.resize(6);
+            for (size_t l=0; l<6; ++l){
+                local_point_nn_vaccum[l] = mirror_index(local_point_nn[j] + grid_cross[l]);
+
+                // std::cout << "local_point_nn_vaccum: " << local_point_nn_vaccum[l] << std::endl;
+
+                if (Cells[local_point_nn_vaccum[l][0]][local_point_nn_vaccum[l][1]][local_point_nn_vaccum[l][2]].typeID == 1){
+                    Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
+                }
+            }
+
+        }
+    }
+
+    // update_normal_in_matrix();
+    update_normal_in_matrix_inthread(posInt);
+
+    // update_film_etch.resize(0);
+    // } 
+}
+
 
 void World::update_Cells(){
     size_t update_film_etch_size = update_film_etch.size();
@@ -260,12 +317,46 @@ void World::get_normal_from_grid(int3 posInt) {
     }
 }
 
+void World::update_normal_in_matrix_inthread(int3 posInt) {
+    std::vector<int3> unique_points;
+
+    // size_t update_film_etch_size = update_film_etch.size();
+    // for (int i = 0; i < update_film_etch_size; ++i) {
+    // int3 posInt = update_film_etch[i];
+
+    for (int dx = -3; dx <= 3; ++dx) {
+        for (int dy = -3; dy <= 3; ++dy) {
+            for (int dz = -3; dz <= 3; ++dz) {
+                int xi = posInt[0] + dx;
+                int yi = posInt[1] + dy;
+                int zi = posInt[2] + dz;
+                int3 point = {xi, yi, zi};
+                point = mirror_index(point);
+
+                if (Cells[point[0]][point[1]][point[2]].typeID == 1 || Cells[point[0]][point[1]][point[2]].typeID == 2) {
+                    // int3 point = {xi, yi, zi};
+                    unique_points.push_back(point);
+                }
+                
+            }
+        }
+        // }
+    }
+
+    int unique_points_size = unique_points.size();
+
+    for (int j = 0; j < unique_points_size; ++j) {
+        get_normal_from_grid(unique_points[j]);
+    }
+}
+
+
 
 void World::update_normal_in_matrix() {
     std::vector<int3> unique_points;
 
     size_t update_film_etch_size = update_film_etch.size();
-    for (int i = 0; i < update_film_etch_size; ++i) {
+    for (size_t i = 0; i < update_film_etch_size; ++i) {
         int3 posInt = update_film_etch[i];
 
         for (int dx = -3; dx <= 3; ++dx) {
@@ -295,7 +386,7 @@ void World::update_normal_in_matrix() {
     // }
     // std::cout << '\n';
 
-    for (int j = 0; j < unique_points_size; ++j) {
+    for (size_t j = 0; j < unique_points_size; ++j) {
         get_normal_from_grid(unique_points[j]);
     }
 }
@@ -304,9 +395,9 @@ void World::print_Cells(){
         // 将数据复制到 NumPy 数组
 
     int surface = 0;
-    for (size_t i = 0; i < ni; ++i) {
-        for (size_t j = 0; j < nj; ++j) {
-            for (size_t k = 0; k < nk; ++k) {
+    for (int i = 0; i < ni; ++i) {
+        for (int j = 0; j < nj; ++j) {
+            for (int k = 0; k < nk; ++k) {
                 if(Cells[i][j][k].typeID == 1) {
                     surface++;
                     std::cout << "surface: " << i << " " << j << " " << k << " " << Cells[i][j][k].normal << std::endl;

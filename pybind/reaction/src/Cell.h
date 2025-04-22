@@ -71,8 +71,8 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int ArgonID, double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
-	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), ArgonID(ArgonID), reflect_coefficient(reflect_coefficient),
+	World(int ni, int nj, int nk, int FILMSIZE, int FilmDensity, int ArgonID, double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), FilmDensity(FilmDensity), ArgonID(ArgonID), reflect_coefficient(reflect_coefficient),
 		chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
 		xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}), rn_angle(180){
 		for (int i = 0; i < 180; ++i) {
@@ -601,15 +601,31 @@ public:
 		return false;
 	}
 
+	bool film_full(int3 posInt){
+		int sum = 0;
+		for(int i=0; i<FILMSIZE; ++i){
+			sum += Cells[posInt[0]][posInt[1]][posInt[2]].film[i];
+		}
+
+		if(sum >= FilmDensity){
+			return true;
+		}
+		return false;
+	}
+
 	double react_prob_chemical_angle(double angle_rad);
 
 	void print_Cells();
 
 	void update_Cells();
 
+	void update_Cells_inthread(int3 posInt);
+
 	void get_normal_from_grid(int3 posInt);
 
 	void update_normal_in_matrix();
+
+	void update_normal_in_matrix_inthread(int3 posInt);
 
 	// bool scan_bottom(){
 	// 	int filmThickness = 0;
@@ -650,6 +666,7 @@ public:
 	Rnd rng;
 	const int ni,nj,nk;	//number of nodes
 	const int FILMSIZE;
+	const int FilmDensity;
 	int ArgonID;
 	double reflect_coefficient;
 	// double E_decrease;

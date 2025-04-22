@@ -99,7 +99,8 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					world.film_add(posInt, react_add);
 					react = true;
 					if (world.film_empty(posInt)) {
-						world.update_film_etch_buffers[threadID].push_back(posInt);
+						// world.update_film_etch_buffers[threadID].push_back(posInt);
+						world.update_Cells_inthread(posInt);
 					}
 				}
 				// physics sputter
@@ -114,40 +115,32 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 						}
 					}
 				}
+
+				// depo
+				// else if(react_type == 3){
+
+				// 	react = true;
+				// 	if (world.film_full(posInt)) {
+				// 		world.film_add(posInt, react_add);
+				// 		world.update_film_etch_buffers[threadID].push_back(posInt);
+				// 	}
+				// 	else{
+				// 		world.film_add(posInt, react_add);
+				// 	}
+				// }
 			}
 
 			if (react == false) {
-				// if (part.id == world.ArgonID){
-				// 	part.E -= world.E_decrease;
-				// }
-
-				// no energy loss if hit the mask
-				// if (world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
-				// 	part.E -= 0;
-				// }
-				// else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] > 0) {
-				// 	part.E -= world.E_decrease;
-				// }
-				// else if (part.id == 0 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
-				// 	part.E -= world.E_decrease;
-				// }
-				// else if (part.id == 2 && world.Cells[posInt[0]][posInt[1]][posInt[2]].film[world.FILMSIZE] == 0) {
-				// 	part.E -= world.E_decrease;
-				// }
 
 				int reflect_film = find_max_position_int(world.Cells[posInt[0]][posInt[1]][posInt[2]].film);
 				part.E -= world.E_decrease[part.id][reflect_film];
-				// std::cout << "reflect before vel: " << p << part.vel << std::endl;
-				// std::cout << "reflect normal: " << p << world.Cells[posInt[0]][posInt[1]][posInt[2]].normal << std::endl;
+
 				if (world.reflect_coefficient < rnd()){
 					part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
 				}
 				else{
 					part.vel = world.SpecularReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal);
 				}
-				// part.vel = world.SpecularReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal);
-				// part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
-				// std::cout << "reflect after vel: " << p << part.vel << std::endl;
 			}
 		}
 
@@ -189,6 +182,7 @@ void Species::advance(int reaction_count){
     // }
     // std::cout << '\n';
 
+/*
 	for (int threadID=0; threadID<n_threads; threadID++){
 		size_t np = world.update_film_etch_buffers[threadID].size();
 		for (size_t pt=0; pt<np; pt++){
@@ -198,6 +192,9 @@ void Species::advance(int reaction_count){
 	}
 
 	world.update_Cells();
+*/
+
+
 	/*perform a particle removal step, dead particles are replaced by the entry at the end*/
 	// for (size_t p=0;p<np;p++)
 	// {

@@ -8,7 +8,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     // std::signal(SIGSEGV, signalHandler);
     std::signal(SIGSEGV, globalSignalHandler);
 
-    World world(ni, nj, nk, FILMSIZE, ArgonID, reflect_coefficient, chemical_angle_v1, chemical_angle_v2);
+    World world(ni, nj, nk, FILMSIZE, FilmDensity, ArgonID, reflect_coefficient, chemical_angle_v1, chemical_angle_v2);
     // world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 
@@ -135,7 +135,7 @@ PYBIND11_MODULE(SimProfile, m) {
     
         // 绑定 Simulation 类
     py::class_<Simulation>(m, "Simulation")
-        .def(py::init<int, int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"),py::arg("FILMSIZE"))
+        .def(py::init<int, int, int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"),py::arg("FILMSIZE"),py::arg("FilmDensity"))
         .def("add_particle", &Simulation::addParticle,
              py::arg("pos"), py::arg("vel"), py::arg("E"), py::arg("id"))
         .def("remove_particle", &Simulation::removeParticle,
