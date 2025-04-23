@@ -121,6 +121,8 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 
 				// 	react = true;
 				// 	if (world.film_full(posInt)) {
+				// 		// add the posint in neighbor cell 
+
 				// 		world.film_add(posInt, react_add);
 				// 		world.update_film_etch_buffers[threadID].push_back(posInt);
 				// 	}

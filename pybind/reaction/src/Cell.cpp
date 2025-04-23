@@ -167,14 +167,16 @@ void World::update_Cells_inthread(int3 posInt){
         }
         else if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1) {
 
+            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
+
             local_point_nn_vaccum.resize(6);
             for (size_t l=0; l<6; ++l){
                 local_point_nn_vaccum[l] = mirror_index(local_point_nn[j] + grid_cross[l]);
 
                 // std::cout << "local_point_nn_vaccum: " << local_point_nn_vaccum[l] << std::endl;
-
+                // Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
                 if (Cells[local_point_nn_vaccum[l][0]][local_point_nn_vaccum[l][1]][local_point_nn_vaccum[l][2]].typeID == 1){
-                    Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
+                    Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = -1;
                 }
             }
 
@@ -227,6 +229,8 @@ void World::update_Cells(){
                 }
                 else if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1) {
 
+                    Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
+
                     local_point_nn_vaccum.resize(6);
                     for (size_t l=0; l<6; ++l){
                         local_point_nn_vaccum[l] = mirror_index(local_point_nn[j] + grid_cross[l]);
@@ -234,7 +238,7 @@ void World::update_Cells(){
                         // std::cout << "local_point_nn_vaccum: " << local_point_nn_vaccum[l] << std::endl;
 
                         if (Cells[local_point_nn_vaccum[l][0]][local_point_nn_vaccum[l][1]][local_point_nn_vaccum[l][2]].typeID == 1){
-                            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
+                            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = -1;
                         }
                     }
 
