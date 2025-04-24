@@ -131,6 +131,88 @@ std::vector<int> World::sticking_probability_structed(const Particle particle, c
     return sticking_acceptList;
 }
 
+
+std::vector<int> World::find_depo_cell(int3 posInt){
+    std::vector<int3> local_point_nn;
+    std::vector<int> label_to_depo(6, 0);
+    local_point_nn.resize(6);
+    
+    for (size_t j=0; j<6; ++j){
+        local_point_nn[j] = mirror_index(posInt + grid_cross[j]);
+
+        if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1){
+            label_to_depo[j] = 1;
+        }
+    }
+
+    return label_to_depo;
+}
+
+
+void World::update_Cells_inthread_depo(int3 posInt){
+    std::vector<int3> local_point_nn;
+    // std::vector<int3> local_point_nn_under;
+    std::vector<int3> local_point_nn_vaccum;
+
+    // for (size_t i=0; i<update_film_etch_size; i++){
+    //     int3 posInt = update_film_etch[i];
+
+        // std::cout << "posInt: " << posInt << std::endl;
+
+    local_point_nn.resize(6);
+    Cells[posInt[0]][posInt[1]][posInt[2]].typeID = 1;
+    for (size_t j=0; j<6; ++j){
+        local_point_nn[j] = mirror_index(posInt + grid_cross[j]);
+        
+
+        // std::cout << "inloop local_point_nn: " << local_point_nn[j] << std::endl;
+
+        if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == 0){
+            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = -1;
+
+            // local_point_nn_under.resize(6);
+            // for (size_t k=0; k<6; ++k){
+            //     local_point_nn_under[k] = mirror_index(local_point_nn[j] + grid_cross[k]);
+            //     if (Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID == 3){
+            //         Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID = 2;
+            //     }
+            // }
+            // std::cout << "local_point_nn_vaccum: ";
+            // for (size_t q = 0; q < local_point_nn_under.size(); ++q) {
+            //     std::cout << local_point_nn_under[q] << '\n';
+            // }
+            // std::cout << '\n';
+        }
+        else if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == 1) {
+
+            // 先把-1的label变成0
+            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 2;
+
+            local_point_nn_vaccum.resize(6);
+            for (size_t l=0; l<6; ++l){
+                local_point_nn_vaccum[l] = mirror_index(local_point_nn[j] + grid_cross[l]);
+
+                // std::cout << "local_point_nn_vaccum: " << local_point_nn_vaccum[l] << std::endl;
+                // Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
+                if (Cells[local_point_nn_vaccum[l][0]][local_point_nn_vaccum[l][1]][local_point_nn_vaccum[l][2]].typeID == -1){
+                    // 再把相邻为1的label变为-1
+                    Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 1;
+
+                    break;
+                }
+            }
+
+        }
+    }
+
+    // update_normal_in_matrix();
+    update_normal_in_matrix_inthread(posInt);
+
+    // update_film_etch.resize(0);
+    // } 
+}
+
+
 void World::update_Cells_inthread(int3 posInt){
     std::vector<int3> local_point_nn;
     std::vector<int3> local_point_nn_under;
@@ -167,6 +249,7 @@ void World::update_Cells_inthread(int3 posInt){
         }
         else if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1) {
 
+            // 先把-1的label变成0
             Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
 
             local_point_nn_vaccum.resize(6);
@@ -176,7 +259,9 @@ void World::update_Cells_inthread(int3 posInt){
                 // std::cout << "local_point_nn_vaccum: " << local_point_nn_vaccum[l] << std::endl;
                 // Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
                 if (Cells[local_point_nn_vaccum[l][0]][local_point_nn_vaccum[l][1]][local_point_nn_vaccum[l][2]].typeID == 1){
+                    // 再把相邻为1的label变为-1
                     Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = -1;
+                    
                 }
             }
 

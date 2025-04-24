@@ -3,7 +3,7 @@
 
 bool Simulation::need_recompute = false;
 
-int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
+int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, int depo_or_etch, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
     std::signal(SIGSEGV, globalSignalHandler);
@@ -56,11 +56,18 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
             //     break;
             // }
 
-            if(world.scan_stopPoint(stopPointY, stopPointZ)){
-                std::cout << "etching reach the bottom;" << std::endl;
-                break;
+            if(depo_or_etch == -1){
+                if(world.scan_stopPoint(stopPointY, stopPointZ)){
+                    std::cout << "etching reach the bottom;" << std::endl;
+                    break;
+                }
             }
-
+            else if(depo_or_etch == 1){
+                if(world.scan_stopPoint_depo(stopPointY, stopPointZ)){
+                    std::cout << "etching reach the bottom;" << std::endl;
+                    break;
+                }
+            }
             // 检查错误标志，如果检测到错误，则抛出异常
             if (error_flag==1) {
                 throw SimulationError("Simulation encountered a segmentation fault.");

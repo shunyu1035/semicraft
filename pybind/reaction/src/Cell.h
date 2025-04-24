@@ -618,11 +618,15 @@ public:
 
 	void update_Cells_inthread(int3 posInt);
 
+	void update_Cells_inthread_depo(int3 posInt);
+
 	void get_normal_from_grid(int3 posInt);
 
 	void update_normal_in_matrix();
 
 	void update_normal_in_matrix_inthread(int3 posInt);
+
+	std::vector<int> find_depo_cell(int3 posInt);
 
 	// bool scan_bottom(){
 	// 	int filmThickness = 0;
@@ -655,6 +659,21 @@ public:
 			return true;
 		}else {
 			return false;
+		}
+		// return false;
+	}
+
+	bool scan_stopPoint_depo(int stopPointY, int stopPointZ){
+		int centerX = ni/2;
+		int sum = 0;
+		for(int f=0; f<FILMSIZE; ++f){
+			sum += Cells[centerX][stopPointY][stopPointZ].film[f];
+		}
+
+		if(sum <= 0){
+			return false;
+		}else {
+			return true;
 		}
 		// return false;
 	}
