@@ -122,21 +122,24 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					react = true;
 					if (world.film_full(posInt)) {
 						// add the posint in neighbor cell 
-						std::vector<double> label_to_depo_random(6, 0);
-						std::vector<int> label_to_depo = world.find_depo_cell(posInt);
+						// std::vector<double> label_to_depo_random(6, 0);
+						int3 depo_cell = world.find_depo_cell(posInt, rnd);
 
-						for(int d=0; d<6; ++d){
-							if(label_to_depo[d] == 1){
-								label_to_depo_random[d] = rnd();
-							}
-						}
-						int depo_choice = find_max_position(label_to_depo_random);
+						// for(int d=0; d<6; ++d){
+						// 	if(label_to_depo[d] == 1){
+						// 		label_to_depo_random[d] = rnd();
+						// 	}
+						// }
+						// int depo_choice = find_max_position(label_to_depo);
 
-						int3 depo_cell = world.mirror_index(posInt + world.grid_cross[depo_choice]);
+						// int3 depo_cell = world.mirror_index(posInt + world.grid_cross[depo_choice]);
 
 						world.film_add(depo_cell, react_add);
 
-						world.update_Cells_inthread_depo(depo_cell);
+						if (world.film_full(depo_cell)) {
+							world.update_Cells_inthread_depo(depo_cell);
+						}
+						// world.update_Cells_inthread_depo(depo_cell);
 						// world.update_film_etch_buffers[threadID].push_back(depo_cell);
 					}
 					else{

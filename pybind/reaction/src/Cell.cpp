@@ -132,20 +132,71 @@ std::vector<int> World::sticking_probability_structed(const Particle particle, c
 }
 
 
-std::vector<int> World::find_depo_cell(int3 posInt){
+int3 World::find_depo_cell(int3 posInt, Rnd &rnd){
     std::vector<int3> local_point_nn;
-    std::vector<int> label_to_depo(6, 0);
-    local_point_nn.resize(6);
-    
-    for (size_t j=0; j<6; ++j){
-        local_point_nn[j] = mirror_index(posInt + grid_cross[j]);
+    std::vector<double> label_to_depo;
+    int3 depo_cell;
+    bool all_full = true;
+    // local_point_nn.resize(6);
 
-        if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1){
-            label_to_depo[j] = 1;
+    if (Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 1){
+        local_point_nn.resize(6);
+        label_to_depo.resize(6);
+        for (size_t j=0; j<6; ++j){
+            local_point_nn[j] = mirror_index(posInt + grid_cross[j]);
+
+            if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1){
+                label_to_depo[j] = rnd();
+            }
         }
+
+        int depo_choice = find_max_position(label_to_depo);
+        depo_cell = mirror_index(posInt + grid_cross[depo_choice]);
+
+        return depo_cell;
+
+    }
+    else {
+        local_point_nn.resize(6);
+        label_to_depo.resize(6);
+        for (size_t j=0; j<6; ++j){
+            local_point_nn[j] = mirror_index(posInt + grid_cross[j]);
+
+            if (film_full(local_point_nn[j]) == false){
+                // all_full = true;
+                all_full = false;
+                label_to_depo[j] = rnd();
+            }
+
+            // if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1){
+            //     label_to_depo[j] = rnd();
+            // }
+        }
+
+        if (all_full){
+            local_point_nn.resize(20);
+            label_to_depo.resize(20);
+            for (size_t j=0; j<20; ++j){
+                local_point_nn[j] = mirror_index(posInt + grid_cube[j]);
+                if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1){
+                    label_to_depo[j] = rnd();
+                }
+            }
+            int depo_choice = find_max_position(label_to_depo);
+            depo_cell = mirror_index(posInt + grid_cube[depo_choice]);
+
+        }
+        else{
+            int depo_choice = find_max_position(label_to_depo);
+            depo_cell = mirror_index(posInt + grid_cube[depo_choice]);
+        }
+
+        int depo_choice = find_max_position(label_to_depo);
+        depo_cell = mirror_index(posInt + grid_cube[depo_choice]);
     }
 
-    return label_to_depo;
+
+    return depo_cell;
 }
 
 

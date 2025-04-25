@@ -10,6 +10,7 @@
 #include "Field.h"
 #include <mutex>
 #include <atomic>
+#include <math.h>
 // /*object for sampling random numbers*/
 // class Rnd {
 // 	public:
@@ -626,7 +627,17 @@ public:
 
 	void update_normal_in_matrix_inthread(int3 posInt);
 
-	std::vector<int> find_depo_cell(int3 posInt);
+	int3 find_depo_cell(int3 posInt, Rnd &rnd);
+
+	int find_max_position(const std::vector<double>& arr) noexcept {
+		// 使用 std::max_element 找到最大值的迭代器
+		auto max_iter = std::max_element(arr.begin(), arr.end());
+	
+		// 计算迭代器的位置
+		int max_pos = std::distance(arr.begin(), max_iter);
+	
+		return max_pos;
+	}
 
 	// bool scan_bottom(){
 	// 	int filmThickness = 0;
@@ -713,6 +724,42 @@ public:
 		{0, 0, 1},
 		{0, 0,-1}
 	};
+
+	std::vector<int3> grid_cube = {
+		// {1, 0, 0},
+		// {-1,0, 0},
+		// {0, 1, 0},
+		// {0,-1, 0},
+		// {0, 0, 1},
+		// {0, 0,-1},
+
+		{1, 1, 0},
+		{-1,1, 0},
+		{0, 1, 1},
+		{0, 1,-1},
+
+		{1, -1, 0},
+		{-1,-1, 0},
+		{0, -1, 1},
+		{0, -1,-1},
+
+		{1, 0, 1},
+		{1, 0,-1},
+		{-1, 0, 1},
+		{-1, 0,-1},
+
+		{1,  1, 1},
+		{-1, 1, 1},
+		{1, -1, 1},
+		{1,  1,-1},
+
+		{-1,-1,-1},
+		{-1,-1, 1},
+		{-1, 1,-1},
+		{1, -1,-1}
+	};
+
+
 	// Rnd rng;
 protected:
 	double topGap;
