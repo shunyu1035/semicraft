@@ -167,10 +167,6 @@ int3 World::find_depo_cell(int3 posInt, Rnd &rnd){
                 all_full = false;
                 label_to_depo[j] = rnd();
             }
-
-            // if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == -1){
-            //     label_to_depo[j] = rnd();
-            // }
         }
 
         if (all_full){
@@ -191,10 +187,7 @@ int3 World::find_depo_cell(int3 posInt, Rnd &rnd){
             depo_cell = mirror_index(posInt + grid_cube[depo_choice]);
         }
 
-        int depo_choice = find_max_position(label_to_depo);
-        depo_cell = mirror_index(posInt + grid_cube[depo_choice]);
     }
-
 
     return depo_cell;
 }
