@@ -109,7 +109,8 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					// std::cout << react_yield <<  std::endl;
 					if(react_yield > rnd()){
 						world.film_add(posInt, react_add);
-						react = true;
+						part.id = react_choice;
+						react = false;
 						if (world.film_empty(posInt)) {
 							world.update_film_etch_buffers[threadID].push_back(posInt);
 						}
