@@ -193,6 +193,32 @@ int3 World::find_depo_cell(int3 posInt, Rnd &rnd){
 }
 
 
+int3 World::surface_diffusion(int3 posInt, Rnd &rnd){
+    std::vector<int3> local_point_nn;
+    std::vector<double> potential_nn(26, -100);
+    int3 diffusion_cell;
+
+    local_point_nn.resize(26);
+    double origin_h = Cells[posInt[0]][posInt[1]][posInt[2]].potential;
+    for (size_t j=0; j<26; ++j){
+        local_point_nn[j] = mirror_index(posInt + grid_cube_all[j]);
+        if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == 1){
+            potential_nn[j] = origin_h - Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].potential;
+        }
+    }
+
+    int diffusion_choice = find_max_position(potential_nn);
+    double potential_gap = potential_nn[diffusion_choice];
+    diffusion_cell = mirror_index(posInt + grid_cube_all[diffusion_choice]);
+
+    if (potential_gap * diffusion_coeffient > rnd()) {
+        return diffusion_cell;
+    }
+
+    return posInt;    
+}
+
+
 void World::update_Cells_inthread_depo(int3 posInt){
     std::vector<int3> local_point_nn;
     // std::vector<int3> local_point_nn_under;

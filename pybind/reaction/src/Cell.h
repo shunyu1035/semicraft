@@ -54,8 +54,8 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int FilmDensity, int ArgonID, double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
-	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), FilmDensity(FilmDensity), ArgonID(ArgonID), reflect_coefficient(reflect_coefficient),
+	World(int ni, int nj, int nk, int FILMSIZE, int FilmDensity, int ArgonID, bool diffusion, double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), FilmDensity(FilmDensity), ArgonID(ArgonID), diffusion(diffusion), reflect_coefficient(reflect_coefficient),
 		chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
 		xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}), rn_angle(180){
 		for (int i = 0; i < 180; ++i) {
@@ -659,6 +659,8 @@ public:
 
 	int3 find_depo_cell(int3 posInt, Rnd &rnd);
 
+	int3 surface_diffusion(int3 posInt, Rnd &rnd);
+
 	int find_max_position(const std::vector<double>& arr) noexcept {
 		// 使用 std::max_element 找到最大值的迭代器
 		auto max_iter = std::max_element(arr.begin(), arr.end());
@@ -725,6 +727,7 @@ public:
 	const int FILMSIZE;
 	const int FilmDensity;
 	int ArgonID;
+	const bool diffusion;
 	double reflect_coefficient;
 	// double E_decrease;
 	// std::vector<double> E_decrease;
@@ -789,12 +792,48 @@ public:
 		{1, -1,-1}
 	};
 
+	std::vector<int3> grid_cube_all = {
+		{1, 0, 0},
+		{-1,0, 0},
+		{0, 1, 0},
+		{0,-1, 0},
+		{0, 0, 1},
+		{0, 0,-1},
+
+		{1, 1, 0},
+		{-1,1, 0},
+		{0, 1, 1},
+		{0, 1,-1},
+
+		{1, -1, 0},
+		{-1,-1, 0},
+		{0, -1, 1},
+		{0, -1,-1},
+
+		{1, 0, 1},
+		{1, 0,-1},
+		{-1, 0, 1},
+		{-1, 0,-1},
+
+		{1,  1, 1},
+		{-1, 1, 1},
+		{1, -1, 1},
+		{1,  1,-1},
+
+		{-1,-1,-1},
+		{-1,-1, 1},
+		{-1, 1,-1},
+		{1, -1,-1}
+	};
+
 
 	// Rnd rng;
 protected:
 	double topGap;
 	double3 xm;	//origin-diagonally opposite corner (max bound)
 	int3 ijk; // for mirror correctify
+
+	double diffusion_coeffient = 1.0;
 	// int ArgonID;
 	// double reflect_coefficient;
     int num_threads;  //number of threads;

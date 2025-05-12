@@ -3,12 +3,13 @@
 
 bool Simulation::need_recompute = false;
 
-int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, int depo_or_etch, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
+int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, int depo_or_etch, bool diffusion, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
     std::signal(SIGSEGV, globalSignalHandler);
 
-    World world(ni, nj, nk, FILMSIZE, FilmDensity, ArgonID, reflect_coefficient, chemical_angle_v1, chemical_angle_v2);
+
+    World world(ni, nj, nk, FILMSIZE, FilmDensity, ArgonID, diffusion, reflect_coefficient, chemical_angle_v1, chemical_angle_v2);
     // world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 
@@ -64,7 +65,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
             }
             else if(depo_or_etch == 1){
                 if(world.scan_stopPoint_depo(stopPointY, stopPointZ)){
-                    std::cout << "etching reach the bottom;" << std::endl;
+                    std::cout << "depo reach the top;" << std::endl;
                     break;
                 }
             }
