@@ -11,44 +11,26 @@
 #include <mutex>
 #include <atomic>
 #include <math.h>
-// /*object for sampling random numbers*/
-// class Rnd {
+
+
+// class Cell {
 // 	public:
-// 		//constructor: set initial random seed and distribution limits
-// 		Rnd(): mt_gen{std::random_device()()}, rnd_dist{0,1.0} {}
-// 		// 接受种子作为参数的构造函数
-// 		explicit Rnd(unsigned int seed) : mt_gen{ seed }, rnd_dist{ 0, 1.0 } {}
+// 		int typeID;
+// 		int3 index;
+// 		double3 normal;
+// 		std::vector<int> film;
+// 		double potential;
+// 		std::mutex film_mutex; // 添加互斥锁
+// 		// 自定义拷贝构造函数
+// 		Cell(const Cell& other) : typeID(other.typeID), index(other.index), normal(other.normal), film(other.film), potential(other.potential) {}
 	
-// 		double operator() () { return rnd_dist(mt_gen); }
-// 		//double operator() () {return rnd_dist(mt_gen);}
-		
-// 	    // 生成 [0, N] 之间的 int 随机数
-// 		int getInt(int N) {
-// 			std::uniform_int_distribution<int> dist(0, N);  // 指定范围
-// 			return dist(mt_gen);
-// 		}
-// 	protected:
-// 		std::mt19937 mt_gen;	    //random number generator
-// 		std::uniform_real_distribution<double> rnd_dist;  //uniform distribution
+// 		// 其他构造函数
+// 		Cell(int typeID, int3 index, double3 normal, std::vector<int> film, double potential) :
+// 			typeID{typeID}, index{index}, normal{normal}, film{film}, potential{potential} { }
+	
+// 		// 其他成员函数
 // 	};
-	
-// extern Rnd rnd;		//tell the compiler that an object of type Rnd called rnd is defined somewhere
 
-
-
-// namespace py = pybind11;
-
-// Rnd rnd;
-
-// struct Cell {
-//     int typeID;
-//     int3 index;
-//     double3 normal;
-//     std::vector<int> film;
-// 	std::mutex film_mutex; // 添加互斥锁
-// 	Cell(int typeID, int3 index, double3 normal, std::vector<int> film):
-// 	typeID{typeID}, index{index}, normal{normal}, film{film} { }
-// };
 
 class Cell {
 	public:
@@ -104,6 +86,35 @@ public:
         return posInt;
     }
 
+	int mirror_x(int x) {
+		if (x < 0) {
+			x += ijk[0];
+		}
+		else if (x >= ijk[0]) {
+			x -= ijk[0];
+		}
+		return x;
+	}
+
+	int mirror_y(int y) {
+		if (y < 0) {
+			y += ijk[1];
+		}
+		else if (y >= ijk[1]) {
+			y -= ijk[1];
+		}
+		return y;
+	}
+
+	int mirror_z(int z) {
+		if (z < 0) {
+			z += ijk[2];
+		}
+		else if (z >= ijk[2]) {
+			z -= ijk[2];
+		}
+		return z;
+	}
 
 	Particle inletParticle(Rnd &rnd){
 

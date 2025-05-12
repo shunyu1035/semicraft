@@ -419,7 +419,34 @@ void World::get_normal_from_grid(int3 posInt) {
         }
     }
 
-    // ... [保持原有计算逻辑不变]
+    // 判断法线朝向
+    double3 direction{0, 0, 1};
+    // double dot_direction_normal;
+
+    int top = Cells[posInt[0]][posInt[1]][mirror_z(posInt[2]+3)].typeID;
+    int bottom = Cells[posInt[0]][posInt[1]][mirror_z(posInt[2]-3)].typeID;
+    int front = Cells[mirror_x(posInt[0]-3)][posInt[1]][posInt[2]].typeID;
+    int back = Cells[mirror_x(posInt[0]+3)][posInt[1]][posInt[2]].typeID;
+    int left = Cells[posInt[0]][mirror_y(posInt[1]-3)][posInt[2]].typeID;
+    int right = Cells[posInt[0]][mirror_y(posInt[1]+3)][posInt[2]].typeID;
+
+    if ((top == 3 || top == 2) && (bottom == 0)) {
+        direction = {0, 0, -1};
+    }
+    else if ((front == 3 || front == 2) && (back == 0)) {
+        direction = {1, 0, 0};
+    }
+    else if ((back == 3 || back == 2) && (front == 0)) {
+        direction = {-1, 0, 0};
+    }
+    else if ((left == 3 || left == 2) && (right == 0)) {
+        direction = {0, 1, 0};
+    }
+    else if ((right == 3 || right == 2) && (left == 0)) {
+        direction = {0, -1, 0};
+    }
+
+
     // 如果没有有效点，返回原矩阵
     if (positions.empty()) {
         std::cout << "svd矩阵为空" << std::endl;
@@ -443,11 +470,17 @@ void World::get_normal_from_grid(int3 posInt) {
     Eigen::JacobiSVD<Eigen::Matrix3d> svd(cov, Eigen::ComputeFullU);
     Eigen::Vector3d normal = svd.matrixU().col(2); // 最小特征值对应的特征向量
 
-    // std::cout << "Eigen::Vector3d normal: " << normal << std::endl;
-    // 步骤5: 写入法线数据
-    for (size_t i = 0; i < 3; ++i) {
-        Cells[posInt[0]][posInt[1]][posInt[2]].normal[i] = normal[i];
+    double3 normal3{normal[0], normal[1], normal[2]};
+    double dot_direction_normal = dot(normal3, direction);
+
+    double sign_dot = 1;
+    if (dot_direction_normal < 0 ){
+        sign_dot = -1;
     }
+
+    // 步骤5: 写入法线数据
+    Cells[posInt[0]][posInt[1]][posInt[2]].normal = normal3 * sign_dot;
+
 }
 
 void World::update_normal_in_matrix_inthread(int3 posInt) {
