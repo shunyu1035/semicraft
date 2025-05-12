@@ -13,41 +13,41 @@
 #include <math.h>
 
 
-// class Cell {
-// 	public:
-// 		int typeID;
-// 		int3 index;
-// 		double3 normal;
-// 		std::vector<int> film;
-// 		double potential;
-// 		std::mutex film_mutex; // 添加互斥锁
-// 		// 自定义拷贝构造函数
-// 		Cell(const Cell& other) : typeID(other.typeID), index(other.index), normal(other.normal), film(other.film), potential(other.potential) {}
-	
-// 		// 其他构造函数
-// 		Cell(int typeID, int3 index, double3 normal, std::vector<int> film, double potential) :
-// 			typeID{typeID}, index{index}, normal{normal}, film{film}, potential{potential} { }
-	
-// 		// 其他成员函数
-// 	};
-
-
 class Cell {
 	public:
 		int typeID;
 		int3 index;
 		double3 normal;
 		std::vector<int> film;
+		double potential;
 		std::mutex film_mutex; // 添加互斥锁
 		// 自定义拷贝构造函数
-		Cell(const Cell& other) : typeID(other.typeID), index(other.index), normal(other.normal), film(other.film) {}
+		Cell(const Cell& other) : typeID(other.typeID), index(other.index), normal(other.normal), film(other.film), potential(other.potential) {}
 	
 		// 其他构造函数
-		Cell(int typeID, int3 index, double3 normal, std::vector<int> film) :
-			typeID{typeID}, index{index}, normal{normal}, film{film} { }
+		Cell(int typeID, int3 index, double3 normal, std::vector<int> film, double potential) :
+			typeID{typeID}, index{index}, normal{normal}, film{film}, potential{potential} { }
 	
 		// 其他成员函数
 	};
+
+
+// class Cell {
+// 	public:
+// 		int typeID;
+// 		int3 index;
+// 		double3 normal;
+// 		std::vector<int> film;
+// 		std::mutex film_mutex; // 添加互斥锁
+// 		// 自定义拷贝构造函数
+// 		Cell(const Cell& other) : typeID(other.typeID), index(other.index), normal(other.normal), film(other.film) {}
+	
+// 		// 其他构造函数
+// 		Cell(int typeID, int3 index, double3 normal, std::vector<int> film) :
+// 			typeID{typeID}, index{index}, normal{normal}, film{film} { }
+	
+// 		// 其他成员函数
+// 	};
 
 /*defines the computational domain*/
 class World
@@ -215,6 +215,7 @@ public:
     // }
 
 	void set_cell(std::vector<std::vector<std::vector<int>>> typeID_in,
+		std::vector<std::vector<std::vector<double>>> potential_in,
 		std::vector<std::vector<std::vector<int3>>> index_in,
 		std::vector<std::vector<std::vector<double3>>> normal_in,
 		std::vector<std::vector<std::vector<std::vector<int>>>> film_in)
@@ -229,7 +230,7 @@ public:
 			for (size_t j = 0; j < dim_y; ++j) {
 				for (size_t k = 0; k < dim_z; ++k) {
 					// Cells[i][j].emplace_back(typeID_in[i][j][k], index_in[i][j][k], normal_in[i][j][k], film_in[i][j][k]);
-					Cell new_cell(typeID_in[i][j][k], index_in[i][j][k], normal_in[i][j][k], film_in[i][j][k]);
+					Cell new_cell(typeID_in[i][j][k], index_in[i][j][k], normal_in[i][j][k], film_in[i][j][k], potential_in[i][j][k]);
 					Cells[i][j].push_back(new_cell);
 				}
 			}
@@ -253,6 +254,24 @@ public:
 			}
 		}
 		return output_typeID;
+	}
+
+	std::vector<std::vector<std::vector<double>>> output_potential_in(){
+		size_t dim_x = Cells.size();
+        size_t dim_y = Cells[0].size();
+        size_t dim_z = Cells[0][0].size();
+
+		std::vector<std::vector<std::vector<double>>> output_potential;
+		output_potential.resize(dim_x);
+		for(size_t i=0; i<dim_x; ++i){
+			output_potential[i].resize(dim_y);
+			for (size_t j = 0; j < dim_y; ++j) {
+				for (size_t k = 0; k < dim_z; ++k) {
+					output_potential[i][j].emplace_back(Cells[i][j][k].potential);
+				}
+			}
+		}
+		return output_potential;
 	}
 
 	std::vector<std::vector<std::vector<std::vector<int>>>> output_film_in(){

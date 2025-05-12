@@ -108,6 +108,7 @@ private:
     std::vector<Particle> particles;
     // std::vector<std::vector<std::vector<Cell>>> Cells;
     std::vector<std::vector<std::vector<int>>> typeID_in;
+    std::vector<std::vector<std::vector<double>>> potential_in;
     std::vector<std::vector<std::vector<int3>>> index_in;
     std::vector<std::vector<std::vector<double3>>> normal_in;
     std::vector<std::vector<std::vector<std::vector<int>>>> film_in;
@@ -352,12 +353,14 @@ public:
 
     void inputCell(
         py::array_t<int> typeID_py,
+        py::array_t<double> potential_py,
         py::array_t<int> index_py,
         py::array_t<double> normal_py,
         py::array_t<int> film_py
     ) {
         // 获取输入数组信息
         py::buffer_info  typeID_py_buf = typeID_py.request();
+        py::buffer_info  potential_py_buf = potential_py.request();
         py::buffer_info  index_py_buf = index_py.request();
         py::buffer_info  normal_py_buf = normal_py.request();
         py::buffer_info  film_py_buf = film_py.request();
@@ -367,6 +370,7 @@ public:
         }
 
         int* typeID_ptr = static_cast<int*>(typeID_py_buf.ptr);
+        double* potential_ptr = static_cast<double*>(potential_py_buf.ptr);
         int* index_ptr = static_cast<int*>(index_py_buf.ptr);
         double* normal_ptr = static_cast<double*>(normal_py_buf.ptr);
         int* film_ptr = static_cast<int*>(film_py_buf.ptr);
@@ -386,12 +390,14 @@ public:
         std::vector<int> film;
         // Cells.resize(dim_x);
         typeID_in.resize(dim_x);
+        potential_in.resize(dim_x);
         index_in.resize(dim_x);
         normal_in.resize(dim_x);
         film_in.resize(dim_x);
         for(size_t i=0; i<dim_x; ++i){
             // Cells[i].resize(dim_y);
             typeID_in[i].resize(dim_y);
+            potential_in[i].resize(dim_y);
             index_in[i].resize(dim_y);
             normal_in[i].resize(dim_y);
             film_in[i].resize(dim_y);
@@ -416,6 +422,7 @@ public:
                     // std::cout << '\n';
                     // Cells[i][j].emplace_back(typeID_ptr[offset], index, normal, film);
                     typeID_in[i][j].emplace_back(typeID_ptr[offset]);
+                    potential_in[i][j].emplace_back(potential_ptr[offset]);
                     index_in[i][j].emplace_back(index);
                     normal_in[i][j].emplace_back(normal);
                     film_in[i][j].emplace_back(film);
@@ -610,6 +617,11 @@ public:
         auto typeID_buf = typeID_array.request();
         int* typeID_ptr = static_cast<int*>(typeID_buf.ptr);
 
+        // 创建用于存储 potential 的 NumPy 数组
+        auto potential_array = py::array_t<double>({dim0, dim1, dim2});
+        auto potential_buf = potential_array.request();
+        double* potential_ptr = static_cast<double*>(potential_buf.ptr);
+
         // 创建用于存储 film 的 NumPy 数组，形状为 (dim0, dim1, dim2, FILMSIZE)
         auto film_array = py::array_t<int>({dim0, dim1, dim2, static_cast<size_t>(FILMSIZE)});
         auto film_buf = film_array.request();
@@ -621,6 +633,9 @@ public:
                 for (size_t k = 0; k < dim2; ++k) {
                     // const Cell& cell = Cells[i][j][k];
                     typeID_ptr[i * dim1 * dim2 + j * dim2 + k] = typeID_in[i][j][k];
+                    potential_ptr[i * dim1 * dim2 + j * dim2 + k] = potential_in[i][j][k];
+
+                    // std::cout << "potential: " << i << " " << j << " " << k << " " << potential_in[i][j][k] << std::endl;
     
                     // 复制 film 数据，如果长度不足 FILMSIZE，填充 0
                     for (size_t l = 0; l < static_cast<size_t>(FILMSIZE); ++l) {
@@ -634,7 +649,7 @@ public:
             }
         }
     
-        return py::make_tuple(typeID_array, film_array);
+        return py::make_tuple(typeID_array, film_array, potential_array);
     } 
 
 

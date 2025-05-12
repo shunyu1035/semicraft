@@ -20,7 +20,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     double3 xm = world.getXm();
     std::cout << "World xm: " << xm << std::endl; 
 
-    world.set_cell(typeID_in, index_in, normal_in, film_in);
+    world.set_cell(typeID_in, potential_in, index_in, normal_in, film_in);
     world.sputter_yield_angle(sputter_yield_coefficient);
     // world.sputter_yield_angle(sputter_yield_coefficient[0], sputter_yield_coefficient[1], sputter_yield_coefficient[2]);
     world.inputParticle(particles);
@@ -114,6 +114,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     // Cells = world.Cells;
     normal_in = world.output_normal_in();
     typeID_in = world.output_typeID_in();
+    potential_in = world.output_potential_in();
     film_in = world.output_film_in();
 
     world.print_react_prob_chemical();
@@ -153,9 +154,10 @@ PYBIND11_MODULE(SimProfile, m) {
         .def("crossTest", &Simulation::crossTest)
         .def("inputCell", &Simulation::inputCell, 
             py::arg("typeid"),
+            py::arg("potential"),
             py::arg("index"),
             py::arg("normal"),
-            py::arg("film"), "typeid, index, normal, film")
+            py::arg("film"), "typeid, potential, index, normal, film")
         .def("runSimulation", &Simulation::runSimulation)
         .def("normal_to_numpy", &Simulation::normal_to_numpy)
         .def("cell_data_to_numpy", &Simulation::cell_data_to_numpy)

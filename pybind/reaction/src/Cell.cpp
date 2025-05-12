@@ -459,6 +459,12 @@ void World::get_normal_from_grid(int3 posInt) {
     }
     mean /= positions.size();
 
+    // 判断凹凸朝向
+    // double3 posInt_d3{(double)posInt[0], (double)posInt[1], (double)posInt[2]};
+    double3 origin_pt{0, 0, 0};
+    double3 mean3{mean[0], mean[1], mean[2]};
+    double3 curvature_vector = origin_pt - mean3;
+
     // 步骤3: 计算协方差矩阵
     Eigen::Matrix3d cov = Eigen::Matrix3d::Zero();
     for (const auto& pos : positions) {
@@ -470,6 +476,17 @@ void World::get_normal_from_grid(int3 posInt) {
     Eigen::JacobiSVD<Eigen::Matrix3d> svd(cov, Eigen::ComputeFullU);
     Eigen::Vector3d normal = svd.matrixU().col(2); // 最小特征值对应的特征向量
 
+    // 计算曲率
+    Eigen::Vector3d S = svd.singularValues();  // s0 ≥ s1 ≥ s2
+    double sum = S.sum();
+    double lambda_min = S(2);
+    double curvature = 0;
+    if (sum > 0) {
+        curvature = lambda_min / sum;
+    }
+
+
+    // 判断法线朝向
     double3 normal3{normal[0], normal[1], normal[2]};
     double dot_direction_normal = dot(normal3, direction);
 
@@ -477,9 +494,18 @@ void World::get_normal_from_grid(int3 posInt) {
     if (dot_direction_normal < 0 ){
         sign_dot = -1;
     }
+    double3 normal_corrected = normal3 * sign_dot;
+
+    // 判断凹凸朝向， 曲率正负
+    double curvature_vector_dot = dot(curvature_vector, normal_corrected);
+    double curvature_sign_dot = 1;
+    if (curvature_vector_dot < 0 ){
+        curvature_sign_dot = -1;
+    }
 
     // 步骤5: 写入法线数据
-    Cells[posInt[0]][posInt[1]][posInt[2]].normal = normal3 * sign_dot;
+    Cells[posInt[0]][posInt[1]][posInt[2]].normal = normal_corrected;
+    Cells[posInt[0]][posInt[1]][posInt[2]].potential = curvature_sign_dot * curvature;
 
 }
 
