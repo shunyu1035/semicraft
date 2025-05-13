@@ -476,6 +476,7 @@ void World::get_normal_from_grid(int3 posInt) {
     // 如果没有有效点，返回原矩阵
     if (positions.empty()) {
         std::cout << "svd矩阵为空" << std::endl;
+        std::cout << "posInt: " << posInt << std::endl;
     }
 
     // 步骤2: 计算均值

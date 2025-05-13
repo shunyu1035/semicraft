@@ -123,7 +123,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					react = true;
 
 					if (world.diffusion == true) {
-						for (int df = 5; df > 0; df--) {
+						for (int df = world.diffusion_distant; df > 0; df--) {
 							posInt = world.surface_diffusion(posInt, rnd);
 						}
 					}

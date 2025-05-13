@@ -54,8 +54,10 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int FilmDensity, int ArgonID, bool diffusion, double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
-	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), FilmDensity(FilmDensity), ArgonID(ArgonID), diffusion(diffusion), reflect_coefficient(reflect_coefficient),
+	World(int ni, int nj, int nk, int FILMSIZE, int FilmDensity, int ArgonID, 
+		bool diffusion, double diffusion_coeffient, int diffusion_distant, double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), FilmDensity(FilmDensity), ArgonID(ArgonID), 
+	diffusion(diffusion), diffusion_coeffient(diffusion_coeffient), diffusion_distant(diffusion_distant), reflect_coefficient(reflect_coefficient),
 		chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
 		xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}), rn_angle(180){
 		for (int i = 0; i < 180; ++i) {
@@ -728,6 +730,7 @@ public:
 	const int FilmDensity;
 	int ArgonID;
 	const bool diffusion;
+	int diffusion_distant;
 	double reflect_coefficient;
 	// double E_decrease;
 	// std::vector<double> E_decrease;
@@ -833,7 +836,7 @@ protected:
 	double3 xm;	//origin-diagonally opposite corner (max bound)
 	int3 ijk; // for mirror correctify
 
-	double diffusion_coeffient = 1.0;
+	// double diffusion_coeffient;
 	// int ArgonID;
 	// double reflect_coefficient;
     int num_threads;  //number of threads;
@@ -841,6 +844,7 @@ protected:
 	// std::vector<std::vector<int>> react_type_table;
 	std::vector<std::vector<double>> react_prob_chemical;
 	// std::vector<double> react_yield_p0;
+	double diffusion_coeffient;
 	std::vector<std::vector<double>> rn_coeffcients;
 	std::vector<double> rn_angle;
 	std::vector<std::vector<double>> rn_matrix;

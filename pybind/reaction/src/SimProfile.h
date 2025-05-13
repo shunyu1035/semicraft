@@ -348,7 +348,8 @@ public:
     }
 
 
-    int runSimulation(int time, int ArgonID, double reflect_coefficient, int depo_or_etch,  bool diffusion, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2);
+    int runSimulation(int time, int ArgonID, double reflect_coefficient, int depo_or_etch, 
+        bool diffusion, double diffusion_coeffient, int diffusion_distant, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2);
 
 
     void inputCell(
