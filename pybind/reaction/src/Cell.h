@@ -54,9 +54,9 @@ class World
 {
 public:	
 	/*constructor, allocates memory*/
-	World(int ni, int nj, int nk, int FILMSIZE, int FilmDensity, int ArgonID, 
+	World(int ni, int nj, int nk, int FILMSIZE, int FilmDensity, int ArgonID, bool redepo,
 		bool diffusion, double diffusion_coeffient, int diffusion_distant, double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
-	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), FilmDensity(FilmDensity), ArgonID(ArgonID), 
+	rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), FilmDensity(FilmDensity), ArgonID(ArgonID), redepo(redepo),
 	diffusion(diffusion), diffusion_coeffient(diffusion_coeffient), diffusion_distant(diffusion_distant), reflect_coefficient(reflect_coefficient),
 		chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
 		xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}), rn_angle(180){
@@ -729,6 +729,7 @@ public:
 	const int FILMSIZE;
 	const int FilmDensity;
 	int ArgonID;
+	const bool redepo;
 	const bool diffusion;
 	int diffusion_distant;
 	double reflect_coefficient;
