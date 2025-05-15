@@ -118,7 +118,8 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 						// part.id = react_choice;
 						// react = false;
 						if (world.film_empty(posInt)) {
-							world.update_film_etch_buffers[threadID].push_back(posInt);
+							// world.update_film_etch_buffers[threadID].push_back(posInt);
+							world.update_Cells_inthread(posInt);
 						}
 					}
 				}
@@ -156,12 +157,19 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				int reflect_film = find_max_position_int(world.Cells[posInt[0]][posInt[1]][posInt[2]].film);
 				part.E -= world.E_decrease[part.id][reflect_film];
 
-				if (world.reflect_coefficient < rnd()){
-					part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
+				if (world.reflect_probability > rnd()){
+
+					if (world.reflect_coefficient < rnd()){
+						part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
+					}
+					else{
+						part.vel = world.SpecularReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal);
+					}
 				}
 				else{
-					part.vel = world.SpecularReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal);
+					react = true;
 				}
+
 			}
 		}
 
