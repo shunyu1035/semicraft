@@ -119,6 +119,7 @@ private:
     const int FilmDensity;
     std::vector<std::vector<std::vector<int>>> react_table_equation;
     std::vector<std::vector<int>> react_type_table;
+    std::vector<std::vector<double>> reflect_probability;
     std::vector<std::vector<double>> react_prob_chemical;
     std::vector<double> react_yield_p0;
     std::vector<std::vector<double>> rn_coeffcients;
@@ -170,7 +171,7 @@ public:
         }
     }
 
-    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+    // 从 NumPy 数组设置数据，要求输入必须为2维数组
     void set_react_type_table(py::array_t<int> arr) {
         py::buffer_info buf = arr.request();
         if (buf.ndim != 2) {
@@ -194,8 +195,36 @@ public:
         }
     }
 
+    // 从 NumPy 数组设置数据，要求输入必须为2维数组
+    void set_reflect_probability(py::array_t<double> arr) {
+        py::buffer_info buf = arr.request();
+        if (buf.ndim != 2) {
+            throw std::runtime_error("reflect_probability 输入数组必须是2维的");
+        }
+        // 获取每一维的大小
+        ssize_t dim0 = buf.shape[0];
+        ssize_t dim1 = buf.shape[1];
+        double* ptr = static_cast<double*>(buf.ptr);
 
-    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+        // 按三维结构分配 react_table_equation
+        reflect_probability.resize(dim0);
+        for (ssize_t i = 0; i < dim0; ++i) {
+            reflect_probability[i].resize(dim1);
+            for (ssize_t j = 0; j < dim1; ++j) {
+                // 计算内存中对应的起始偏移：
+                ssize_t offset = i * dim1 + j;
+                reflect_probability[i][j] = ptr[offset];
+
+                std::cout << "reflect_probability" ;
+                std::cout << reflect_probability[i][j] << " ";
+            }
+            std::cout << "\n";
+        }
+        std::cout << "\n";
+    }
+
+
+    // 从 NumPy 数组设置数据，要求输入必须为2维数组
     void set_rn_coeffcients(py::array_t<double> arr) {
         py::buffer_info buf = arr.request();
         if (buf.ndim != 2) {
@@ -219,7 +248,7 @@ public:
         }
     }
 
-    // 从 NumPy 数组设置数据，要求输入必须为三维数组
+    // 从 NumPy 数组设置数据，要求输入必须为2维数组
     void set_E_decrease(py::array_t<double> arr) {
         py::buffer_info buf = arr.request();
         if (buf.ndim != 2) {
@@ -313,6 +342,7 @@ public:
 
     void set_all_parameters(py::array_t<int> react_table_equation, 
                             py::array_t<int> react_type_table,
+                            py::array_t<double> reflect_probability,
                             py::array_t<double> react_prob_chemical,
                             py::array_t<double> react_yield_p0,
                             py::array_t<double> film_eth,
@@ -321,6 +351,7 @@ public:
 
         set_react_table_equation(react_table_equation);
         set_react_type_table(react_type_table);
+        set_reflect_probability(reflect_probability);
         set_react_prob_chemical(react_prob_chemical);
         set_react_yield_p0(react_yield_p0);
         set_film_eth(film_eth);
@@ -348,7 +379,7 @@ public:
     }
 
 
-    int runSimulation(int time, int ArgonID, double reflect_probability, double reflect_coefficient, int depo_or_etch, bool redepo,
+    int runSimulation(int time, int ArgonID, double reflect_coefficient, int depo_or_etch, bool redepo,
         bool diffusion, double diffusion_coeffient, int diffusion_distant, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2);
 
 

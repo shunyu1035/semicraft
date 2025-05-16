@@ -3,7 +3,7 @@
 
 bool Simulation::need_recompute = false;
 
-int Simulation::runSimulation(int time, int ArgonID, double reflect_probability, double reflect_coefficient, int depo_or_etch, bool redepo,
+int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, int depo_or_etch, bool redepo,
     bool diffusion, double diffusion_coeffient, int diffusion_distant, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
@@ -11,7 +11,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_probability,
 
 
     World world(ni, nj, nk, FILMSIZE, FilmDensity, ArgonID, redepo, diffusion, diffusion_coeffient, diffusion_distant,
-        reflect_probability, reflect_coefficient, chemical_angle_v1, chemical_angle_v2);
+        reflect_coefficient, chemical_angle_v1, chemical_angle_v2);
     // world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 
@@ -34,7 +34,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_probability,
     std::cout<<"Running with "<<num_threads<<" threads"<<std::endl;
     world.setNumThreads(num_threads);   //set number of threads to use
 
-    world.set_parameters(react_table_equation, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients, E_decrease);
+    world.set_parameters(react_table_equation, reflect_probability, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients, E_decrease);
     // world.print_rn_matrix();
     // world.print_rn_coeffcients();
     // world.print_react_type_table();
@@ -49,8 +49,9 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_probability,
     try {
         for(int t=0; t<time; ++t){
             int reaction_count = 0;
-            if (t % 1000 == 0) {  // 只有当 t 是 1000 的整数倍时才打印
-                std::cout << "Running " << t << " step;" << std::endl;
+            if (t % 5000 == 0) {  // 只有当 t 是 1000 的整数倍时才打印
+                int film_thick = world.scan_bottom();
+                std::cout << "Running " << t << " step; " << "thickness: " << film_thick  << std::endl;
             }
             // std::cout<<"Running "<< t <<" step; "  <<std::endl;
             sp.advance(reaction_count);
@@ -168,6 +169,7 @@ PYBIND11_MODULE(SimProfile, m) {
         .def("set_all_parameters", &Simulation::set_all_parameters,
             py::arg("react_table_equation"),
             py::arg("react_type_table"),
+            py::arg("reflect_probability"),
             py::arg("react_prob_chemical"),
             py::arg("react_yield_p0"),
             py::arg("film_eth"),
