@@ -38,6 +38,7 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 	{
 		thread_local Rnd rnd;
 		bool react = false;
+		// bool test = true;
 		double reflect_prob = 1.0;
 		Particle &part = particles[p];
 		int3 posInt = {(int)part.pos[0], (int)part.pos[1], (int)part.pos[2]};
@@ -58,15 +59,55 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 
 			std::vector<double> react_choice_random(world.FILMSIZE, 0);
 			for (int i=0; i<world.FILMSIZE; ++i){
-				if(sticking_acceptList[i]){
+				if(sticking_acceptList[i] == 1){
 					react_choice_random[i] = rnd();
 				}
 			}
-			int react_choice = find_max_position(react_choice_random);
+
+			// int react_choice = find_max_position(react_choice_random);
+
+			// if (stick == false){
+			// 	react_choice = find_max_position_int(react_choice_random);
+			// }
+
+			// for (int t=0; t<world.FILMSIZE; ++t){
+			// 	if(sticking_acceptList[t] == 1){
+			// 		test = false;
+			// 	}
+			// }
+
+			// if (test){
+			// 	std::cout << "react_choice: " << react_choice <<  std::endl;
+			// 	std::cout << "cell: " ;
+			// 	for (int p=0; p<world.FILMSIZE; ++p){
+			// 	std::cout << world.Cells[posInt[0]][posInt[1]][posInt[2]].film[p] <<  " ";
+			// 	}
+			// 	std::cout <<"\n" << std::endl;
+
+			// 	std::cout << "sticking_acceptList: " ;
+			// 	for (int p=0; p<world.FILMSIZE; ++p){
+			// 	std::cout << sticking_acceptList[p] <<  " ";
+			// 	}
+			// 	std::cout <<"\n" << std::endl;
+
+			// 	std::cout << "react_choice_random: " ;
+			// 	for (int p=0; p<world.FILMSIZE; ++p){
+			// 	std::cout << react_choice_random[p] <<  " ";
+			// 	}
+			// 	std::cout <<"\n" << std::endl;
+			// }
 
 			if(stick_bool){
+				
+				std::vector<double> react_choice_random(world.FILMSIZE, 0);
+				for (int i=0; i<world.FILMSIZE; ++i){
+					if(sticking_acceptList[i] == 1){
+						react_choice_random[i] = rnd();
+					}
+				}
 
 				// std::cout << react_choice <<  std::endl;
+				int react_choice = find_max_position(react_choice_random);
 
 				const int react_type = world.react_type_table[part.id][react_choice];
 
@@ -139,16 +180,18 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 					}
 				}
 			}
-			else{
-				reflect_prob = world.reflect_probability[part.id][react_choice];
-			}
+			// else{
+			// 	reflect_prob = world.reflect_probability[part.id][react_choice];
+			// }
 
 			if (react == false) {
 
 				int reflect_film = find_max_position_int(world.Cells[posInt[0]][posInt[1]][posInt[2]].film);
 				part.E -= world.E_decrease[part.id][reflect_film];
 
-				// const double reflect_prob = world.reflect_probability[part.id][react_choice];
+				const double reflect_prob = world.reflect_probability[part.id][reflect_film];
+
+				// std::cout <<"partid: " << part.id << ";  reflect_film: " << reflect_film << ";  reflect_prob: " << reflect_prob << std::endl;
 				if (reflect_prob > rnd()) {
 
 					if (world.reflect_coefficient < rnd()){
