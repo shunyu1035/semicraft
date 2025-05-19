@@ -38,6 +38,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     // world.print_rn_matrix();
     // world.print_rn_coeffcients();
     // world.print_react_type_table();
+    world.print_reflect_probability();
     world.print_react_yield_p0();
     Species sp("test", 1, world);
     sp.inputParticle(particles);

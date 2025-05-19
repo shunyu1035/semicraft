@@ -208,6 +208,7 @@ public:
 
         // 按三维结构分配 react_table_equation
         reflect_probability.resize(dim0);
+        std::cout << "reflect_probability" ;
         for (ssize_t i = 0; i < dim0; ++i) {
             reflect_probability[i].resize(dim1);
             for (ssize_t j = 0; j < dim1; ++j) {
@@ -215,7 +216,7 @@ public:
                 ssize_t offset = i * dim1 + j;
                 reflect_probability[i][j] = ptr[offset];
 
-                std::cout << "reflect_probability" ;
+                // std::cout << "reflect_probability" ;
                 std::cout << reflect_probability[i][j] << " ";
             }
             std::cout << "\n";
@@ -262,6 +263,7 @@ public:
         // std::cout << "E_decrease dim0: " << dim0 << "dim1: " << dim1 << "\n" << std::end;
         // 按三维结构分配 react_table_equation
         E_decrease.resize(dim0);
+        std::cout << "E_decrease dim0" ;
         for (ssize_t i = 0; i < dim0; ++i) {
             E_decrease[i].resize(dim1);
             for (ssize_t j = 0; j < dim1; ++j) {
@@ -269,7 +271,7 @@ public:
                 ssize_t offset = i * dim1 + j;
                 E_decrease[i][j] = ptr[offset];
 
-                std::cout << "E_decrease dim0" ;
+                // std::cout << "E_decrease dim0" ;
                 std::cout << E_decrease[i][j] << " ";
 
             }
