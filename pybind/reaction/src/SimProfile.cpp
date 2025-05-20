@@ -3,7 +3,7 @@
 
 bool Simulation::need_recompute = false;
 
-int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient, int depo_or_etch, bool redepo,
+int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool redepo,
     bool diffusion, double diffusion_coeffient, int diffusion_distant, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
@@ -11,7 +11,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
 
 
     World world(ni, nj, nk, FILMSIZE, FilmDensity, ArgonID, redepo, diffusion, diffusion_coeffient, diffusion_distant,
-        reflect_coefficient, chemical_angle_v1, chemical_angle_v2);
+        chemical_angle_v1, chemical_angle_v2);
     // world.print_rn_angle();
 
     std::cout << "grid_cross: " << std::endl; 
@@ -34,7 +34,7 @@ int Simulation::runSimulation(int time, int ArgonID, double reflect_coefficient,
     std::cout<<"Running with "<<num_threads<<" threads"<<std::endl;
     world.setNumThreads(num_threads);   //set number of threads to use
 
-    world.set_parameters(react_table_equation, reflect_probability, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients, E_decrease);
+    world.set_parameters(react_table_equation, reflect_probability, reflect_coefficient, react_type_table, react_prob_chemical, react_yield_p0, film_eth, rn_coeffcients, E_decrease);
     // world.print_rn_matrix();
     // world.print_rn_coeffcients();
     // world.print_react_type_table();
@@ -171,6 +171,7 @@ PYBIND11_MODULE(SimProfile, m) {
             py::arg("react_table_equation"),
             py::arg("react_type_table"),
             py::arg("reflect_probability"),
+            py::arg("reflect_coefficient"),
             py::arg("react_prob_chemical"),
             py::arg("react_yield_p0"),
             py::arg("film_eth"),

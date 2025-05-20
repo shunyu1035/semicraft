@@ -190,11 +190,11 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 				part.E -= world.E_decrease[part.id][reflect_film];
 
 				const double reflect_prob = world.reflect_probability[part.id][reflect_film];
-
+				const double reflect_mode = world.reflect_coefficient[part.id][reflect_film];
 				// std::cout <<"partid: " << part.id << ";  reflect_film: " << reflect_film << ";  reflect_prob: " << reflect_prob << std::endl;
 				if (reflect_prob > rnd()) {
 
-					if (world.reflect_coefficient < rnd()){
+					if (reflect_mode < rnd()){
 						part.vel = world.DiffusionReflect(part.vel, world.Cells[posInt[0]][posInt[1]][posInt[2]].normal, rnd);
 					}
 					else{

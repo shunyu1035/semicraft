@@ -56,10 +56,9 @@ public:
 	/*constructor, allocates memory*/
 	World(int ni, int nj, int nk, int FILMSIZE, int FilmDensity, int ArgonID, bool redepo,
 		bool diffusion, double diffusion_coeffient, int diffusion_distant, 
-		double reflect_coefficient,  double chemical_angle_v1, double chemical_angle_v2): 
+		double chemical_angle_v1, double chemical_angle_v2): 
 		rng(), ni(ni), nj(nj), nk(nk), FILMSIZE(FILMSIZE), FilmDensity(FilmDensity), ArgonID(ArgonID), redepo(redepo),
 		diffusion(diffusion), diffusion_coeffient(diffusion_coeffient), diffusion_distant(diffusion_distant), 
-		reflect_coefficient(reflect_coefficient),
 		chemical_angle_v1(chemical_angle_v1), chemical_angle_v2(chemical_angle_v2), 
 		xm({(double)ni,(double)nj,(double)nk}), ijk({ni,nj,nk}), rn_angle(180){
 		for (int i = 0; i < 180; ++i) {
@@ -336,6 +335,7 @@ public:
 	void set_parameters(
 		const std::vector<std::vector<std::vector<int>>>& react_table_equation,
 		const std::vector<std::vector<double>>& reflect_probability,
+		const std::vector<std::vector<double>>& reflect_coefficient,
 		const std::vector<std::vector<int>>& react_type_table,
 		const std::vector<std::vector<double>>& react_prob_chemical,
 		const std::vector<double>& react_yield_p0,
@@ -345,6 +345,7 @@ public:
 	) {
 		this->react_table_equation = react_table_equation;
 		this->reflect_probability = reflect_probability;
+		this->reflect_coefficient = reflect_coefficient;
 		this->react_type_table = react_type_table;
 		this->react_prob_chemical = react_prob_chemical;
 		this->react_yield_p0 = react_yield_p0;
@@ -747,7 +748,7 @@ public:
 	const bool diffusion;
 	int diffusion_distant;
 	// double reflect_probability;
-	double reflect_coefficient;
+	// double reflect_coefficient;
 	// double E_decrease;
 	// std::vector<double> E_decrease;
 	// double chemical_angle_v1;
@@ -760,6 +761,7 @@ public:
     std::vector<std::vector<std::vector<Cell>>> Cells;
 
 	std::vector<std::vector<double>> reflect_probability;
+	std::vector<std::vector<double>> reflect_coefficient;
 	std::vector<std::vector<int>> react_type_table;
 	std::vector<std::vector<std::vector<int>>> react_table_equation;
 	std::vector<double> react_yield_p0;
