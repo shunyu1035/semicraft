@@ -96,7 +96,7 @@ public:
 		}
 	}
 	/*moves all particles */
-	void advance(int reaction_count);
+	void advance(int &reaction_count);
 
 	void showParticleIn(int id){
 		int a = particleIn.size();

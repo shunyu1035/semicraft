@@ -31,7 +31,7 @@ int find_max_position_int(const std::vector<int>& arr) noexcept {
 
 
 
-void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Particle> &particles, int threadID)
+void advanceKernel(size_t p_start, size_t p_end, int &reaction_count_thread, World &world, std::vector<Particle> &particles, int threadID)
 {
 	/*loop over particles in [p_start,p_end)*/
 	for (size_t p = p_start; p<p_end; p++)
@@ -216,27 +216,49 @@ void advanceKernel(size_t p_start, size_t p_end, World &world, std::vector<Parti
 		if (!world.inBounds(part.pos) || react == true || part.E <= 0)
 		{
 			part = world.inletParticle(rnd);
-			continue;
+			// continue;
 		}
+
+		// count reaction particles
+		if (react == true)
+		{
+			reaction_count_thread++;
+			// continue;
+		}
+
 	}
 }
 
-void Species::advance(int reaction_count){
+void Species::advance(int &reaction_count){
 
+	// std::cout << "advace ;"<< reaction_count << std::endl;
 	/*calculate number of particles per thread*/
 	size_t np = particles.size();
 	int n_threads = world.getNumThreads();
+	// int reaction_count_thread = 0;
 	size_t np_per_thread = np/n_threads;
+
+	std::vector<int> reaction_count_thread; 
+	reaction_count_thread.resize(n_threads);
+
 	std::vector<std::thread> threads;
 	for (int i=0;i<n_threads;i++) {
 		size_t p_start = i*np_per_thread;
 		size_t p_end = p_start + np_per_thread;
 		if (i==n_threads-1) p_end = np;	//make sure all particles are captured
-		threads.emplace_back(advanceKernel, p_start, p_end,	std::ref(world), std::ref(particles), i);
+		threads.emplace_back(advanceKernel, p_start, p_end,	std::ref(reaction_count_thread[i]), std::ref(world), std::ref(particles), i);
 	}
 
+	// std::cout << "reaction_count_thread [" << 0 << "]: " << reaction_count_thread[0] <<  std::endl;
 	//wait for threads to finish
 	for (std::thread &t: threads) t.join();
+
+	// std::cout << 'reaction count: ' <<  std::endl;
+	for (int i=0;i<n_threads;i++) {
+		// std::cout << "reaction_count_thread [" << i << "]: " << reaction_count_thread[i] <<  std::endl;
+		reaction_count += reaction_count_thread[i];
+	}
+
 
 	// std::cout << "update_Cells: " << world.update_film_etch.size() << std::endl;
 

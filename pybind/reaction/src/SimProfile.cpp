@@ -45,17 +45,17 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
 
 
 
-    // int reaction_count = 0;
+    int reaction_count = 0;
     // sp.change_cell(5,5,5);
     try {
         for(int t=0; t<time; ++t){
-            int reaction_count = 0;
+            // int reaction_count = 0;
             if (t % 5000 == 0) {  // 只有当 t 是 1000 的整数倍时才打印
                 int film_thick = world.scan_bottom();
-                std::cout << "Running " << t << " step; " << "thickness: " << film_thick  << std::endl;
+                std::cout << "Running " << t << " step; " << "thickness: " << film_thick << "; react_particles_count: " << reaction_count << std::endl;
             }
             // std::cout<<"Running "<< t <<" step; "  <<std::endl;
-            sp.advance(reaction_count);
+            sp.advance(std::ref(reaction_count));
             // if(world.scan_bottom()){
             //     std::cout << "etching reach the bottom;" << std::endl;
             //     break;
@@ -64,12 +64,14 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
             if(depo_or_etch == -1){
                 if(world.scan_stopPoint(stopPointY, stopPointZ)){
                     std::cout << "etching reach the bottom;" << std::endl;
+                    std::cout << "Total: Running " << t << " step; "  << "; react_particles_count: " << reaction_count  << std::endl;
                     break;
                 }
             }
             else if(depo_or_etch == 1){
                 if(world.scan_stopPoint_depo(stopPointY, stopPointZ)){
                     std::cout << "depo reach the top;" << std::endl;
+                    std::cout << "Total: Running " << t << " step; " << "; react_particles_count: " << reaction_count  << std::endl;
                     break;
                 }
             }
