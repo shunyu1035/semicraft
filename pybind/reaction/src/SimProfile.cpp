@@ -40,7 +40,7 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
     // world.print_react_type_table();
     world.print_reflect_probability();
     world.print_react_yield_p0();
-    Species sp("test", 1, world);
+    Species sp("test", 1, world, max_particles);
     sp.inputParticle(particles);
 
 
@@ -150,7 +150,7 @@ PYBIND11_MODULE(SimProfile, m) {
     
         // 绑定 Simulation 类
     py::class_<Simulation>(m, "Simulation")
-        .def(py::init<int, int, int, int, int, int>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"),py::arg("FILMSIZE"),py::arg("FilmDensity"))
+        .def(py::init<int, int, int, int, int, int, size_t>(), py::arg("seed"), py::arg("ni"),py::arg("nj"),py::arg("nk"),py::arg("FILMSIZE"),py::arg("FilmDensity"),py::arg("max_particles"))
         .def("add_particle", &Simulation::addParticle,
              py::arg("pos"), py::arg("vel"), py::arg("E"), py::arg("id"))
         .def("remove_particle", &Simulation::removeParticle,

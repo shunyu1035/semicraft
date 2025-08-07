@@ -32,8 +32,8 @@
 class Species 
 {
 public:
-	Species(std::string name, int id, World &world) :
-	rnd(), name(name), id(id), world(world) { 	}
+	Species(std::string name, int id, World &world, size_t max_particles) :
+	rnd(), name(name), id(id), world(world),  max_particles(max_particles){ 	}
 
 	/*returns the number of simulation particles*/
 	size_t getNp()	{return particles.size();}
@@ -64,7 +64,7 @@ public:
 
 	void inputParticle(std::vector<Particle> particleAll){
 
-		size_t max_particles = 100000;  // 最多取10万
+		// size_t max_particles = 100000;  // 最多取10万
 		size_t half_size = particleAll.size() / 2;  // 或者取前一半
 
 		// 实际取 min(half_size, max_particles) 个
@@ -119,6 +119,7 @@ public:
 
 protected:
 	World &world;
+	size_t max_particles;
 	// std::vector<Particle> particleIn;	/*contiguous array for add*/
 };
 

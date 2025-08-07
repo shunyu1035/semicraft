@@ -117,6 +117,7 @@ private:
 	const int ni,nj,nk;	//number of nodes
     const int FILMSIZE;
     const int FilmDensity;
+    const size_t max_particles;
     std::vector<std::vector<std::vector<int>>> react_table_equation;
     std::vector<std::vector<int>> react_type_table;
     std::vector<std::vector<double>> reflect_probability;
@@ -132,7 +133,7 @@ private:
 
 public:
     // 构造函数：初始化随机数引擎
-    Simulation(int seed, int ni, int nj, int nk, int FILMSIZE, int FilmDensity) : seed(seed), ni{ni}, nj{nj}, nk{nk}, FILMSIZE{FILMSIZE}, FilmDensity{FilmDensity} {}
+    Simulation(int seed, int ni, int nj, int nk, int FILMSIZE, int FilmDensity, size_t max_particles) : seed(seed), ni{ni}, nj{nj}, nk{nk}, FILMSIZE{FILMSIZE}, FilmDensity{FilmDensity}, max_particles{max_particles}{}
 
 
     // 声明一个静态变量用于标记错误状态
