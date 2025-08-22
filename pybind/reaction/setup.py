@@ -13,7 +13,8 @@ ext_modules = [
         # extra_link_args=["-fopenmp"],
         extra_compile_args=["-fopenmp", "-g", "-O3"],
         extra_link_args=["-fopenmp", "-g", "-O3"],
-
+        # extra_compile_args=["-fopenmp", "-g", "-O0"],
+        # extra_link_args=["-fopenmp", "-g", "-O0"],
 
     ),
 ]

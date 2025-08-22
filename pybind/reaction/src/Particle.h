@@ -5,7 +5,7 @@
 #include "Cell.h"
 #include <random>
 #include <algorithm>
-
+#include <chrono>
 // class RndInt {
 // 	public:
 // 		// 默认构造函数：使用随机设备种子
@@ -97,6 +97,8 @@ public:
 	}
 	/*moves all particles */
 	void advance(int &reaction_count);
+
+	int advance_DDA(int &reaction_count, int depo_or_etch, int stopPointY, int stopPointZ);
 
 	void showParticleIn(int id){
 		int a = particleIn.size();

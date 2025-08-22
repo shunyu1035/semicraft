@@ -239,6 +239,10 @@ public:
 			}
 		}
         print_cell();
+
+		top = scan_top();
+
+		std::cout << "World top: " << top << std::endl;
     }
 
 	std::vector<std::vector<std::vector<int>>> output_typeID_in(){
@@ -668,13 +672,19 @@ public:
 
 	void update_Cells_inthread(int3 posInt);
 
+	void update_Cells_inthread_DDA(int3 posInt);
+	
 	void update_Cells_inthread_depo(int3 posInt);
+
+	void update_Cells_inthread_depo_DDA(int3 posInt);
 
 	void get_normal_from_grid(int3 posInt);
 
 	void update_normal_in_matrix();
 
 	void update_normal_in_matrix_inthread(int3 posInt);
+
+	void update_normal_in_matrix_inthread_DDA(int3 posInt);
 
 	int3 find_depo_cell(int3 posInt, Rnd &rnd);
 
@@ -706,6 +716,24 @@ public:
 		}
 
 		return filmThickness;
+	}
+
+	int scan_top(){
+		int top = 0;
+
+		for(int z=0; z<nk; ++z){
+			int sum = 0;
+			for(int x=0; x<ni; ++x)
+				for(int y=0; y<nj; ++y)
+					for(int f=0; f<FILMSIZE; ++f){
+						sum += Cells[x][y][z].film[f];
+					}
+			if(sum <= 0){
+				top = z;
+				break;
+			}
+		}
+		return top;
 	}
 
 	bool scan_stopPoint(int stopPointY, int stopPointZ){
@@ -747,14 +775,10 @@ public:
 	const bool redepo;
 	const bool diffusion;
 	int diffusion_distant;
-	// double reflect_probability;
-	// double reflect_coefficient;
-	// double E_decrease;
-	// std::vector<double> E_decrease;
-	// double chemical_angle_v1;
-	// double chemical_angle_v2;
 	double chemical_angle_v1;
 	double chemical_angle_v2;
+
+	int top;
 	std::vector<std::vector<double>> sputterYield_ion;
 	std::vector<double> sputterYield_theta;
 	// std::vector<std::vector<std::vector<double>>> sputterYield_ion;

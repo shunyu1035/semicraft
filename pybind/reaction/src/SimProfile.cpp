@@ -43,7 +43,7 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
     Species sp("test", 1, world, max_particles);
     sp.inputParticle(particles);
 
-
+    auto t_start = std::chrono::high_resolution_clock::now();
 
     int reaction_count = 0;
     // sp.change_cell(5,5,5);
@@ -56,6 +56,11 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
             }
             // std::cout<<"Running "<< t <<" step; "  <<std::endl;
             sp.advance(std::ref(reaction_count));
+
+            // int ret = sp.advance_DDA(std::ref(reaction_count), depo_or_etch, stopPointY, stopPointZ);
+            // if (ret == 0) {
+            //     break;
+            // }
             // if(world.scan_bottom()){
             //     std::cout << "etching reach the bottom;" << std::endl;
             //     break;
@@ -90,6 +95,9 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
     // sp.advance(reaction_count);
     // world.change_cell(5,5,5);
     // world.WprintCell(5,5,5);  
+    auto t_end = std::chrono::high_resolution_clock::now();
+    double elapsed = std::chrono::duration<double>(t_end - t_start).count();
+    std::cout << "Simulation main loop elapsed time: " << elapsed << " seconds" << std::endl;
 
 
     std::cout << "After advance particle size: " << sp.getNp() <<  std::endl;

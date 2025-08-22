@@ -282,6 +282,90 @@ void World::update_Cells_inthread_depo(int3 posInt){
     // } 
 }
 
+void World::update_Cells_inthread_DDA(int3 posInt){
+
+    Cells[posInt[0]][posInt[1]][posInt[2]].typeID = 0;
+
+    update_normal_in_matrix_inthread_DDA(posInt);
+
+    // if(posInt[2] > top) {
+    //     top = posInt[2];
+    //     std::cout << "World top: " << top << std::endl;
+    // }
+}
+
+
+void World::update_Cells_inthread_depo_DDA(int3 posInt){
+
+    std::vector<int3> local_point_nn;
+    // std::vector<int3> local_point_nn_under;
+    std::vector<int3> local_point_nn_vaccum;
+
+    // for (size_t i=0; i<update_film_etch_size; i++){
+    //     int3 posInt = update_film_etch[i];
+
+        // std::cout << "posInt: " << posInt << std::endl;
+
+    local_point_nn.resize(6);
+    Cells[posInt[0]][posInt[1]][posInt[2]].typeID = 1;
+    for (size_t j=0; j<6; ++j){
+        local_point_nn[j] = mirror_index(posInt + grid_cross[j]);
+        
+
+        // std::cout << "inloop local_point_nn: " << local_point_nn[j] << std::endl;
+
+        if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == 0){
+            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = -1;
+
+            // local_point_nn_under.resize(6);
+            // for (size_t k=0; k<6; ++k){
+            //     local_point_nn_under[k] = mirror_index(local_point_nn[j] + grid_cross[k]);
+            //     if (Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID == 3){
+            //         Cells[local_point_nn_under[k][0]][local_point_nn_under[k][1]][local_point_nn_under[k][2]].typeID = 2;
+            //     }
+            // }
+            // std::cout << "local_point_nn_vaccum: ";
+            // for (size_t q = 0; q < local_point_nn_under.size(); ++q) {
+            //     std::cout << local_point_nn_under[q] << '\n';
+            // }
+            // std::cout << '\n';
+        }
+        else if (Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID == 1) {
+
+            // 先把-1的label变成0
+            Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 2;
+
+            local_point_nn_vaccum.resize(6);
+            for (size_t l=0; l<6; ++l){
+                local_point_nn_vaccum[l] = mirror_index(local_point_nn[j] + grid_cross[l]);
+
+                // std::cout << "local_point_nn_vaccum: " << local_point_nn_vaccum[l] << std::endl;
+                // Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 0;
+                if (Cells[local_point_nn_vaccum[l][0]][local_point_nn_vaccum[l][1]][local_point_nn_vaccum[l][2]].typeID == -1){
+                    // 再把相邻为1的label变为-1
+                    Cells[local_point_nn[j][0]][local_point_nn[j][1]][local_point_nn[j][2]].typeID = 1;
+
+                    break;
+                }
+            }
+
+        }
+    }
+
+    // update_normal_in_matrix();
+    update_normal_in_matrix_inthread(posInt);
+
+    // update_film_etch.resize(0);
+    // } 
+
+    if(posInt[2] > top) {
+        top = posInt[2];
+        std::cout << "World top: " << top << std::endl;
+    }
+}
+
+
+
 
 void World::update_Cells_inthread(int3 posInt){
     std::vector<int3> local_point_nn;
@@ -569,7 +653,38 @@ void World::update_normal_in_matrix_inthread(int3 posInt) {
     }
 }
 
+void World::update_normal_in_matrix_inthread_DDA(int3 posInt) {
+    std::vector<int3> unique_points;
 
+    // size_t update_film_etch_size = update_film_etch.size();
+    // for (int i = 0; i < update_film_etch_size; ++i) {
+    // int3 posInt = update_film_etch[i];
+
+    for (int dx = -3; dx <= 3; ++dx) {
+        for (int dy = -3; dy <= 3; ++dy) {
+            for (int dz = -3; dz <= 3; ++dz) {
+                int xi = posInt[0] + dx;
+                int yi = posInt[1] + dy;
+                int zi = posInt[2] + dz;
+                int3 point = {xi, yi, zi};
+                point = mirror_index(point);
+
+                if (Cells[point[0]][point[1]][point[2]].typeID == 1) {
+                    // int3 point = {xi, yi, zi};
+                    unique_points.push_back(point);
+                }
+                
+            }
+        }
+        // }
+    }
+
+    int unique_points_size = unique_points.size();
+
+    for (int j = 0; j < unique_points_size; ++j) {
+        get_normal_from_grid(unique_points[j]);
+    }
+}
 
 void World::update_normal_in_matrix() {
     std::vector<int3> unique_points;
