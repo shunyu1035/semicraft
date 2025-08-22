@@ -240,7 +240,7 @@ void advanceKernelDDA(size_t p_start, size_t p_end, int &reaction_count_thread, 
 		double reflect_prob = 1.0;
 		Particle &part = particles[p];
 
-		jumpToTopPeriodic(world.ni, world.nj, world.nk, part.pos, part.vel, world.top);
+		// jumpToTopPeriodic(world.ni, world.nj, world.nk, part.pos, part.vel, world.top);
 
 		// int3 posInt = {(int)part.pos[0], (int)part.pos[1], (int)part.pos[2]};
 		// std::cout << "posInt: " << posInt[0] << ", " << posInt[1] << ", " << posInt[2] << std::endl;

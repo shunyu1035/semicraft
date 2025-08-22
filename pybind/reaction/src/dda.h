@@ -6,7 +6,7 @@
 inline bool voxelDDA(const std::vector<std::vector<std::vector<Cell>>>& cells,
                      int nx, int ny, int nz,
                      double3& origin, double3 direction,
-                     int maxSteps = 1000)
+                     int maxSteps = 10000)
 {
     // 起点
     int x = int(std::floor(origin[0]));

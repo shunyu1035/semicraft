@@ -54,18 +54,15 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
                 int film_thick = world.scan_bottom();
                 std::cout << "Running " << t << " step; " << "thickness: " << film_thick << "; react_particles_count: " << reaction_count << std::endl;
             }
-            // std::cout<<"Running "<< t <<" step; "  <<std::endl;
-            sp.advance(std::ref(reaction_count));
+            std::cout<<"Running "<< t <<" step; "  <<std::endl;
+            // sp.advance(std::ref(reaction_count));
 
-            // int ret = sp.advance_DDA(std::ref(reaction_count), depo_or_etch, stopPointY, stopPointZ);
-            // if (ret == 0) {
-            //     break;
-            // }
-            // if(world.scan_bottom()){
-            //     std::cout << "etching reach the bottom;" << std::endl;
-            //     break;
-            // }
+            int ret = sp.advance_DDA(std::ref(reaction_count), depo_or_etch, stopPointY, stopPointZ);
+            if (ret == 0) {
+                break;
+            }
 
+            if(world.top >= 120) break;
             if(depo_or_etch == -1){
                 if(world.scan_stopPoint(stopPointY, stopPointZ)){
                     std::cout << "etching reach the bottom;" << std::endl;
