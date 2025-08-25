@@ -31,7 +31,7 @@ int find_max_position_int(const std::vector<int>& arr) noexcept {
 
 
 
-void advanceKernel(size_t p_start, size_t p_end, int &reaction_count_thread, World &world, std::vector<Particle> &particles, int threadID)
+void advanceKernel(size_t p_start, size_t p_end, int &reaction_count_thread, World &world, std::vector<Particle> &particles, int threadID, bool relax)
 {
 	/*loop over particles in [p_start,p_end)*/
 	for (size_t p = p_start; p<p_end; p++)
@@ -51,9 +51,11 @@ void advanceKernel(size_t p_start, size_t p_end, int &reaction_count_thread, Wor
 			std::vector<int> sticking_acceptList = world.sticking_probability_structed(part, world.Cells[posInt[0]][posInt[1]][posInt[2]], angle_rad, rnd);
 			
 			bool stick_bool = false;
-			for (int s=0; s<world.FILMSIZE; ++s){
-				if(sticking_acceptList[s] == 1){
-					stick_bool = true;
+			if (relax) {
+				for (int s=0; s<world.FILMSIZE; ++s){
+					if(sticking_acceptList[s] == 1){
+						stick_bool = true;
+					}
 				}
 			}
 
@@ -441,7 +443,7 @@ int Species::advance_DDA(int &reaction_count, int depo_or_etch, int stopPointY, 
 	}
 }
 
-void Species::advance(int &reaction_count){
+void Species::advance(int &reaction_count, bool relax){
 
 	// std::cout << "advace ;"<< reaction_count << std::endl;
 	/*calculate number of particles per thread*/
@@ -458,7 +460,7 @@ void Species::advance(int &reaction_count){
 		size_t p_start = i*np_per_thread;
 		size_t p_end = p_start + np_per_thread;
 		if (i==n_threads-1) p_end = np;	//make sure all particles are captured
-		threads.emplace_back(advanceKernel, p_start, p_end,	std::ref(reaction_count_thread[i]), std::ref(world), std::ref(particles), i);
+		threads.emplace_back(advanceKernel, p_start, p_end,	std::ref(reaction_count_thread[i]), std::ref(world), std::ref(particles), i, relax);
 	}
 
 	// std::cout << "reaction_count_thread [" << 0 << "]: " << reaction_count_thread[0] <<  std::endl;

@@ -415,7 +415,7 @@ public:
 
 
     int runSimulation(int time, int ArgonID, int depo_or_etch, bool redepo,
-        bool diffusion, double diffusion_coeffient, int diffusion_distant, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2);
+        bool diffusion, double diffusion_coeffient, int diffusion_distant, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2, int relaxTime);
 
 
     void inputCell(

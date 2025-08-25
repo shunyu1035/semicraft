@@ -4,7 +4,7 @@
 bool Simulation::need_recompute = false;
 
 int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool redepo,
-    bool diffusion, double diffusion_coeffient, int diffusion_distant, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2){
+    bool diffusion, double diffusion_coeffient, int diffusion_distant, int stopPointY, int stopPointZ, double chemical_angle_v1, double chemical_angle_v2, int relaxTime){
     // 注册信号处理器
     // std::signal(SIGSEGV, signalHandler);
     std::signal(SIGSEGV, globalSignalHandler);
@@ -46,23 +46,39 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
     auto t_start = std::chrono::high_resolution_clock::now();
 
     int reaction_count = 0;
+
+    bool relax = false;
     // sp.change_cell(5,5,5);
     try {
+        bool relaxation_printed = false;
         for(int t=0; t<time; ++t){
             // int reaction_count = 0;
             if (t % 5000 == 0) {  // 只有当 t 是 1000 的整数倍时才打印
                 int film_thick = world.scan_bottom();
                 std::cout << "Running " << t << " step; " << "thickness: " << film_thick << "; react_particles_count: " << reaction_count << std::endl;
             }
-            std::cout<<"Running "<< t <<" step; "  <<std::endl;
-            // sp.advance(std::ref(reaction_count));
 
-            int ret = sp.advance_DDA(std::ref(reaction_count), depo_or_etch, stopPointY, stopPointZ);
-            if (ret == 0) {
-                break;
+            if (t > relaxTime && !relaxation_printed) {
+                std::cout << "Relaxation finished at step " << t << std::endl;
+                relax = true;
+                reaction_count = 0;  // 重置反应计数器
+                relaxation_printed = true;
             }
+            /* Advance the simulation */
+            /* the depo or etching process starts after the particle full fill the space*/
+            sp.advance(std::ref(reaction_count), relax);
 
-            if(world.top >= 120) break;
+
+            /* DDA have a problem that sequence of particle depo is depending on the velocity */
+            // std::cout<<"Running "<< t <<" step; "  <<std::endl;
+            // int ret = sp.advance_DDA(std::ref(reaction_count), depo_or_etch, stopPointY, stopPointZ);
+            // if (ret == 0) {
+            //     break;
+            // }
+
+            // if(world.top >= 120) break;
+
+
             if(depo_or_etch == -1){
                 if(world.scan_stopPoint(stopPointY, stopPointZ)){
                     std::cout << "etching reach the bottom;" << std::endl;

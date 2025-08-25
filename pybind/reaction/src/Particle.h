@@ -96,7 +96,7 @@ public:
 		}
 	}
 	/*moves all particles */
-	void advance(int &reaction_count);
+	void advance(int &reaction_count, bool relax);
 
 	int advance_DDA(int &reaction_count, int depo_or_etch, int stopPointY, int stopPointZ);
 
