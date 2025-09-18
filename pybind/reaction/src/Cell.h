@@ -184,14 +184,9 @@ public:
 	}
 
 	bool inFilm(int3 posInt){
-	// 	if (posInt[0] < 0 || posInt[0] >= Cells.size() ||
-    //     posInt[1] < 0 || posInt[1] >= Cells[0].size() ||
-    //     posInt[2] < 0 || posInt[2] >= Cells[0][0].size()) {
-    //     return false; // 超出边界，返回 false
-    // }
-		// int3 posInt = {(int)pos[0], (int)pos[1], (int)pos[2]};
-		// if (Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 1) return true;
 		if (Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 1 || Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 2) return true;
+
+		// if (Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 1 || Cells[posInt[0]][posInt[1]][posInt[2]].typeID == 2 || Cells[posInt[0]][posInt[1]][posInt[2]].typeID == -1) return true;
 		return false;
 	}
 
