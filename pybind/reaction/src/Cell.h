@@ -565,9 +565,10 @@ public:
 
 		for(int i=0; i<FILMSIZE; ++i){
 			double gamma0 = sputter_yield_coefficient[i][0];
-			double f = sputter_yield_coefficient[i][1];
+			double gammaMax_2 = sputter_yield_coefficient[i][1];
 			double thetaMax = sputter_yield_coefficient[i][2];
-			// double f = -std::log(gammaMax / gamma0) / (std::log(std::cos(gammaMax)) + 1 - std::cos(thetaMax));
+			double f = -std::log(gammaMax_2) / (std::log(std::cos(gammaMax_2 * gamma0)) + 1 - std::cos(thetaMax));
+			// f = -np.log(gammaMax_2)/(np.log(np.cos(gammaMax_2*gamma0)) + 1 - np.cos(thetaMax))
 			double s = f * std::cos(thetaMax);
 		
 			std::cout << "gamma0 f thetaMax: " << gamma0 << " " << f <<  " "  << thetaMax <<  " :"  << ":\n" << std::endl;
