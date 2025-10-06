@@ -565,9 +565,10 @@ public:
 
 		for(int i=0; i<FILMSIZE; ++i){
 			double gamma0 = sputter_yield_coefficient[i][0];
-			double gammaMax_2 = sputter_yield_coefficient[i][1];
+			// double gammaMax_2 = sputter_yield_coefficient[i][1];
+			double f = sputter_yield_coefficient[i][1];
 			double thetaMax = sputter_yield_coefficient[i][2];
-			double f = -std::log(gammaMax_2) / (std::log(std::cos(gammaMax_2 * gamma0)) + 1 - std::cos(thetaMax));
+			// double f = -std::log(gammaMax_2) / (std::log(std::cos(gammaMax_2 * gamma0)) + 1 - std::cos(thetaMax));
 			// f = -np.log(gammaMax_2)/(np.log(np.cos(gammaMax_2*gamma0)) + 1 - np.cos(thetaMax))
 			double s = f * std::cos(thetaMax);
 		
@@ -607,11 +608,19 @@ public:
 		return y.back();
 	}
 
+	// // 计算最终的溅射产率
+	// double sputter_yield(int react_choice, double p0, double theta, double energy, const double Eth) {
+	// 	double angle_factor = linear_interpolate_sputter(sputterYield_theta, sputterYield_ion[react_choice], theta);
+	// 	double energy_factor = sputter_yield_energy(energy, Eth);
+	// 	return p0 * angle_factor * energy_factor;
+	// }
+
 	// 计算最终的溅射产率
 	double sputter_yield(int react_choice, double p0, double theta, double energy, const double Eth) {
 		double angle_factor = linear_interpolate_sputter(sputterYield_theta, sputterYield_ion[react_choice], theta);
 		double energy_factor = sputter_yield_energy(energy, Eth);
-		return p0 * angle_factor * energy_factor;
+		double YIELD = p0 * angle_factor;
+		return YIELD * energy_factor;
 	}
 
 
@@ -696,14 +705,14 @@ public:
 		return max_pos;
 	}
 
-	int scan_bottom(){
+	int scan_bottom(int stopPointY){
 		int filmThickness = 0;
 		int centerX = ni/2;
-		int centerY = nj/2;
+		// int centerY = nj/2;
 		for(int z=0; z<nk; ++z){
 			int sum = 0;
 			for(int f=0; f<FILMSIZE; ++f){
-				sum += Cells[centerX][centerY][z].film[f];
+				sum += Cells[centerX][stopPointY][z].film[f];
 			}
 			if(sum <= 0){
 				filmThickness = z;

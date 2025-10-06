@@ -28,7 +28,11 @@ int find_max_position_int(const std::vector<int>& arr) noexcept {
     return max_pos;
 }
 
-
+inline int stochastic_round(double Y, Rnd &rnd) {
+    int m = static_cast<int>(std::floor(Y));
+    double f = Y - m;
+    return m + (rnd() < f ? 1 : 0);
+}
 
 
 void advanceKernel(size_t p_start, size_t p_end, int &reaction_count_thread, World &world, std::vector<Particle> &particles, int threadID, bool relax)
@@ -137,22 +141,33 @@ void advanceKernel(size_t p_start, size_t p_end, int &reaction_count_thread, Wor
 				// physics sputter
 				else if(react_type == 2){
 					double react_yield = world.sputter_yield(react_choice, world.react_yield_p0[react_choice], angle_rad, part.E, world.film_eth[react_choice]);
-					// std::cout << react_yield <<  std::endl;
-					if(react_yield > rnd()){
-						world.film_add(posInt, react_add);
 
+					int yield_int = stochastic_round(react_yield, rnd);
+
+					for (int y=0; y<yield_int; ++y){
+						world.film_add(posInt, react_add);
 						react = true;
-						if (world.redepo == true) {
-							part.id = react_choice;
-							react = false;
-						}
-						// part.id = react_choice;
-						// react = false;
 						if (world.film_empty(posInt)) {
-							// world.update_film_etch_buffers[threadID].push_back(posInt);
 							world.update_Cells_inthread(posInt);
+							break;
 						}
 					}
+
+					// if(react_yield > rnd()){
+					// 	world.film_add(posInt, react_add);
+
+					// 	react = true;
+					// 	if (world.redepo == true) {
+					// 		part.id = react_choice;
+					// 		react = false;
+					// 	}
+					// 	// part.id = react_choice;
+					// 	// react = false;
+					// 	if (world.film_empty(posInt)) {
+					// 		// world.update_film_etch_buffers[threadID].push_back(posInt);
+					// 		world.update_Cells_inthread(posInt);
+					// 	}
+					// }
 				}
 
 				// depo
