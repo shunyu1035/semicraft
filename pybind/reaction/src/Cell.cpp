@@ -104,18 +104,22 @@ std::vector<int> World::sticking_probability_structed(const Particle particle, c
             choice[j] = 10000.0; // choice can be efficient large for no reaction
         }
 
-        if (particle_id == ArgonID) {
-            energy_range = 0;
-            for (int e = 0; e < (int)rn_energy.size(); ++e) {
-                if (particle.E < rn_energy[e]) {
-                    energy_range = e;
-                    // std::cout << "energy_range:  "<< energy_range <<  std::endl;
-                    break;
+        /* for energy ion reflection*/
+        // if (particle_id == ArgonID) {
+        //     energy_range = 0;
+        //     for (int e = 0; e < (int)rn_energy.size(); ++e) {
+        //         if (particle.E < rn_energy[e]) {
+        //             energy_range = e;
+        //             // std::cout << "energy_range:  "<< energy_range <<  std::endl;
+        //             break;
 
-                }
-            }
-            sticking_rate = linear_interp(angle_rad, rn_angle, rn_matrix[energy_range]);
-            // std::cout << "sticking_rate:  "<< sticking_rate <<  std::endl;
+        //         }
+        //     }
+        //     sticking_rate = linear_interp(angle_rad, rn_angle, rn_matrix[energy_range]);
+
+        if (particle_id == ArgonID) {
+            sticking_rate = react_prob_chemical[particle_id][j];
+
         } else if (particle_id < ArgonID) {
             sticking_rate = react_prob_chemical[particle_id][j];
             sticking_rate *= react_prob_chemical_angle(angle_rad);

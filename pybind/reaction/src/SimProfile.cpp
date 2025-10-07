@@ -39,6 +39,7 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
     // world.print_rn_coeffcients();
     // world.print_react_type_table();
     world.print_reflect_probability();
+    world.print_react_prob_chemical();
     world.print_react_yield_p0();
     Species sp("test", 1, world, max_particles);
     sp.inputParticle(particles);
@@ -152,7 +153,6 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
     potential_in = world.output_potential_in();
     film_in = world.output_film_in();
 
-    world.print_react_prob_chemical();
 
     return 0;
 }
