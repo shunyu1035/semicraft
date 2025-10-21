@@ -54,10 +54,14 @@ int Simulation::runSimulation(int time, int ArgonID, int depo_or_etch, bool rede
         bool relaxation_printed = false;
         for(int t=0; t<time; ++t){
             // int reaction_count = 0;
-            if (t % 5000 == 0) {  // 只有当 t 是 1000 的整数倍时才打印
+            if (t % 1000 == 0) {  // 只有当 t 是 1000 的整数倍时才打印
                 int film_thick = world.scan_bottom(stopPointY);
                 std::cout << "Running " << t << " step; " << "thickness: " << film_thick << "; react_particles_count: " << reaction_count << std::endl;
-            
+                // if (film_thick <= stopPointZ && depo_or_etch == -1) {
+                //     std::cout << "etching reach the top;" << std::endl;
+                //     std::cout << "Total: Running " << t << " step; " << "; react_particles_count: " << reaction_count  << std::endl;
+                //     break;
+                // }
 
                 // if(film_thick >= 20){
                 //     std::cout << "depo reach the top;" << std::endl;

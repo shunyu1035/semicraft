@@ -142,6 +142,7 @@ void advanceKernel(size_t p_start, size_t p_end, int &reaction_count_thread, Wor
 				else if(react_type == 2){
 					double react_yield = world.sputter_yield(react_choice, world.react_yield_p0[react_choice], angle_rad, part.E, world.film_eth[react_choice]);
 
+					/* 1 ion sputter multiple atoms*/
 					int yield_int = stochastic_round(react_yield, rnd);
 
 					for (int y=0; y<yield_int; ++y){
@@ -153,6 +154,7 @@ void advanceKernel(size_t p_start, size_t p_end, int &reaction_count_thread, Wor
 						}
 					}
 
+					/* for redepo 1 ion sputter 1 atom*/
 					// if(react_yield > rnd()){
 					// 	world.film_add(posInt, react_add);
 
