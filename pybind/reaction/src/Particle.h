@@ -1,3 +1,14 @@
+/***************
+* Particle.h
+ *     Project: SimProfile
+ *     Author: Yao Shunyu
+
+****************/
+
+
+
+
+
 /*Defines flying material data*/
 #include <iostream>
 #include <vector>

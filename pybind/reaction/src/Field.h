@@ -1,3 +1,15 @@
+/***************
+* Field.h
+ *     Project: SimProfile
+ *     Author: Yao Shunyu
+ *     reference: Plasma Simulation by Example Lubos Brieda
+
+****************/
+
+
+
+
+
 /*Field is a container for mesh node data division by volume*/
 #ifndef _FIELD_H
 #define _FIELD_H

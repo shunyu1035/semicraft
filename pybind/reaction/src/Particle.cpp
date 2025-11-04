@@ -1,3 +1,14 @@
+/***************
+* Particle.cpp
+ *     Project: SimProfile
+ *     Author: Yao Shunyu
+
+****************/
+
+
+
+
+
 /*definitions for species functions*/
 #include <math.h>
 #include <thread>
