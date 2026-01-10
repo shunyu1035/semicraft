@@ -17,6 +17,9 @@
 mono_crash.*
 
 # Build results
+dist/
+.venv-test/
+.github/
 build/
 *.egg-info/
 results/npzData/

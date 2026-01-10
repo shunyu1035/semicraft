@@ -46,11 +46,13 @@ class build_ext(_build_ext):
 
 eigen_dir = os.environ.get('EIGEN3_INCLUDE_DIR', r"E:\deps\eigen-3.4.0")
 
+src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "src"))
+
 ext_modules = [
     Pybind11Extension(
         "semicraft",
         sorted(glob("src/*.cpp")),  # all source files
-        include_dirs=[eigen_dir],
+        include_dirs=[eigen_dir, src_dir],
     ),
 ]
 
