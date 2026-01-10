@@ -8,7 +8,7 @@ import cv2
 import postProcess as PostProcess
 import particleGenerator as particleGenerator
 
-import SimProfile
+import semicraft
 
 
 def trainProfile(iter, preTrain_input, path):
@@ -641,7 +641,7 @@ def trainProfile(iter, preTrain_input, path):
         # max_particles = 1024000
         # max_particles = 2048000
         max_particles = 4096000
-        simulation = SimProfile.Simulation(seed, cellSizeX, cellSizeY, cellSizeZ, FILMSIZE, density, max_particles)
+        simulation = semicraft.Simulation(seed, cellSizeX, cellSizeY, cellSizeZ, FILMSIZE, density, max_particles)
 
         simulation.set_all_parameters(react_table_equation, react_type_table, reflect_probability, reflect_coefficient,
                                     react_prob_chemical, react_yield_p0, 
