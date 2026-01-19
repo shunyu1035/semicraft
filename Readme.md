@@ -11,9 +11,9 @@ SimProfile / semicraft
 
 - 从源码安装（开发者/需要本地扩展时）：
 
-	pip install -r requirements.txt
-    pip install semicraft
-	pip install -e .
+	- pip install -r requirements.txt
+    - pip install semicraft
+	- pip install -e .
 
 快速复现论文结果
 ------------------
