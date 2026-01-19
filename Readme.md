@@ -1,7 +1,7 @@
 SimProfile / semicraft
 =====================
 
-本仓库包含用于论文 "SimProfile: A Monte Carlo Surface Profile Simulator with Data-Driven Parameter Calibration" 的开源代码与示例（https://doi.org/10.20944/preprints202510.1834.v1）。
+本仓库包含用于论文 "SimProfile: A Monte Carlo Surface Profile Simulator with Data-Driven Parameter Calibration" 的开源代码与示例 DOI: https://doi.org/10.20944/preprints202510.1834.v1
 
 安装
 ----
@@ -11,9 +11,8 @@ SimProfile / semicraft
 
 - 从源码安装（开发者/需要本地扩展时）：
 
-	python -m venv .venv
-	.venv\Scripts\activate
 	pip install -r requirements.txt
+    pip install semicraft
 	pip install -e .
 
 快速复现论文结果

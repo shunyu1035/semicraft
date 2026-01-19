@@ -2,3 +2,4 @@ numpy
 scikit-optimize
 pyvista[all]
 numba
+pybind11
