@@ -31,7 +31,7 @@ SimProfile / semicraft
 ----
 如果您在学术工作中使用此代码，请引用：
 
-SimProfile: A Monte Carlo Surface Profile Simulator with Data-Driven Parameter Calibration — https://doi.org/10.20944/preprints202510.1834.v1
+Yao,  S. SimProfile: A Monte Carlo Surface Profile Simulator with Data-Driven Parameter Calibration. Preprints 2025, 2025101834. https://doi.org/10.20944/preprints202510.1834.v1
 
 作者
 ----
