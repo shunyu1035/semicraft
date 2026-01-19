@@ -13,7 +13,6 @@ SimProfile / semicraft
 
 	- pip install -r requirements.txt
     - pip install semicraft
-	- pip install -e .
 
 快速复现论文结果
 ------------------
